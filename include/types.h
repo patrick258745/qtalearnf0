@@ -13,51 +13,55 @@
 #include <string>
 
 /********** qta2f0 types **********/
-typedef double 						target_t;
-typedef double 						time_t;
-typedef double 						frequency_t;
-typedef std::vector<time_t> 		time_v;
-typedef std::vector<frequency_t> 	frequency_v;
+typedef double 					target_t;
+typedef double 					time_t;
+typedef double 					freq_t;
+typedef double 					state_t;
+typedef double 					coeff_t;
+typedef std::vector<time_t>		time_v;
+typedef std::vector<state_t>	state_v;
+typedef std::vector<freq_t> 	freq_v;
+typedef std::vector<coeff_t>	coeff_v;
 
-struct parameter_s
+struct param_s
 {
 	target_t slope;
 	target_t offset;
 	target_t strength;
 };
 
-struct bounds_s
+struct bound_s
 {
-	parameter_s lower;
-	parameter_s upper;
+	param_s lower;
+	param_s upper;
 };
 
 /********** qtadata types **********/
-const unsigned int NUM_PHONEMES_ONSET		= 3;
-const unsigned int NUM_PHONEMES_CODA		= 4;
-const unsigned int NUM_PHONEMES				= NUM_PHONEMES_ONSET + NUM_PHONEMES_CODA + 1;
+const unsigned int NUMPHONONSET	= 3;
+const unsigned int NUMPHONCODA	= 4;
+const unsigned int NUMPHON		= NUMPHONONSET + NUMPHONCODA + 1;
 
-const unsigned int NUM_VOWEL_FEATURES		= 5;
-const unsigned int NUM_CONSONANT_FEATURES	= 7;
-const unsigned int NUM_PHONETIC_FEATURES	= NUM_CONSONANT_FEATURES*(NUM_PHONEMES_ONSET+NUM_PHONEMES_CODA) + 1*NUM_VOWEL_FEATURES;
-const unsigned int NUM_ACCENT_FEATURES		= 3;
-const unsigned int NUM_POSITION_FEATURES	= 8;
-const unsigned int NUM_SYLLABLE_FEATURES	= NUM_PHONETIC_FEATURES + NUM_ACCENT_FEATURES + NUM_POSITION_FEATURES;
+const unsigned int NUMFEATVOW	= 5;
+const unsigned int NUMFEATCON	= 7;
+const unsigned int NUMFEATPHON	= NUMFEATCON*(NUMPHONONSET+NUMPHONCODA) + 1*NUMFEATVOW;
+const unsigned int NUMFEATACC	= 3;
+const unsigned int NUMFEATPOS	= 8;
+const unsigned int NUMFEATSYL	= NUMFEATPHON + NUMFEATACC + NUMFEATPOS;
 
-typedef signed int 				feature_t;
-typedef std::vector<feature_t> 	phoneme_feature_v;
-typedef std::vector<feature_t>	accent_feature_v;
-typedef std::vector<feature_t>	position_feature_v;
+typedef signed int 				feat_t;
+typedef std::vector<feat_t> 	phon_feat_v;
+typedef std::vector<feat_t>		acc_feat_v;
+typedef std::vector<feat_t>		pos_feat_v;
 
-struct syllable_feature_s
+struct syl_feat_s
 {
-	std::vector<phoneme_feature_v> 	phonemes;
-	accent_feature_v 				accents;
-	position_feature_v 				positions;
+	std::vector<phon_feat_v> 	phonemes;
+	acc_feat_v 					accents;
+	pos_feat_v 					positions;
 };
 
-typedef std::vector<syllable_feature_s>			word_feature_v;
-typedef std::map<std::string, word_feature_v> 	feature_m;
+typedef std::vector<syl_feat_s>				word_feat_v;
+typedef std::map<std::string, word_feat_v> 	feat_m;
 
 typedef std::vector<target_t>			target_v;
 typedef std::map<std::string, target_v>	target_m;
