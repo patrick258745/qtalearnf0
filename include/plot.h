@@ -9,6 +9,7 @@
 #define PLOT_H_
 
 #include "types.h"
+#include "utilities.h"
 
 
 

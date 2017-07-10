@@ -9,9 +9,9 @@
 #define SEARCH_H_
 
 #include "types.h"
+#include "utilities.h"
 
-class CdlpFilter
-{
+class CdlpFilter {
 public:
 	// public member functions
 	CdlpFilter (const unsigned& filterOrder, const state_v& initState, const time_t& initTime = 0.0);
@@ -32,8 +32,7 @@ private:
 	time_t		m_initTime;
 };
 
-class QtaErrorFunction
-{
+class QtaErrorFunction {
 public:
 	// public member functions
 	QtaErrorFunction (const unsigned& filterOrder, const state_v& initialState, const time_t& sampleTimes, const freq_v& origF0);
@@ -56,8 +55,7 @@ private:
 	freq_v		m_origF0;
 };
 
-class PraatFileIo
-{
+class PraatFileIo {
 public:
 	// public member functions
 	void read_praat_file(QtaErrorFunction& paramSearch, bound_s& searchSpace, const std::string corpusDir);
@@ -69,8 +67,7 @@ private:
 	time_t sylEndTime;
 };
 
-class Optimizer
-{
+class Optimizer {
 
 };
 

@@ -1,5 +1,6 @@
 #include <stdlib.h>	// exit()
 #include <iostream>
+#include <exception>
 #include <dlib/statistics.h>
 #include "search.h"
 
@@ -8,8 +9,7 @@ CdlpFilter::CdlpFilter (const unsigned& filterOrder, const state_v& initState, c
 {
 	if (m_filterOrder != m_initState.size())
 	{
-		std::cerr << "Error: Initial state has size " << m_initState.size() << " but filter order is " << m_filterOrder << "!"  << std::endl;
-		exit (EXIT_FAILURE);
+		throw util::Exception("Initial state size doesn't match filter order: " + m_filterOrder + " != " + m_initState.size());
 	}
 }
 
@@ -18,7 +18,6 @@ QtaErrorFunction::QtaErrorFunction (const unsigned& filterOrder, const state_v& 
 {
 	if (m_sampleTimes.size() != m_origF0.size())
 	{
-		std::cerr << "Error: Original f0 samples doesn't match its sample times: " << m_origF0.size() << " != " << m_sampleTimes.size() << std::endl;
-		exit (EXIT_FAILURE);
+		throw util::Exception("Original f0 samples doesn't match its sample times: " + m_origF0.size() + " != " << m_sampleTimes.size());
 	}
 }
