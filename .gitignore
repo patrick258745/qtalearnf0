@@ -26,4 +26,12 @@
 *.a
 *.lib
 
+# Executables
+bin/*
+
+# Eclipse
+.settings/*
+.cproject
+.project
+
 
