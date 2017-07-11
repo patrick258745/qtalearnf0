@@ -14,6 +14,8 @@
 
 namespace util {
 
+/********** exceptions **********/
+
 class ExitOnError : public std::exception {
 public:
 	ExitOnError(const std::string& msg): m_message(msg) {}
@@ -39,6 +41,10 @@ public:
 protected:
 	std::string m_message;
 };
+
+/********** math operations **********/
+double binomial (const unsigned &n, const unsigned &k);
+double factorial (unsigned n);
 
 }
 

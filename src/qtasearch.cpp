@@ -97,11 +97,20 @@ int main(int argc, char* argv[])
 		}
 
 		/********** main script **********/
-		param_v optParams;
+		param_v optParams ({0.0,0.0,0.0});
 		bound_s searchSpace;
 		PraatFileIo praatFiles;
 		QtaErrorFunction qtaError;
 		Optimizer paramSearch;
+
+		// DEBUG: test without praat
+		searchSpace.lower = {-100,-200,-300};
+		searchSpace.upper = {100,200,300};
+		signal_s testSig;
+		testSig.sampleTimes = {1,2,3,4,5,6,7,8,9,10};
+		testSig.sampleValues = {91,90,90,94,90,95,90,90,92,90};
+		state_v testState ({50,30,450,560,780});
+		qtaError.initialize(testSig,testState,0.5);
 
 		// get optimal qta parameters
 		if (task == "search")
@@ -116,6 +125,8 @@ int main(int argc, char* argv[])
 
 		// save results to praat file
 		praatFiles.write_praat_file(qtaError, optParams, corpusPath);
+
+		std::cout << optParams << std::endl;
 
 		/*********************************/
 	}
