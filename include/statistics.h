@@ -5,8 +5,8 @@
  *      Author: Patrick Schmager
  */
 
-#ifndef PLOT_H_
-#define PLOT_H_
+#ifndef STATISTICS_H_
+#define STATISTICS_H_
 
 #include "types.h"
 #include "utilities.h"
@@ -14,4 +14,4 @@
 
 
 
-#endif /* PLOT_H_ */
+#endif /* STATISTICS_H_ */
