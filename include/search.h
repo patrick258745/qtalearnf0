@@ -13,63 +13,77 @@
 
 class CdlpFilter {
 public:
-	// public member functions
-	CdlpFilter (const unsigned& filterOrder, const state_v& initState, const stime_t& initTime = 0.0);
-	void set_order (const unsigned& filterOrder) { m_filterOrder = filterOrder; };
-	void set_init_state (const state_v& initState) { m_initState = initState; };
-	void set_init_time (const state_v& initTime) { m_initState = initTime; };
+	// constructors
+	CdlpFilter () : m_filterOrder(0), m_initTime(0.0) {};
+	CdlpFilter (const unsigned& filterOrder, const state_v& initState, const double& initTime = 0.0);
 
-	void calc_f0 (freq_v& freqResp, const stime_v& sampleTimes, const param_s& qtaParams) const;
-	void calc_state (state_v& currState, const stime_t& currTime, const param_s& qtaParams) const;
+	// get and sets
+	void set_order (const unsigned& filterOrder) { m_filterOrder = filterOrder; };
+	void set_init_time (const state_v& initTime) { m_initState = initTime; };
+	void set_init_state (const state_v& initState) { m_initState = initState; };
+
+	// public member functions
+	void calc_f0 (signal_s& freqResp, const param_v& qtaParams) const;
+	void calc_state (state_v& currState, const double& currTime, const param_v& qtaParams) const;
 
 private:
 	// private member functions
-	void calc_filter_coeffs (coeff_v& filterCoeffs, const param_s& qtaParams) const;
+	void calc_filter_coeffs (coeff_v& filterCoeffs, const param_v& qtaParams) const;
 
 	// data members
 	unsigned	m_filterOrder;
 	state_v		m_initState;
-	stime_t		m_initTime;
+	double		m_initTime;
 };
 
 class QtaErrorFunction {
 public:
+	// constructors
+	QtaErrorFunction () {};
+	QtaErrorFunction (const unsigned& filterOrder, const state_v& initialState, const signal_s& origF0);
+
+	// gets and sets
+	void set_filter (const unsigned& filterOrder, const state_v& initialState);
+	void set_orig_f0 (const signal_s& origF0);
+	void get_filter_state (state_v& currState, const double& currTime, const param_v& qtaParams) const;
+
 	// public member functions
-	QtaErrorFunction (const unsigned& filterOrder, const state_v& initialState, const stime_t& sampleTimes, const freq_v& origF0);
-	void set_filter (unsigned filterOrder, state_v initialState);
-	void set_sample_times (stime_v& sampleTimes) { m_sampleTimes = sampleTimes; };
-	void set_orig_f0 (freq_v& origF0) { m_origF0 = origF0; };
-	void get_filter_state (state_v& currState, const stime_t& currTime, const param_s& qtaParams) const;
-
-	double sum_square_error (const param_s& qtaParams) const;
-	double maximum_norm_error (const param_s& qtaParams) const;
-	double root_mean_square_error (const param_s& qtaParams) const;
-	double correlation_coeff (const param_s& qtaParams) const;
-
-	double operator() ( const param_s& arg) const;
+	double operator() ( const param_v& arg) const;
 
 private:
+	// private member functions
+	double mean_squared_error (const param_v& qtaParams) const;
+	double root_mean_squared_error (const param_v& qtaParams) const;
+	double maximum_norm_error (const param_v& qtaParams) const;
+	double correlation_coeff (const param_v& qtaParams) const;
+
 	// data members
 	CdlpFilter	m_lowPassFilter;
-	stime_v		m_sampleTimes;
-	freq_v		m_origF0;
+	signal_s	m_origF0;
 };
 
 class PraatFileIo {
 public:
+	// constructors
+	PraatFileIo () : m_sylEndTime(0.0) {};
+
 	// public member functions
-	void read_praat_file(QtaErrorFunction& paramSearch, bound_s& searchSpace, const std::string corpusDir);
-	void read_praat_file(QtaErrorFunction& paramPredict, param_s& optParams, const std::string corpusDir);
-	void write_praat_file(const QtaErrorFunction& paramSearchPredict, const param_s& optParams, const std::string corpusDir) const;
+	void read_praat_file(QtaErrorFunction& qtaError, bound_s& searchSpace, const std::string corpusDir);
+	void read_praat_file(QtaErrorFunction& qtaError, param_v& optParams, const std::string corpusDir);
+	void write_praat_file(const QtaErrorFunction& qtaError, const param_v& optParams, const std::string corpusDir) const;
 
 private:
 	// data members
-	time_t sylEndTime;
+	time_t m_sylEndTime;
 };
 
 class Optimizer {
+public:
+	// constructors
+	Optimizer () {};
 
+	// public member functions
+	static void optimize(param_v& optParams, const QtaErrorFunction& qtaError, const bound_s& searchSpace);
 };
-
 
 #endif /* SEARCH_H_ */

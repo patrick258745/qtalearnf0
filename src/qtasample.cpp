@@ -11,8 +11,8 @@ static void show_usage(std::string name)
     std::cerr << "Usage: " << name << " [OPTIONS]...\n"
               << "\nOptions:\n"
               << "\t-h, (help)\t\tShow this help message\n"
-              << "\t-s FILE, (sampa-file)\tSpecify file with SAMPA transcriptions\n"
-			  << "\t-t FILE, (target-file)\tSpecify file with optimal qTA parameters\n"
+              << "\t-f FILE, (sampa-file)\tSpecify file with SAMPA transcriptions\n"
+			  << "\t-q FILE, (target-file)\tSpecify file with optimal qTA parameters\n"
 			  << "\t-o DIR, (output)\tSpecify directory for output files\n"
 			  << "\nExamples:\n"
 			  << "\t" << name << " -s <sampa-file> -t <target-file> -d <path-to-output-dir>\n"
@@ -22,7 +22,7 @@ static void show_usage(std::string name)
 /***** command line processing; returns 1 for help *****/
 static int parse_command_line(int argc, char* argv[], std::string &sampaFile, std::string &targetFile, std::string &outputPath)
 {
-	/***** command line parsing *****/
+	// command line arguemnts
 	unsigned hFlag = 0;		// help flag
 	char *fValue = NULL;	// sampa file (input)
 	char *qValue = NULL;	// target file (input)
@@ -30,7 +30,7 @@ static int parse_command_line(int argc, char* argv[], std::string &sampaFile, st
 	int clArgument;
 
 	// get command line arguments
-	while ((clArgument = getopt(argc, argv, "hs:t:o:")) != -1)
+	while ((clArgument = getopt(argc, argv, "hf:q:o:")) != -1)
 	{
 		switch (clArgument)
 		{
@@ -47,13 +47,13 @@ static int parse_command_line(int argc, char* argv[], std::string &sampaFile, st
 			oValue = optarg;
 			break;
 		case '?':
-			throw util::CommandLineError("Wrong option specifier!");
+			throw util::CommandLineError("[parse_command_line] Wrong option specifier!");
 		default:
-			throw util::CommandLineError("Unknown error occurred in getopt()!");
+			throw util::CommandLineError("[parse_command_line] Wrong usage of command line options!");
 		}
 	}
 
-	// evaluate command line arguments
+	// check command line arguments
 	if (hFlag)
 	{
 		return 1;
@@ -61,13 +61,19 @@ static int parse_command_line(int argc, char* argv[], std::string &sampaFile, st
 
 	if (argc != 7)
 	{
-		throw util::CommandLineError("Wrong number of command line arguments!");
+		throw util::CommandLineError("[parse_command_line] Wrong number of command line arguments!");
+	}
+
+	if (qValue == NULL || fValue == NULL || oValue == NULL)
+	{
+		throw util::CommandLineError("[parse_command_line] Missing command line option!");
 	}
 
 	// process command line arguments
 	sampaFile = std::string(fValue);
 	targetFile = std::string(qValue);
 	outputPath = std::string(oValue);
+
 	if (outputPath.back() != '/')
 	{
 		outputPath += "/";
@@ -93,25 +99,27 @@ int main(int argc, char* argv[])
 			return 0;
 		}
 
-		/***** main script *****/
+		/********** main script **********/
+		// DataAssembler trainFileGen (sampleFile, targetFile);
+		// trainFileGen.store_sample_files(outputPath);
 
-		/***********************/
+		/*********************************/
 
 	}
 	catch (util::CommandLineError& err)
 	{
-		std::cerr << "Error while processing command line arguments!\n"  << err.what() << std::endl;
+		std::cerr << "[main] Error while processing command line arguments!\n"  << err.what() << std::endl;
 		show_usage(argv[0]);
 		return 1;
 	}
 	catch (util::ExitOnError& err)
 	{
-		std::cerr << "Program was terminated because an error occurred!\n" << err.what() << std::endl;
+		std::cerr << "[main] Program was terminated because an error occurred!\n" << err.what() << std::endl;
 		return 1;
 	}
 	catch (std::exception& e)
 	{
-		std::cerr << "Program was terminated because an unhandled exception occurred!\n" << e.what() << std::endl;
+		std::cerr << "[main] Program was terminated because an unhandled exception occurred!\n" << std::endl;
 		std::terminate();
 	}
 

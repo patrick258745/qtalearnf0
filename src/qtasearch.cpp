@@ -3,6 +3,7 @@
 #include <string>
 #include <utilities.h>
 #include <types.h>
+#include "search.h"
 
 /***** print out usage information *****/
 static void show_usage(std::string name)
@@ -21,6 +22,7 @@ static void show_usage(std::string name)
 /***** command line processing; returns 1 for help *****/
 static int parse_command_line(int argc, char* argv[], std::string &task, std::string &corpusPath)
 {
+	// command line arguments
 	unsigned hFlag = 0;		// help flag
 	char *tValue = NULL;	// task specifier
 	char *dValue = NULL;	// corpus directory (input)
@@ -41,13 +43,13 @@ static int parse_command_line(int argc, char* argv[], std::string &task, std::st
 			tValue = optarg;
 			break;
 		case '?':
-			throw util::CommandLineError("Wrong option specifier!");
+			throw util::CommandLineError("[parse_command_line] Wrong option specifier!");
 		default:
-			throw util::CommandLineError("Unknown error occurred in getopt()!");
+			throw util::CommandLineError("[parse_command_line] Unknown error occurred in getopt()!");
 		}
 	}
 
-	// evaluate command line arguments
+	// check command line arguments
 	if (hFlag)
 	{
 		return 1;
@@ -55,12 +57,18 @@ static int parse_command_line(int argc, char* argv[], std::string &task, std::st
 
 	if (argc != 5)
 	{
-		throw util::CommandLineError("Wrong number of command line arguments!");
+		throw util::CommandLineError("[parse_command_line] Wrong usage of command line options!");
+	}
+
+	if (tValue == NULL || dValue == NULL)
+	{
+		throw util::CommandLineError("[parse_command_line] Missing command line option!");
 	}
 
 	// process command line arguments
 	task = std::string(tValue);
 	corpusPath = std::string(dValue);
+
 	if (corpusPath.back() != '/')
 	{
 		corpusPath += "/";
@@ -68,7 +76,7 @@ static int parse_command_line(int argc, char* argv[], std::string &task, std::st
 
 	if ( !(task == "search" || task == "predict") )
 	{
-		throw util::CommandLineError("Wrong task specified! " + task);
+		throw util::CommandLineError("[parse_command_line] Wrong task specified! " + task);
 	}
 
 	return 0;
@@ -88,31 +96,43 @@ int main(int argc, char* argv[])
 			return 0;
 		}
 
-		/***** main script *****/
+		/********** main script **********/
+		param_v optParams;
+		bound_s searchSpace;
+		PraatFileIo praatFiles;
+		QtaErrorFunction qtaError;
+		Optimizer paramSearch;
+
+		// get optimal qta parameters
 		if (task == "search")
 		{
-			;
+			praatFiles.read_praat_file(qtaError, searchSpace, corpusPath);
+			paramSearch.optimize(optParams, qtaError, searchSpace);
 		}
 		else if (task == "predict")
 		{
-			;
+			praatFiles.read_praat_file(qtaError, optParams, corpusPath);
 		}
-		/***********************/
+
+		// save results to praat file
+		praatFiles.write_praat_file(qtaError, optParams, corpusPath);
+
+		/*********************************/
 	}
 	catch (util::CommandLineError& err)
 	{
-		std::cerr << "Error while processing command line arguments!\n"  << err.what() << std::endl;
+		std::cerr << "[main] Error while processing command line arguments!\n"  << err.what() << std::endl;
 		show_usage(argv[0]);
 		return 1;
 	}
 	catch (util::ExitOnError& err)
 	{
-		std::cerr << "Program was terminated because an error occurred!\n" << err.what() << std::endl;
+		std::cerr << "[main] Program was terminated because an error occurred!\n" << err.what() << std::endl;
 		return 1;
 	}
 	catch (std::exception& e)
 	{
-		std::cerr << "Program was terminated because an unhandled exception occurred!\n" << e.what() << std::endl;
+		std::cerr << "[main] Program was terminated because an unhandled exception occurred!\n" << e.what() << std::endl;
 		std::terminate();
 	}
 

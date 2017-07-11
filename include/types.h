@@ -11,47 +11,48 @@
 #include <map>
 #include <vector>
 #include <string>
+#include <dlib/matrix.h>
 
 /********** qta2f0 types **********/
-typedef double 					target_t;
-typedef double 					stime_t;
-typedef double 					freq_t;
-typedef double 					state_t;
-typedef double 					coeff_t;
-typedef std::vector<time_t>		stime_v;
-typedef std::vector<state_t>	state_v;
-typedef std::vector<freq_t> 	freq_v;
-typedef std::vector<coeff_t>	coeff_v;
+typedef dlib::matrix<double,0,1> col_vec;
 
-struct param_s
-{
-	target_t slope;
-	target_t offset;
-	target_t strength;
-};
+typedef col_vec	time_v;
+typedef col_vec	state_v;
+typedef col_vec freq_v;
+typedef col_vec	coeff_v;
+typedef col_vec	param_v;
 
 struct bound_s
 {
-	param_s lower;
-	param_s upper;
+	param_v lower;
+	param_v upper;
+};
+
+struct signal_s
+{
+	time_v sampleTimes;
+	freq_v sampleValues;
 };
 
 /********** qtadata types **********/
-const unsigned int NUMPHONONSET	= 3;
-const unsigned int NUMPHONCODA	= 4;
-const unsigned int NUMPHON		= NUMPHONONSET + NUMPHONCODA + 1;
+typedef const unsigned int glob_const;
 
-const unsigned int NUMFEATVOW	= 5;
-const unsigned int NUMFEATCON	= 7;
-const unsigned int NUMFEATPHON	= NUMFEATCON*(NUMPHONONSET+NUMPHONCODA) + 1*NUMFEATVOW;
-const unsigned int NUMFEATACC	= 3;
-const unsigned int NUMFEATPOS	= 8;
-const unsigned int NUMFEATSYL	= NUMFEATPHON + NUMFEATACC + NUMFEATPOS;
+glob_const NUMPHONONSET	= 3;
+glob_const NUMPHONCODA	= 4;
+glob_const NUMPHON		= NUMPHONONSET + NUMPHONCODA + 1;
 
-typedef signed int 				feat_t;
-typedef std::vector<feat_t> 	phon_feat_v;
-typedef std::vector<feat_t>		acc_feat_v;
-typedef std::vector<feat_t>		pos_feat_v;
+glob_const NUMFEATVOW	= 5;
+glob_const NUMFEATCON	= 7;
+glob_const NUMFEATPHON	= NUMFEATCON*(NUMPHONONSET+NUMPHONCODA) + 1*NUMFEATVOW;
+glob_const NUMFEATACC	= 3;
+glob_const NUMFEATPOS	= 8;
+glob_const NUMFEATSYL	= NUMFEATPHON + NUMFEATACC + NUMFEATPOS;
+
+typedef signed int 			feat_t;
+typedef double				target_t;
+typedef std::vector<feat_t> phon_feat_v;
+typedef std::vector<feat_t>	acc_feat_v;
+typedef std::vector<feat_t>	pos_feat_v;
 
 struct syl_feat_s
 {

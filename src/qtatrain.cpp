@@ -12,19 +12,20 @@ static void show_usage(std::string name)
               << "\t-h, (help)\t\tShow this help message\n"
               << "\t-t STRING, (task)\t{training,prediction,cross-validation,model-selection}\n"
 			  << "\t-a STRING, (algorithm)\tChoose Machine Learning algorithm\n"
-			  << "\t-i FILE, (input)\tSpecify sample file\n"
+			  << "\t-f FILE, (input)\tSpecify sample file\n"
 			  << "\t-d DIR, (directory)\tSpecify parent directory for input/output data\n"
 			  << "\nExamples:\n"
-			  << "\t" << name << " -t training -i <training-file> -d <path-to-parent-dir> -a svr\n"
-			  << "\t" << name << " -t prediction -i <test-file> -d <path-to-parent-dir> -a mlp\n"
-			  << "\t" << name << " -t cross-validation-i <sample-file> -d <path-to-parent-dir> -a lrr\n"
-			  << "\t" << name << " -t model-selection -i <sample-file> -d <path-to-parent-dir> -a rbf\n"
+			  << "\t" << name << " -t training -f <training-file> -d <path-to-parent-dir> -a svr\n"
+			  << "\t" << name << " -t prediction -f <test-file> -d <path-to-parent-dir> -a mlp\n"
+			  << "\t" << name << " -t cross-validation -f <sample-file> -d <path-to-parent-dir> -a lrr\n"
+			  << "\t" << name << " -t model-selection -f <sample-file> -d <path-to-parent-dir> -a rbf\n"
               << std::endl;
 }
 
 /***** command line processing; returns 1 for help *****/
 static int parse_command_line(int argc, char* argv[], std::string &task, std::string &sampleFile, std::string &outputPath, std::string &algorithm)
 {
+	// command line arguments
 	unsigned hFlag = 0;		// help flag
 	char *tValue = NULL;	// task
 	char *fValue = NULL;	// input file
@@ -33,7 +34,7 @@ static int parse_command_line(int argc, char* argv[], std::string &task, std::st
 	int clArgument;
 
 	// get command line arguments
-	while ((clArgument = getopt(argc, argv, "ht:i:d:a:")) != -1)
+	while ((clArgument = getopt(argc, argv, "ht:f:d:a:")) != -1)
 	{
 		switch (clArgument)
 		{
@@ -53,13 +54,13 @@ static int parse_command_line(int argc, char* argv[], std::string &task, std::st
 			aValue = optarg;
 			break;
 		case '?':
-			throw util::CommandLineError("Wrong option specifier!");
+			throw util::CommandLineError("[parse_command_line] Wrong option specifier!");
 		default:
-			throw util::CommandLineError("Unknown error occurred in getopt()!");
+			throw util::CommandLineError("[parse_command_line] Wrong usage of command line options!");
 		}
 	}
 
-	// evaluate command line arguments
+	// check command line arguments
 	if (hFlag)
 	{
 		return 1;
@@ -67,7 +68,12 @@ static int parse_command_line(int argc, char* argv[], std::string &task, std::st
 
 	if (argc != 9)
 	{
-		throw util::CommandLineError("Wrong number of command line arguments!");
+		throw util::CommandLineError("[parse_command_line] Wrong number of command line arguments!");
+	}
+
+	if (tValue == NULL || fValue == NULL || aValue == NULL || dValue == NULL)
+	{
+		throw util::CommandLineError("[parse_command_line] Missing command line option!");
 	}
 
 	// process command line arguments
@@ -78,12 +84,12 @@ static int parse_command_line(int argc, char* argv[], std::string &task, std::st
 
 	if ( !(algorithm == "mlp" || algorithm == "svr") )
 	{
-		throw util::CommandLineError("Wrong algorithm specified: " + algorithm);
+		throw util::CommandLineError("[parse_command_line] Wrong algorithm specified: " + algorithm);
 	}
 
 	if ( !(task == "training" || task == "prediction" || task == "cross-validation" || task == "model-selection") )
 	{
-		throw util::CommandLineError("Wrong task specified: " + task);
+		throw util::CommandLineError("[parse_command_line] Wrong task specified: " + task);
 	}
 
 	if (outputPath.back() != '/')
@@ -98,7 +104,7 @@ static int parse_command_line(int argc, char* argv[], std::string &task, std::st
 	status = mkdir(outputPath.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 	if (status == -1)
 	{
-		throw util::ExitOnError("Error while creating directory: " + outputPath);
+		std::cerr << "[parse_command_line] WARNING: Directory " << outputPath << "already exists! Overwriting data." << std::endl;
 	}
 
 	return 0;
@@ -116,25 +122,27 @@ int main(int argc, char* argv[])
 			return 1;
 		}
 
-		/***** main script *****/
+		/********** main script **********/
+		// MlaTrainer regression (algorithm, outputPath);
+		// regression.perform_task(task, sampleFile)
 
-		/***********************/
+		/*********************************/
 
 	}
 	catch (util::CommandLineError& err)
 	{
-		std::cerr << "Error while processing command line arguments!\n"  << err.what() << std::endl;
+		std::cerr << "[main] Error while processing command line arguments!\n"  << err.what() << std::endl;
 		show_usage(argv[0]);
 		return 1;
 	}
 	catch (util::ExitOnError& err)
 	{
-		std::cerr << "Program was terminated because an error occurred!\n" << err.what() << std::endl;
+		std::cerr << "[main] Program was terminated because an error occurred!\n" << err.what() << std::endl;
 		return 1;
 	}
 	catch (std::exception& e)
 	{
-		std::cerr << "Program was terminated because an unhandled exception occurred!\n" << e.what() << std::endl;
+		std::cerr << "[main] Program was terminated because an unhandled exception occurred!\n" << e.what() << std::endl;
 		std::terminate();
 	}
 

@@ -11,7 +11,52 @@
 #include "types.h"
 #include "utilities.h"
 
+class MlaTrainer {
+public:
+	// public member functions
+
+private:
+	// private member functions
 
 
+	// data members
+
+};
+
+class MlAlgorithm {
+public:
+	// public member functions
+
+private:
+	// private member functions
+
+
+	// data members
+
+};
+
+class SupportVectorRegression : MlAlgorithm {
+public:
+	// public member functions
+
+private:
+	// private member functions
+
+
+	// data members
+
+};
+
+class MultiLayerPerceptron : MlAlgorithm {
+public:
+	// public member functions
+
+private:
+	// private member functions
+
+
+	// data members
+
+};
 
 #endif /* TRAINING_H_ */

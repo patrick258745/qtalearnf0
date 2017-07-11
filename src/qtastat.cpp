@@ -11,28 +11,30 @@ static void show_usage(std::string name)
               << "\nOptions:\n"
               << "\t-h, (help)\t\tShow this help message\n"
               << "\t-a STRING, (algorithm)\tCreate plots for algorithm\n"
-			  << "\t-f FILE, (file)\t\tSpecify file with qta targets\n"
+			  << "\t-d DIR, (data)\t\tSpecify parent directory for target file\n"
 			  << "\t-i DIR, (input)\t\tPath to data files for plot\n"
 			  << "\t-o DIR, (output)\tPath to parent dir of image files\n"
+			  << "\t-s VAL, (shift)\tSpecify syllable shift\n"
 			  << "\nExamples:\n"
-			  << "\t" << name << " -q qta -i <input-dir> -o <output-dir>\n"
-			  << "\t" << name << " -q svr -i <input-dir> -o <output-dir> -s 50\n"
+			  << "\t" << name << " -a qta -i <input-dir> -o <output-dir> -f <target-file>\n"
+			  << "\t" << name << " -a svr -i <input-dir> -o <output-dir> -f <target-file> -s 50\n"
               << std::endl;
 }
 
 /***** command line processing; returns 1 for help *****/
-static int parse_command_line(int argc, char* argv[], std::string &algorithm, std::string &targetFile, std::string &inputPath, std::string &outputPath, double &syllableShift)
+static int parse_command_line(int argc, char* argv[], std::string &algorithm, std::string &dataPath, std::string &inputPath, std::string &outputPath, double &syllableShift)
 {
+	// command line arguments
 	unsigned hFlag = 0;		// search flag
 	char *aValue = NULL;	// qualifier
-	char *fValue = NULL;	// target file (input)
+	char *dValue = NULL;	// target file (input)
 	char *iValue = NULL;	// plot data directory (input)
 	char *oValue = NULL;	// image data directory (output)
 	char *sValue = NULL;	// syllable shift
 	int clArgument;
 
 	// get command line arguments
-	while ((clArgument = getopt(argc, argv, "ha:i:o:f:")) != -1)
+	while ((clArgument = getopt(argc, argv, "ha:i:o:d:s:")) != -1)
 	{
 		switch (clArgument)
 		{
@@ -42,8 +44,8 @@ static int parse_command_line(int argc, char* argv[], std::string &algorithm, st
 		case 'a':
 			aValue = optarg;
 			break;
-		case 'f':
-			fValue = optarg;
+		case 'd':
+			dValue = optarg;
 			break;
 		case 'i':
 			iValue = optarg;
@@ -55,32 +57,37 @@ static int parse_command_line(int argc, char* argv[], std::string &algorithm, st
 			sValue = optarg;
 			break;
 		case '?':
-			throw util::CommandLineError("Wrong option specifier!");
+			throw util::CommandLineError("[parse_command_line] Wrong option specifier!");
 		default:
-			throw util::CommandLineError("Unknown error occurred in getopt()!");
+			throw util::CommandLineError("[parse_command_line] Wrong usage of command line options!");
 		}
 	}
 
-	// evaluate command line arguments
+	// check command line arguments
 	if (hFlag)
 	{
 		return 1;
 	}
 
-	if (argc != 7 || argc != 9)
+	if (argc != 9 && argc != 11)
 	{
-		throw util::CommandLineError("Wrong number of command line arguments!");
+		throw util::CommandLineError("[parse_command_line] Wrong number of command line arguments!");
+	}
+
+	if (aValue == NULL || dValue == NULL || iValue == NULL || oValue == NULL)
+	{
+		throw util::CommandLineError("[parse_command_line] Missing command line option!");
 	}
 
 	// process command line arguments
 	algorithm = std::string(aValue);
-	targetFile = std::string(fValue);
+	dataPath = std::string(dValue);
 	inputPath = std::string(iValue);
 	outputPath = std::string(oValue);
 
 	if ( !(algorithm == "qta" || algorithm == "mlp" || algorithm == "svr") )
 	{
-		throw util::CommandLineError("Wrong algorithm specified: " + algorithm);
+		throw util::CommandLineError("[parse_command_line] Wrong algorithm specified: " + algorithm);
 	}
 
 	if (inputPath.back() != '/')
@@ -91,6 +98,10 @@ static int parse_command_line(int argc, char* argv[], std::string &algorithm, st
 	{
 		outputPath += "/";
 	}
+	if (dataPath.back() != '/')
+	{
+		dataPath += "/";
+	}
 
 	// create specified directories if neccessary
 	int status;
@@ -99,17 +110,24 @@ static int parse_command_line(int argc, char* argv[], std::string &algorithm, st
 	status = mkdir(outputPath.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 	if (status == -1)
 	{
-		throw util::ExitOnError("Error while creating directory: " + outputPath);
+		std::cerr << "[parse_command_line] WARNING: Directory " << outputPath << "already exists! Overwriting data." << std::endl;
 	}
 
 	// convert string to double
 	try
 	{
-		syllableShift = std::stod(sValue);
+		if (sValue != NULL)
+		{
+			syllableShift = std::stod(std::string(sValue));
+		}
+		else
+		{
+			syllableShift = 0.0;
+		}
 	}
 	catch (std::invalid_argument &e)
 	{
-		throw util::ExitOnError("Error while converting " + std::string(sValue) + " to a number!\n" + e.what());
+		throw util::ExitOnError("[parse_command_line] Error while converting " + std::string(sValue) + " to a number!\n" + e.what());
 	}
 
 	return 0;
@@ -118,35 +136,38 @@ static int parse_command_line(int argc, char* argv[], std::string &algorithm, st
 int main(int argc, char* argv[])
 {
 	double syllableShift;
-	std::string algorithm (""), targetFile (""), inputPath (""), outputPath ("");
+	std::string algorithm (""), dataPath (""), inputPath (""), outputPath ("");
 
 	try
 	{
-		if (parse_command_line (argc, argv, algorithm, targetFile, inputPath, outputPath, syllableShift))
+		if (parse_command_line (argc, argv, algorithm, dataPath, inputPath, outputPath, syllableShift))
 		{
 			show_usage(argv[0]);
 			return 1;
 		}
 
-		/***** main script *****/
+		/********** main script **********/
+		// Evaluater results (algorithm, dataPath, syllableShift);
+		// results.generate_plots(inputPath, outputPath);
+		// results.generate_plots(inputPath);
 
-		/***********************/
+		/*********************************/
 
 	}
 	catch (util::CommandLineError& err)
 	{
-		std::cerr << "Error while processing command line arguments!\n"  << err.what() << std::endl;
+		std::cerr << "[main] Error while processing command line arguments!\n"  << err.what() << std::endl;
 		show_usage(argv[0]);
 		return 1;
 	}
 	catch (util::ExitOnError& err)
 	{
-		std::cerr << "Program was terminated because an error occurred!\n" << err.what() << std::endl;
+		std::cerr << "[main] Program was terminated because an error occurred!\n" << err.what() << std::endl;
 		return 1;
 	}
 	catch (std::exception& e)
 	{
-		std::cerr << "Program was terminated because an unhandled exception occurred!\n" << e.what() << std::endl;
+		std::cerr << "[main] Program was terminated because an unhandled exception occurred!\n" << e.what() << std::endl;
 		std::terminate();
 	}
 
