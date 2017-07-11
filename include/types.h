@@ -14,11 +14,11 @@
 
 /********** qta2f0 types **********/
 typedef double 					target_t;
-typedef double 					time_t;
+typedef double 					stime_t;
 typedef double 					freq_t;
 typedef double 					state_t;
 typedef double 					coeff_t;
-typedef std::vector<time_t>		time_v;
+typedef std::vector<time_t>		stime_v;
 typedef std::vector<state_t>	state_v;
 typedef std::vector<freq_t> 	freq_v;
 typedef std::vector<coeff_t>	coeff_v;

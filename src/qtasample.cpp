@@ -1,8 +1,9 @@
 #include <unistd.h> // getopt()
 #include <sys/stat.h> // mkdir()
-#include <stdlib.h>	// exit()
 #include <iostream>
 #include <string>
+#include <utilities.h>
+#include <types.h>
 
 /***** print out usage information *****/
 static void show_usage(std::string name)
@@ -18,8 +19,8 @@ static void show_usage(std::string name)
               << std::endl;
 }
 
-/***** command line processing *****/
-static void parse_command_line(int argc, char* argv[], std::string &sampaFile, std::string &targetFile, std::string &outputPath)
+/***** command line processing; returns 1 for help *****/
+static int parse_command_line(int argc, char* argv[], std::string &sampaFile, std::string &targetFile, std::string &outputPath)
 {
 	/***** command line parsing *****/
 	unsigned hFlag = 0;		// help flag
@@ -46,25 +47,21 @@ static void parse_command_line(int argc, char* argv[], std::string &sampaFile, s
 			oValue = optarg;
 			break;
 		case '?':
-			show_usage(argv[0]);
-			exit (EXIT_FAILURE);
+			throw util::CommandLineError("Wrong option specifier!");
 		default:
-			abort();
+			throw util::CommandLineError("Unknown error occurred in getopt()!");
 		}
 	}
 
 	// evaluate command line arguments
 	if (hFlag)
 	{
-		show_usage(argv[0]);
-		exit (EXIT_SUCCESS);
+		return 1;
 	}
 
 	if (argc != 7)
 	{
-		std::cerr << "Wrong number of command line arguments!" << std::endl;
-		show_usage(argv[0]);
-		exit (EXIT_FAILURE);
+		throw util::CommandLineError("Wrong number of command line arguments!");
 	}
 
 	// process command line arguments
@@ -78,6 +75,8 @@ static void parse_command_line(int argc, char* argv[], std::string &sampaFile, s
 
 	// create specified directories if neccessary
 	mkdir(outputPath.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+
+	return 0;
 }
 
 int main(int argc, char* argv[])
@@ -85,8 +84,36 @@ int main(int argc, char* argv[])
 	// variables declaration
 	std::string sampaFile (""), targetFile (""), outputPath ("");
 
-	// parse command line arguments and get information
-	parse_command_line (argc, argv, sampaFile, targetFile, outputPath);
+	try
+	{
+		// parse command line arguments and get information
+		if (parse_command_line (argc, argv, sampaFile, targetFile, outputPath))
+		{
+			show_usage(argv[0]);
+			return 0;
+		}
+
+		/***** main script *****/
+
+		/***********************/
+
+	}
+	catch (util::CommandLineError& err)
+	{
+		std::cerr << "Error while processing command line arguments!\n"  << err.what() << std::endl;
+		show_usage(argv[0]);
+		return 1;
+	}
+	catch (util::ExitOnError& err)
+	{
+		std::cerr << "Program was terminated because an error occurred!\n" << err.what() << std::endl;
+		return 1;
+	}
+	catch (std::exception& e)
+	{
+		std::cerr << "Program was terminated because an unhandled exception occurred!\n" << e.what() << std::endl;
+		std::terminate();
+	}
 
 	return 0;
 }

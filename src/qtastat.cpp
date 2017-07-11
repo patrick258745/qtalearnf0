@@ -1,9 +1,9 @@
 #include <unistd.h> // getopt()
 #include <sys/stat.h> // mkidir()
-#include <stdlib.h>	// exit()
 #include <iostream>
 #include <string>
-#include <exception>
+#include <utilities.h>
+#include <types.h>
 
 static void show_usage(std::string name)
 {
@@ -20,8 +20,8 @@ static void show_usage(std::string name)
               << std::endl;
 }
 
-/***** command line processing *****/
-static void parse_command_line(int argc, char* argv[], std::string &algorithm, std::string &targetFile, std::string &inputPath, std::string &outputPath, double &syllableShift)
+/***** command line processing; returns 1 for help *****/
+static int parse_command_line(int argc, char* argv[], std::string &algorithm, std::string &targetFile, std::string &inputPath, std::string &outputPath, double &syllableShift)
 {
 	unsigned hFlag = 0;		// search flag
 	char *aValue = NULL;	// qualifier
@@ -55,25 +55,21 @@ static void parse_command_line(int argc, char* argv[], std::string &algorithm, s
 			sValue = optarg;
 			break;
 		case '?':
-			show_usage(argv[0]);
-			exit (EXIT_FAILURE);
+			throw util::CommandLineError("Wrong option specifier!");
 		default:
-			abort();
+			throw util::CommandLineError("Unknown error occurred in getopt()!");
 		}
 	}
 
 	// evaluate command line arguments
 	if (hFlag)
 	{
-		show_usage(argv[0]);
-		exit (EXIT_SUCCESS);
+		return 1;
 	}
 
 	if (argc != 7 || argc != 9)
 	{
-		std::cerr << "Wrong number of command line arguments!" << std::endl;
-		show_usage(argv[0]);
-		exit (EXIT_FAILURE);
+		throw util::CommandLineError("Wrong number of command line arguments!");
 	}
 
 	// process command line arguments
@@ -84,9 +80,7 @@ static void parse_command_line(int argc, char* argv[], std::string &algorithm, s
 
 	if ( !(algorithm == "qta" || algorithm == "mlp" || algorithm == "svr") )
 	{
-		std::cerr << "Wrong algorithm specified: " << algorithm << std::endl;
-		show_usage(argv[0]);
-		exit (EXIT_FAILURE);
+		throw util::CommandLineError("Wrong algorithm specified: " + algorithm);
 	}
 
 	if (inputPath.back() != '/')
@@ -105,8 +99,7 @@ static void parse_command_line(int argc, char* argv[], std::string &algorithm, s
 	status = mkdir(outputPath.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 	if (status == -1)
 	{
-		std::cerr << "Error while creating directory: " << outputPath << std::endl;
-		exit (EXIT_FAILURE);
+		throw util::ExitOnError("Error while creating directory: " + outputPath);
 	}
 
 	// convert string to double
@@ -114,20 +107,48 @@ static void parse_command_line(int argc, char* argv[], std::string &algorithm, s
 	{
 		syllableShift = std::stod(sValue);
 	}
-	catch (std::exception &e)
+	catch (std::invalid_argument &e)
 	{
-		std::cerr << "Error while converting " << std::string(sValue) << " to a number!" << std::endl;
-		std::cerr << e.what() << std::endl;
-		show_usage(argv[0]);
-		exit (EXIT_FAILURE);
+		throw util::ExitOnError("Error while converting " + std::string(sValue) + " to a number!\n" + e.what());
 	}
+
+	return 0;
 }
 
 int main(int argc, char* argv[])
 {
 	double syllableShift;
 	std::string algorithm (""), targetFile (""), inputPath (""), outputPath ("");
-	parse_command_line (argc, argv, algorithm, targetFile, inputPath, outputPath, syllableShift);
+
+	try
+	{
+		if (parse_command_line (argc, argv, algorithm, targetFile, inputPath, outputPath, syllableShift))
+		{
+			show_usage(argv[0]);
+			return 1;
+		}
+
+		/***** main script *****/
+
+		/***********************/
+
+	}
+	catch (util::CommandLineError& err)
+	{
+		std::cerr << "Error while processing command line arguments!\n"  << err.what() << std::endl;
+		show_usage(argv[0]);
+		return 1;
+	}
+	catch (util::ExitOnError& err)
+	{
+		std::cerr << "Program was terminated because an error occurred!\n" << err.what() << std::endl;
+		return 1;
+	}
+	catch (std::exception& e)
+	{
+		std::cerr << "Program was terminated because an unhandled exception occurred!\n" << e.what() << std::endl;
+		std::terminate();
+	}
 
 	return 0;
 }
