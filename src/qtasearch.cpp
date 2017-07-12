@@ -12,6 +12,7 @@ int main(int argc, char* argv[])
 
 	try
 	{
+		/********** command line parsing **********/
 		dlib::command_line_parser parser;
 
 		// command line options
