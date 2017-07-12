@@ -14,18 +14,25 @@
 #include <dlib/matrix.h>
 
 /********** qta2f0 types **********/
-typedef dlib::matrix<double,0,1> col_vec;
+typedef dlib::matrix<double,0,1> la_col_vec;	// linear algebra column vector
+typedef std::vector<double> real_vec;			// vector for real numbers
 
-typedef col_vec	time_v;
-typedef col_vec	state_v;
-typedef col_vec freq_v;
-typedef col_vec	coeff_v;
-typedef col_vec	param_v;
+typedef real_vec	time_v;		// sample times
+typedef real_vec	state_v;	// filter state; derivatives
+typedef real_vec	coeff_v;	// filter coefficients
+typedef la_col_vec 	freq_v;		// frequency values
+
+struct pitchTarget_s
+{
+	double m;	// slope
+	double b;	// offset
+	double l;	// strength
+};
 
 struct bound_s
 {
-	param_v lower;
-	param_v upper;
+	pitchTarget_s lower;
+	pitchTarget_s upper;
 };
 
 struct signal_s
@@ -66,5 +73,14 @@ typedef std::map<std::string, word_feat_v> 	feat_m;
 
 typedef std::vector<target_t>			target_v;
 typedef std::map<std::string, target_v>	target_m;
+
+/********** qtatrain types **********/
+struct qtaTarget_s
+{
+	pitchTarget_s params;
+	double d;	// duration
+	double r;	// root-mean-squared-error
+	double c;	// correlation-coefficient
+};
 
 #endif /* TYPES_H_ */

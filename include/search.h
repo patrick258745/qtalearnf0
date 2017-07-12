@@ -8,6 +8,8 @@
 #ifndef SEARCH_H_
 #define SEARCH_H_
 
+#include <cstdlib>
+#include <time.h>
 #include "types.h"
 #include "utilities.h"
 
@@ -19,12 +21,12 @@ public:
 
 	// public member functions
 	void initialize (const state_v& initState, const double& initTime = 0.0);
-	void calc_f0 (signal_s& freqResp, const param_v& qtaParams) const;
-	void calc_state (state_v& currState, const double& currTime, const param_v& qtaParams) const;
+	void calc_f0 (signal_s& freqResp, const pitchTarget_s& qtaParams) const;
+	void calc_state (state_v& currState, const double& currTime, const pitchTarget_s& qtaParams) const;
 
 private:
 	// private member functions
-	void calc_filter_coeffs (coeff_v& filterCoeffs, const param_v& qtaParams) const;
+	void calc_filter_coeffs (coeff_v& filterCoeffs, const pitchTarget_s& qtaParams) const;
 
 	// data members
 	unsigned	m_filterOrder;
@@ -39,17 +41,19 @@ public:
 	QtaErrorFunction (const signal_s& origF0, const state_v& initState, const double& initTime = 0.0);
 
 	// public member functions
-	void initialize (const signal_s& origF0, const state_v& initState, const double& initTime = 0.0);
-	void get_filter_state (state_v& currState, const double& currTime, const param_v& qtaParams) const;
+	void set_orig_f0 (const signal_s& origF0);
+	void initialize_filter (const state_v& initState, const double& initTime = 0.0);
+	void get_filter_state (state_v& currState, const double& currTime, const pitchTarget_s& qtaParams) const;
+	void get_filter_response (signal_s& filteredF0, const pitchTarget_s& qtaParams) const;
 
-	double operator() ( const param_v& arg) const;
-	double correlation_coeff (const param_v& qtaParams) const;
-	double root_mean_squared_error (const param_v& qtaParams) const;
+	double operator() ( const la_col_vec& arg) const;
+	double correlation_coeff (const pitchTarget_s& qtaParams) const;
+	double root_mean_squared_error (const pitchTarget_s& qtaParams) const;
 
 private:
 	// private member functions
-	double mean_squared_error (const param_v& qtaParams) const;
-	double maximum_norm_error (const param_v& qtaParams) const;
+	double mean_squared_error (const pitchTarget_s& qtaParams) const;
+	double maximum_norm_error (const pitchTarget_s& qtaParams) const;
 
 	// data members
 	CdlpFilter	m_lowPassFilter;
@@ -64,18 +68,31 @@ public:
 
 	// public member functions
 	void read_praat_file(QtaErrorFunction& qtaError, bound_s& searchSpace, const std::string corpusDir);
-	void read_praat_file(QtaErrorFunction& qtaError, param_v& optParams, const std::string corpusDir);
-	void write_praat_file(const QtaErrorFunction& qtaError, const param_v& optParams, const std::string corpusDir) const;
+	void read_praat_file(QtaErrorFunction& qtaError, pitchTarget_s& optParams, const std::string corpusDir);
+	void write_praat_file(const QtaErrorFunction& qtaError, const pitchTarget_s& optParams, const std::string corpusDir) const;
 
 private:
+	// private member functions
+	void read_config_file(QtaErrorFunction& qtaError, bound_s& searchSpace, const std::string corpusDir);
+	void read_data_file(QtaErrorFunction& qtaError, const std::string corpusDir) const;
+	void calc_sample_times(time_v& sampleTimes, const double& begin, const double& end) const;
+
 	// data members
-	time_t m_sylEndTime;
+	double m_sylEndTime;
+	time_v m_outSampleTimes;
 };
 
 class Optimizer {
 public:
+	// constructors
+	Optimizer() { srand (time(NULL)); }; // srand (0);
+
 	// public member functions
-	static void optimize(param_v& optParams, const QtaErrorFunction& qtaError, const bound_s& searchSpace, const unsigned& randIters = 10);
+	void optimize(pitchTarget_s& optParams, const QtaErrorFunction& qtaError, const bound_s& searchSpace, const unsigned& randIters = 10) const;
+
+private:
+	// private member functions
+	double get_rand (const double& min, const double& max) const;
 };
 
 #endif /* SEARCH_H_ */

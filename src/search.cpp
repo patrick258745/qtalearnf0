@@ -1,3 +1,5 @@
+#include <fstream>
+#include <dlib/string.h>
 #include <dlib/optimization.h>
 #include "search.h"
 
@@ -24,40 +26,37 @@ void CdlpFilter::initialize (const state_v& initState, const double& initTime)
 	m_initTime = initTime;
 }
 
-void CdlpFilter::calc_filter_coeffs (coeff_v& filterCoeffs, const param_v& qtaParams) const
+void CdlpFilter::calc_filter_coeffs (coeff_v& filterCoeffs, const pitchTarget_s& qtaParams) const
 {
-	// parameters
-	const double& m (param_v(0));
-	const double& b (param_v(1));
-	const double& l (param_v(2));
+	if (filterCoeffs.size() != m_filterOrder)
+	{
+		throw util::ExitOnError("[calc_filter_coeffs] Wrong size of coefficient vector! " + std::to_string(filterCoeffs.size()) + " != " + std::to_string(m_filterOrder));
+	}
 
-	filterCoeffs(0) = m_initState(0) - b;		// 0th coefficient
+	filterCoeffs[0] = m_initState[0] - qtaParams.b;	// 0th coefficient
 	for (unsigned n=1; n<m_filterOrder; ++n)	// all other coefficients
 	{
 		double acc (0.0);
 		for (unsigned i=0; i<n; ++i)
 		{
-			acc += ( filterCoeffs(i)*std::pow(-l,n-i)*util::binomial(n,i)*util::factorial(i) );
+			acc += ( filterCoeffs[i]*std::pow(-qtaParams.l,n-i)*util::binomial(n,i)*util::factorial(i) );
 		}
 
 		if (n==1)
 		{
-			acc += m; // correction for linear targets; minus changes in following term!
+			acc += qtaParams.m; // adaption for linear targets; minus changes in following term!
 		}
 
-		filterCoeffs(n) = (m_initState(n) - acc)/util::factorial(n);
+		filterCoeffs[n] = (m_initState[n] - acc)/util::factorial(n);
 	}
 }
 
-void CdlpFilter::calc_f0 (signal_s& freqResp, const param_v& qtaParams) const
+void CdlpFilter::calc_f0 (signal_s& freqResp, const pitchTarget_s& qtaParams) const
 {
-	// parameters
-	const double& m (param_v(0));
-	const double& b (param_v(1));
-	const double& l (param_v(2));
+	freqResp.sampleValues.set_size(freqResp.sampleTimes.size());
 
 	// filter coefficients
-	coeff_v c(m_filterOrder);
+	coeff_v c (m_filterOrder, 0.0);
 	calc_filter_coeffs(c, qtaParams);
 
 	unsigned cnt (0);
@@ -67,60 +66,57 @@ void CdlpFilter::calc_f0 (signal_s& freqResp, const param_v& qtaParams) const
 		t -= m_initTime;	// time shift for sample time
 		for (unsigned n=0; n<m_filterOrder; ++n)
 		{
-			acc += (c(n) * std::pow(t,n));
+			acc += (c[n] * std::pow(t,n));
 		}
 
-		freqResp.sampleValues(cnt) = acc * std::exp(-l*t) + m*t + b;
+		freqResp.sampleValues(cnt) = acc * std::exp(-qtaParams.l*t) + qtaParams.m*t + qtaParams.b;
 		cnt++;
 	}
 }
 
-void CdlpFilter::calc_state (state_v& currState, const double& currTime, const param_v& qtaParams) const
+void CdlpFilter::calc_state (state_v& currState, const double& currTime, const pitchTarget_s& qtaParams) const
 {
 	if (currTime < m_initTime)
 	{
 		throw util::ExitOnError("[calc_state] Specified time point is smaller than filter initialization time: " + std::to_string(currTime) + " < " + std::to_string(m_initTime));
 	}
 
-	// parameters
-	const double& m (param_v(0));
-	const double& b (param_v(1));
-	const double& l (param_v(2));
-
-	// sample time
-	double t (currTime - m_initTime);
+	// setup
+	double t (currTime - m_initTime); // sample time
+	const unsigned& N (m_filterOrder);
+	currState = state_v(N, 0.0);
 
 	// filter coefficients
-	coeff_v c(m_filterOrder);
+	coeff_v c (N, 0.0);
 	calc_filter_coeffs(c, qtaParams);
 
-	for (unsigned n=0; n<m_filterOrder; ++n)
+	for (unsigned n=0; n<N; ++n)
 	{
 		// calculate value of nth derivative
 		double acc (0.0);
-		for (unsigned i=0; i<m_filterOrder; ++i)
+		for (unsigned i=0; i<N; ++i)
 		{
 			// pre-calculate q-value
 			double q (0.0);
-			for (unsigned k=0; k<std::min(n-i,n-1); ++k)
+			for (unsigned k=0; k<std::min(N-i,n+1); ++k)
 			{
-				q += (std::pow(-l,n-k)*util::binomial(n,k)*c(i+k)*util::factorial(k+i)/util::factorial(i));
+				q += (std::pow(-qtaParams.l,n-k)*util::binomial(n,k)*c[i+k]*util::factorial(k+i)/util::factorial(i));
 			}
 
 			acc += (std::pow(t,i)*q);
 		}
 
-		currState(n) = acc * std::exp(-l*t);
+		currState[n] = acc * std::exp(-qtaParams.l*t);
 	}
 
 	// correction for linear targets
-	if (m_filterOrder > 1)
+	if (N > 1)
 	{
-		currState(0) += (b+m*t);
+		currState[0] += (qtaParams.b+qtaParams.m*t);
 	}
-	if (m_filterOrder > 2)
+	if (N > 2)
 	{
-		currState(1) += m;
+		currState[1] += qtaParams.m;
 	}
 }
 
@@ -129,96 +125,299 @@ void CdlpFilter::calc_state (state_v& currState, const double& currTime, const p
 QtaErrorFunction::QtaErrorFunction (const signal_s& origF0, const state_v& initState, const double& initTime)
 : m_lowPassFilter(initState, initTime), m_origF0(origF0)
 {
-	if (m_origF0.sampleTimes.size() != m_origF0.sampleValues.size())
+	if (m_origF0.sampleTimes.size() != (unsigned)m_origF0.sampleValues.size())
 	{
 		throw util::ExitOnError("[QtaErrorFunction] Original f0 samples doesn't match its sample times: " + std::to_string(m_origF0.sampleValues.size()) + " != " + std::to_string(m_origF0.sampleTimes.size()));
 	}
 }
 
-void QtaErrorFunction::initialize (const signal_s& origF0, const state_v& initState, const double& initTime)
+void QtaErrorFunction::set_orig_f0(const signal_s& origF0)
 {
-	if (origF0.sampleTimes.size() != origF0.sampleValues.size())
+	if (origF0.sampleTimes.size() != (unsigned)origF0.sampleValues.size())
 	{
 		throw util::ExitOnError("[set_orig_f0] Original f0 samples doesn't match its sample times: " + std::to_string(origF0.sampleValues.size()) + " != " + std::to_string(origF0.sampleTimes.size()));
 	}
 
 	m_origF0 = origF0;
+}
+
+void QtaErrorFunction::initialize_filter (const state_v& initState, const double& initTime)
+{
 	m_lowPassFilter.initialize(initState, initTime);
 }
 
-void QtaErrorFunction::get_filter_state (state_v& currState, const double& currTime, const param_v& qtaParams) const
+void QtaErrorFunction::get_filter_state (state_v& currState, const double& currTime, const pitchTarget_s& qtaParams) const
 {
 	m_lowPassFilter.calc_state(currState, currTime, qtaParams);
 }
 
-double QtaErrorFunction::operator() ( const param_v& arg) const
+void QtaErrorFunction::get_filter_response (signal_s& filteredF0, const pitchTarget_s& qtaParams) const
 {
-	return mean_squared_error(arg);
+	m_lowPassFilter.calc_f0(filteredF0, qtaParams);
 }
 
-double QtaErrorFunction::mean_squared_error (const param_v& qtaParams) const
+double QtaErrorFunction::operator() ( const la_col_vec& arg) const
+{
+	pitchTarget_s qtaParams {arg(0),arg(1),arg(2)}; // slope, offset, strength
+	return mean_squared_error(qtaParams);
+}
+
+double QtaErrorFunction::mean_squared_error (const pitchTarget_s& qtaParams) const
 {
 	signal_s filteredF0;
 	filteredF0.sampleTimes = m_origF0.sampleTimes;
-	filteredF0.sampleValues.set_size(filteredF0.sampleTimes.size());
 	m_lowPassFilter.calc_f0(filteredF0, qtaParams);
+
+	// return error between filtered and original f0
 	return dlib::mean(dlib::squared(filteredF0.sampleValues - m_origF0.sampleValues));
 }
 
-double QtaErrorFunction::root_mean_squared_error (const param_v& qtaParams) const
+double QtaErrorFunction::root_mean_squared_error (const pitchTarget_s& qtaParams) const
 {
+	// return error between filtered and original f0
 	return std::sqrt( mean_squared_error(qtaParams) );
 }
 
-double QtaErrorFunction::maximum_norm_error (const param_v& qtaParams) const
+double QtaErrorFunction::maximum_norm_error (const pitchTarget_s& qtaParams) const
 {
 	signal_s filteredF0;
 	filteredF0.sampleTimes = m_origF0.sampleTimes;
-	filteredF0.sampleValues.set_size(filteredF0.sampleTimes.size());
 	m_lowPassFilter.calc_f0(filteredF0, qtaParams);
+
+	// return error between filtered and original f0
 	return dlib::max( dlib::abs(filteredF0.sampleValues - m_origF0.sampleValues));
 }
 
-double QtaErrorFunction::correlation_coeff (const param_v& qtaParams) const
+double QtaErrorFunction::correlation_coeff (const pitchTarget_s& qtaParams) const
 {
 	signal_s filteredF0;
 	filteredF0.sampleTimes = m_origF0.sampleTimes;
-	filteredF0.sampleValues.set_size(filteredF0.sampleTimes.size());
 	m_lowPassFilter.calc_f0(filteredF0, qtaParams);
 
-	col_vec x = m_origF0.sampleValues - dlib::mean(m_origF0.sampleValues);
-	col_vec y = filteredF0.sampleValues - dlib::mean(filteredF0.sampleValues);
-	return (dlib::sum(x*y)) / ( (std::sqrt( dlib::sum(dlib::squared(x))) ) * (std::sqrt( dlib::sum(dlib::squared(y))) ) );
+	// return correlation between filtered and original f0
+	la_col_vec x = m_origF0.sampleValues - dlib::mean(m_origF0.sampleValues);
+	la_col_vec y = filteredF0.sampleValues - dlib::mean(filteredF0.sampleValues); std::cout << dlib::dot(x,y) << std::endl;
+	return (dlib::dot(x,y)) / ( (std::sqrt( dlib::sum(dlib::squared(x))) ) * (std::sqrt( dlib::sum(dlib::squared(y))) ) );
 }
 
-/********** class Optimizer **********/
+/********** class PraatFileIo **********/
+
+void PraatFileIo::read_config_file(QtaErrorFunction& qtaError, bound_s& searchSpace, const std::string corpusDir)
+{
+	// create a file-reading object
+	std::ifstream fin;
+	fin.open(corpusDir+"config"); // open config file
+	if (!fin.good())
+	{
+		throw util::ExitOnError("[read_config_file] config file not found!");
+	}
+
+	try{
+		// container for string values
+		std::string line;
+		std::vector<std::string> tokens;
+
+		// first line
+		std::getline(fin, line);
+		tokens = dlib::split(line, " ");
+		searchSpace.lower.m = std::stod(tokens[0]); // m_min
+		searchSpace.upper.m = std::stod(tokens[1]); // m_max
+
+		// second line
+		std::getline(fin, line);
+		tokens = dlib::split(line, " ");
+		searchSpace.lower.b = std::stod(tokens[0]); // b_min
+		searchSpace.upper.b = std::stod(tokens[1]); // b_max
+
+		// third third
+		std::getline(fin, line);
+		tokens = dlib::split(line, " ");
+		searchSpace.lower.l = std::stod(tokens[0]); // lambda_min
+		searchSpace.upper.l = std::stod(tokens[1]); // lambda_max
+
+		// fourth line
+		std::getline(fin, line); // filterOrder -> implicitly given by number of states
+		unsigned M (std::stoi(line));	// filterOrder
+
+		// fifth line
+		std::getline(fin, line);
+		state_v state;
+		tokens = dlib::split(line, " ");
+		for (unsigned int i=0; i<M; ++i)
+		{
+			state.push_back(std::stod(tokens[i]));	//initial states
+		}
+
+		// sixth line
+		std::getline(fin, line);
+		tokens = dlib::split(line, " "); // syllable bounds
+
+		// write results
+		double sylBeginTime (std::stod(tokens[0]));
+		m_sylEndTime = std::stod(tokens[1]);
+		calc_sample_times(m_outSampleTimes, sylBeginTime, m_sylEndTime);
+		qtaError.initialize_filter(state, sylBeginTime);
+	}
+	catch (std::invalid_argument& e)
+	{
+		throw util::ExitOnError("[read_config_file] invalid argument exceptions occurred while using std::stod!\n" + std::string(e.what()));
+	}
+}
+
+void PraatFileIo::read_data_file(QtaErrorFunction& qtaError, const std::string corpusDir) const
+{
+	// create a file-reading object
+	std::ifstream fin;
+	fin.open(corpusDir+"data"); // open config file
+	if (!fin.good())
+	{
+		throw util::ExitOnError("[read_data_file] config file not found!");
+	}
+
+	try{
+		// container for string values
+		std::string line;
+		std::vector<std::string> tokens;
+
+		// skip first six lines
+		for (unsigned i=0; i<6; i++)
+		{
+			std::getline(fin, line);
+		}
+
+		// 7th line
+		std::getline(fin, line);
+		unsigned N (std::stoi(line));	// number of samples
+
+		// resulting lines
+		signal_s f0;
+		f0.sampleValues.set_size(N);
+		for (unsigned int i=0; i<N; ++i)
+		{
+			std::getline(fin, line);
+			std::size_t pos = line.find_first_of('\t');
+			line.erase(line.begin(),line.begin()+pos+1);
+			tokens = dlib::split(line, "\t");
+			f0.sampleTimes.push_back(std::stod(tokens[0]));
+			f0.sampleValues(i) = std::stod(tokens[1]);
+		}
+
+		// write results
+		qtaError.set_orig_f0(f0);
+	}
+	catch (std::invalid_argument& e)
+	{
+		throw util::ExitOnError("[read_data_file] invalid argument exceptions occurred while using std::stod!\n" + std::string(e.what()));
+	}
+}
 
 void PraatFileIo::read_praat_file(QtaErrorFunction& qtaError, bound_s& searchSpace, const std::string corpusDir)
 {
-
+	read_config_file(qtaError, searchSpace, corpusDir);
+	read_data_file(qtaError, corpusDir);
 }
 
-void PraatFileIo::read_praat_file(QtaErrorFunction& qtaError, param_v& optParams, const std::string corpusDir)
+void PraatFileIo::read_praat_file(QtaErrorFunction& qtaError, pitchTarget_s& optParams, const std::string corpusDir)
 {
-
+	bound_s tmp;
+	read_praat_file(qtaError, tmp, corpusDir);
+	optParams = tmp.lower;
 }
 
-void PraatFileIo::write_praat_file(const QtaErrorFunction& qtaError, const param_v& optParams, const std::string corpusDir) const
+void PraatFileIo::calc_sample_times(time_v& sampleTimes, const double& begin, const double& end) const
 {
+	double sampleRate (100); // Hz
+	sampleTimes.clear();
+	for (double t=begin; t<=end; t+=(1/sampleRate))
+	{
+		sampleTimes.push_back(t);
+	}
+}
 
+void PraatFileIo::write_praat_file(const QtaErrorFunction& qtaError, const pitchTarget_s& optParams, const std::string corpusDir) const
+{
+	// create output file and write results to it
+	std::ofstream fout;
+	fout.open (corpusDir+"output");
+	fout << std::fixed << std::setprecision(6);
+
+	// line 1: optimal variables
+	fout << optParams.m << " " << optParams.b << " " << optParams.l << std::endl;
+
+	// line 2: final state (derivatives)
+	state_v state;
+	qtaError.get_filter_state(state, m_sylEndTime, optParams);
+	for (double d : state)
+	{
+		fout << d << " ";
+	}
+
+	// line 3: root mean square error and correlation coefficient
+	fout << std:: endl << qtaError.root_mean_squared_error(optParams) << " " << qtaError.correlation_coeff(optParams) << std::endl;
+
+	// line 4: number of samples
+	fout << m_outSampleTimes.size() << std::endl;
+
+	// from line 5: sample points and filtered F0
+	signal_s filteredF0;
+	filteredF0.sampleTimes = m_outSampleTimes;
+	qtaError.get_filter_response(filteredF0, optParams);
+	for (unsigned i=0; i<filteredF0.sampleTimes.size(); ++i)
+	{
+		fout << filteredF0.sampleTimes[i] << " " << filteredF0.sampleValues(i) << std::endl;
+	}
+
+	// close output file
+	fout.close();
 }
 
 /********** class Optimizer **********/
 
-void Optimizer::optimize(param_v& optParams, const QtaErrorFunction& qtaError, const bound_s& searchSpace, const unsigned& randIters)
+void Optimizer::optimize(pitchTarget_s& optParams, const QtaErrorFunction& qtaError, const bound_s& searchSpace, const unsigned& randIters) const
 {
-	dlib::find_min_bobyqa(qtaError,
-			optParams,
-			7,    // number of interpolation points
-			searchSpace.lower,  // lower bound constraint
-			searchSpace.upper,   // upper bound constraint
-			10,    // initial trust region radius
-			1e-6,  // stopping trust region radius
-			100    // max number of objective function evaluations
-	);
+	// optmization setup
+	la_col_vec lowerBound {searchSpace.lower.m, searchSpace.lower.b, searchSpace.lower.l}; // lower bound constraint
+	la_col_vec upperBound {searchSpace.upper.m, searchSpace.upper.b, searchSpace.upper.l}; // upper bound constraint
+	long npt (2*lowerBound.size()+1);	// number of interpolation points
+	const double rho_begin (5); // initial trust region radius
+	const double rho_end (1e-6); // stopping trust region radius -> accuracy
+	const long max_f_evals (10000); // max number of objective function evaluations
+
+	// random iterations
+	la_col_vec x = lowerBound; // optimization variables
+	double fmin (qtaError(x));
+	double ftmp (fmin);
+	unsigned itNum (10);
+
+	for (unsigned i=0; i<itNum; ++i)
+	{
+		x = get_rand(searchSpace.lower.m,searchSpace.upper.m),get_rand(searchSpace.lower.b,searchSpace.upper.b),get_rand(searchSpace.lower.l,searchSpace.upper.l);
+		try
+		{
+			// optimization algorithm: BOBYQA
+			ftmp = dlib::find_min_bobyqa(qtaError,x,npt,lowerBound,upperBound,	rho_begin,rho_end,max_f_evals);
+		}
+		catch (dlib::bobyqa_failure& err)
+		{
+			std::cerr << "WARNING: no convergence during optimization in iteration: " << i << std::endl << err.info << std::endl;
+		}
+
+		// write optimization results back
+		if (ftmp < fmin)
+		{
+			fmin = ftmp;
+			optParams = {x(0), x(1), x(2)}; // slope, offset, strength
+		}
+
+		// random initialization for next round
+		x = get_rand(searchSpace.lower.m,searchSpace.upper.m),get_rand(searchSpace.lower.b,searchSpace.upper.b),get_rand(searchSpace.lower.l,searchSpace.upper.l);
+	}
+
+	// DEBUG: print results
+	std::cout << "mse(" << optParams.m << "," << optParams.b << "," << optParams.l << ") = " << fmin << std::endl;
+}
+
+double Optimizer::get_rand (const double& min, const double& max) const
+{
+	return min + ((double)rand()/RAND_MAX)*(max-min);
 }
