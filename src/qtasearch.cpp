@@ -1,140 +1,105 @@
-#include <unistd.h> // getopt()
 #include <iostream>
 #include <string>
-#include <utilities.h>
-#include <types.h>
+#include <dlib/misc_api.h>
+#include <dlib/cmd_line_parser.h>
+#include "types.h"
 #include "search.h"
-
-/***** print out usage information *****/
-static void show_usage(std::string name)
-{
-    std::cerr << "Usage: " << name << " [OPTIONS]...\n"
-              << "\nOptions:\n"
-              << "\t-h, (help)\t\tShow this help message\n"
-              << "\t-t, (task)\t\t{search, predict}\n"
-			  << "\t-d DIR, (directory)\tSpecify directory for input/output files\n"
-			  << "\nExamples:\n"
-			  << "\t" << name << " -t search -d <path-to-corpus>\n"
-			  << "\t" << name << " -t predict -d <path-to-corpus>\n"
-              << std::endl;
-}
-
-/***** command line processing; returns 1 for help *****/
-static int parse_command_line(int argc, char* argv[], std::string &task, std::string &corpusPath)
-{
-	// command line arguments
-	unsigned hFlag = 0;		// help flag
-	char *tValue = NULL;	// task specifier
-	char *dValue = NULL;	// corpus directory (input)
-	int clArgument;
-
-	// get command line arguments
-	while ((clArgument = getopt(argc, argv, "ht:d:")) != -1)
-	{
-		switch (clArgument)
-		{
-		case 'h':
-			hFlag = 1;
-			break;
-		case 'd':
-			dValue = optarg;
-			break;
-		case 't':
-			tValue = optarg;
-			break;
-		case '?':
-			throw util::CommandLineError("[parse_command_line] Wrong option specifier!");
-		default:
-			throw util::CommandLineError("[parse_command_line] Unknown error occurred in getopt()!");
-		}
-	}
-
-	// check command line arguments
-	if (hFlag)
-	{
-		return 1;
-	}
-
-	if (argc != 5)
-	{
-		throw util::CommandLineError("[parse_command_line] Wrong usage of command line options!");
-	}
-
-	if (tValue == NULL || dValue == NULL)
-	{
-		throw util::CommandLineError("[parse_command_line] Missing command line option!");
-	}
-
-	// process command line arguments
-	task = std::string(tValue);
-	corpusPath = std::string(dValue);
-
-	if (corpusPath.back() != '/')
-	{
-		corpusPath += "/";
-	}
-
-	if ( !(task == "search" || task == "predict") )
-	{
-		throw util::CommandLineError("[parse_command_line] Wrong task specified! " + task);
-	}
-
-	return 0;
-}
 
 int main(int argc, char* argv[])
 {
 	// variables declaration
-	std::string task (""), corpusPath ("");
+	std::string configFile, dataFile, outputFile;
 
 	try
 	{
-		// parse command line arguments and get information
-		if (parse_command_line (argc, argv, task, corpusPath))
+		dlib::command_line_parser parser;
+
+		// command line options
+		parser.add_option("h","Display this help message.");
+		parser.add_option("s","Search for optimal parameters.");
+		parser.add_option("r","Read optimal parameters from config file.");
+		parser.add_option("in","Specify config and data input files.",2);
+		parser.add_option("out","Specify output file.",1);
+
+		// parse command line
+		parser.parse(argc,argv);
+
+		// check command line options
+		const char* one_time_opts[] = {"h", "s", "r", "in", "out"};
+		parser.check_one_time_options(one_time_opts);
+		parser.check_incompatible_options("s", "r");
+
+		// process command line options
+		if (parser.option("h"))
 		{
-			show_usage(argv[0]);
-			return 0;
+			std::cout << "Usage: qtasearch [options]\n";
+			parser.print_options();
+			return EXIT_SUCCESS;
+		}
+
+        if (!parser.option("s") && !parser.option("r"))
+        {
+            std::cout << "Error in command line:\n   You must specify either the s option or the r option.\n";
+            std::cout << "\nTry the -h option for more information." << std::endl;
+            return EXIT_FAILURE;
+        }
+
+        if (parser.option("in"))
+		{
+        	configFile = parser.option("in").argument();
+        	dataFile = parser.option("in").argument(1);
+		}
+		else
+		{
+			std::cout << "Error in command line:\n   You must specify an input file.\n";
+			std::cout << "\nTry the -h option for more information." << std::endl;
+			return EXIT_FAILURE;
+		}
+
+        if (parser.option("out"))
+		{
+        	outputFile = parser.option("out").argument();
+		}
+		else
+		{
+			std::cout << "Error in command line:\n   You must specify an output file.\n";
+			std::cout << "\nTry the -h option for more information." << std::endl;
+			return EXIT_FAILURE;
 		}
 
 		/********** main script **********/
-		pitchTarget_s optParams ({0.0,0.0,0.0});
+		pitchTarget_s optParams;
 		bound_s searchSpace;
 		PraatFileIo praatFiles;
 		QtaErrorFunction qtaError;
 		Optimizer paramSearch;
 
 		// get optimal qta parameters
-		if (task == "search")
+		if (parser.option("s"))
 		{
-			praatFiles.read_praat_file(qtaError, searchSpace, corpusPath);
+			praatFiles.read_praat_file(qtaError, searchSpace, configFile, dataFile);
 			paramSearch.optimize(optParams, qtaError, searchSpace);
 		}
-		else if (task == "predict")
+		else
 		{
-			praatFiles.read_praat_file(qtaError, optParams, corpusPath);
+			praatFiles.read_praat_file(qtaError, optParams, configFile, dataFile);
 		}
 
 		// save results to praat file
-		praatFiles.write_praat_file(qtaError, optParams, corpusPath);
+		praatFiles.write_praat_file(qtaError, optParams, outputFile);
 
 		/*********************************/
-	}
-	catch (util::CommandLineError& err)
-	{
-		std::cerr << "[main] Error while processing command line arguments!\n"  << err.what() << std::endl;
-		show_usage(argv[0]);
-		return 1;
 	}
 	catch (util::ExitOnError& err)
 	{
 		std::cerr << "[main] Program was terminated because an error occurred!\n" << err.what() << std::endl;
-		return 1;
+		return EXIT_FAILURE;
 	}
 	catch (std::exception& e)
 	{
-		std::cerr << "[main] Program was terminated because an unhandled exception occurred!\n" << e.what() << std::endl;
-		std::terminate();
+		std::cerr << "[main] Program was terminated because an exception was caught!\n" << e.what() << std::endl;
+		return EXIT_FAILURE;
 	}
 
-	return 0;
+	return EXIT_SUCCESS;
 }

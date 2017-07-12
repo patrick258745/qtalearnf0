@@ -196,17 +196,17 @@ double QtaErrorFunction::correlation_coeff (const pitchTarget_s& qtaParams) cons
 
 	// return correlation between filtered and original f0
 	la_col_vec x = m_origF0.sampleValues - dlib::mean(m_origF0.sampleValues);
-	la_col_vec y = filteredF0.sampleValues - dlib::mean(filteredF0.sampleValues); std::cout << dlib::dot(x,y) << std::endl;
+	la_col_vec y = filteredF0.sampleValues - dlib::mean(filteredF0.sampleValues);
 	return (dlib::dot(x,y)) / ( (std::sqrt( dlib::sum(dlib::squared(x))) ) * (std::sqrt( dlib::sum(dlib::squared(y))) ) );
 }
 
 /********** class PraatFileIo **********/
 
-void PraatFileIo::read_config_file(QtaErrorFunction& qtaError, bound_s& searchSpace, const std::string corpusDir)
+void PraatFileIo::read_config_file(QtaErrorFunction& qtaError, bound_s& searchSpace, const std::string& configFile)
 {
 	// create a file-reading object
 	std::ifstream fin;
-	fin.open(corpusDir+"config"); // open config file
+	fin.open(configFile); // open config file
 	if (!fin.good())
 	{
 		throw util::ExitOnError("[read_config_file] config file not found!");
@@ -264,11 +264,11 @@ void PraatFileIo::read_config_file(QtaErrorFunction& qtaError, bound_s& searchSp
 	}
 }
 
-void PraatFileIo::read_data_file(QtaErrorFunction& qtaError, const std::string corpusDir) const
+void PraatFileIo::read_data_file(QtaErrorFunction& qtaError, const std::string& dataFile) const
 {
 	// create a file-reading object
 	std::ifstream fin;
-	fin.open(corpusDir+"data"); // open config file
+	fin.open(dataFile); // open data file
 	if (!fin.good())
 	{
 		throw util::ExitOnError("[read_data_file] config file not found!");
@@ -311,16 +311,16 @@ void PraatFileIo::read_data_file(QtaErrorFunction& qtaError, const std::string c
 	}
 }
 
-void PraatFileIo::read_praat_file(QtaErrorFunction& qtaError, bound_s& searchSpace, const std::string corpusDir)
+void PraatFileIo::read_praat_file(QtaErrorFunction& qtaError, bound_s& searchSpace, const std::string& configFile, const std::string& dataFile)
 {
-	read_config_file(qtaError, searchSpace, corpusDir);
-	read_data_file(qtaError, corpusDir);
+	read_config_file(qtaError, searchSpace, configFile);
+	read_data_file(qtaError, dataFile);
 }
 
-void PraatFileIo::read_praat_file(QtaErrorFunction& qtaError, pitchTarget_s& optParams, const std::string corpusDir)
+void PraatFileIo::read_praat_file(QtaErrorFunction& qtaError, pitchTarget_s& optParams, const std::string& configFile, const std::string& dataFile)
 {
 	bound_s tmp;
-	read_praat_file(qtaError, tmp, corpusDir);
+	read_praat_file(qtaError, tmp, configFile, dataFile);
 	optParams = tmp.lower;
 }
 
@@ -334,11 +334,11 @@ void PraatFileIo::calc_sample_times(time_v& sampleTimes, const double& begin, co
 	}
 }
 
-void PraatFileIo::write_praat_file(const QtaErrorFunction& qtaError, const pitchTarget_s& optParams, const std::string corpusDir) const
+void PraatFileIo::write_praat_file(const QtaErrorFunction& qtaError, const pitchTarget_s& optParams, const std::string& outputFile) const
 {
 	// create output file and write results to it
 	std::ofstream fout;
-	fout.open (corpusDir+"output");
+	fout.open (outputFile);
 	fout << std::fixed << std::setprecision(6);
 
 	// line 1: optimal variables

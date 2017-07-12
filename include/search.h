@@ -67,14 +67,14 @@ public:
 	PraatFileIo (const double& sylEndTime) : m_sylEndTime(sylEndTime) {};
 
 	// public member functions
-	void read_praat_file(QtaErrorFunction& qtaError, bound_s& searchSpace, const std::string corpusDir);
-	void read_praat_file(QtaErrorFunction& qtaError, pitchTarget_s& optParams, const std::string corpusDir);
-	void write_praat_file(const QtaErrorFunction& qtaError, const pitchTarget_s& optParams, const std::string corpusDir) const;
+	void read_praat_file(QtaErrorFunction& qtaError, bound_s& searchSpace, const std::string& configFile, const std::string& dataFile);
+	void read_praat_file(QtaErrorFunction& qtaError, pitchTarget_s& optParams, const std::string& configFile, const std::string& dataFile);
+	void write_praat_file(const QtaErrorFunction& qtaError, const pitchTarget_s& optParams, const std::string& outputFile) const;
 
 private:
 	// private member functions
-	void read_config_file(QtaErrorFunction& qtaError, bound_s& searchSpace, const std::string corpusDir);
-	void read_data_file(QtaErrorFunction& qtaError, const std::string corpusDir) const;
+	void read_config_file(QtaErrorFunction& qtaError, bound_s& searchSpace, const std::string& configFile);
+	void read_data_file(QtaErrorFunction& qtaError, const std::string& dataFile) const;
 	void calc_sample_times(time_v& sampleTimes, const double& begin, const double& end) const;
 
 	// data members
