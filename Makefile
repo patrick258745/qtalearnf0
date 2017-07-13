@@ -13,19 +13,19 @@ INC := -I include -I lib
 
 all: ${EXECUTABLES}
 
-$(BINDIR)/qtasearch: $(BUILDDIR)/qtasearch.o $(BUILDDIR)/search.o $(BUILDDIR)/utilities.o
+$(BINDIR)/qtasearch: $(BUILDDIR)/qtasearch.o $(BUILDDIR)/search.o
 	@echo " Linking" $@ "... "
 	@echo " $(CC) $^ -o $@ $(LIB)"; $(CC) $^ -o $@ $(LIB)
 
-$(BINDIR)/qtasample: $(BUILDDIR)/qtasample.o $(BUILDDIR)/sampling.o $(BUILDDIR)/utilities.o
+$(BINDIR)/qtasample: $(BUILDDIR)/qtasample.o $(BUILDDIR)/sampling.o
 	@echo " Linking" $@ "... "
 	@echo " $(CC) $^ -o $@ $(LIB)"; $(CC) $^ -o $@ $(LIB)
 
-$(BINDIR)/qtatrain: $(BUILDDIR)/qtatrain.o $(BUILDDIR)/training.o $(BUILDDIR)/utilities.o
+$(BINDIR)/qtatrain: $(BUILDDIR)/qtatrain.o $(BUILDDIR)/training.o
 	@echo " Linking" $@ "... "
 	@echo " $(CC) $^ -o $@ $(LIB)"; $(CC) $^ -o $@ $(LIB)
 
-$(BINDIR)/qtastat: $(BUILDDIR)/qtastat.o $(BUILDDIR)/statistics.o $(BUILDDIR)/utilities.o
+$(BINDIR)/qtastat: $(BUILDDIR)/qtastat.o $(BUILDDIR)/statistics.o
 	@echo " Linking" $@ "... "
 	@echo " $(CC) $^ -o $@ $(LIB)"; $(CC) $^ -o $@ $(LIB)
 

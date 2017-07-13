@@ -2,8 +2,8 @@
 #include <sys/stat.h> // mkdir()
 #include <iostream>
 #include <string>
-#include <utilities.h>
-#include <types.h>
+#include "types.h"
+#include "sampling.h"
 
 /***** print out usage information *****/
 static void show_usage(std::string name)
@@ -47,9 +47,9 @@ static int parse_command_line(int argc, char* argv[], std::string &sampaFile, st
 			oValue = optarg;
 			break;
 		case '?':
-			throw util::CommandLineError("[parse_command_line] Wrong option specifier!");
+			throw dlib::error("[parse_command_line] Wrong option specifier!");
 		default:
-			throw util::CommandLineError("[parse_command_line] Wrong usage of command line options!");
+			throw dlib::error("[parse_command_line] Wrong usage of command line options!");
 		}
 	}
 
@@ -61,12 +61,12 @@ static int parse_command_line(int argc, char* argv[], std::string &sampaFile, st
 
 	if (argc != 7)
 	{
-		throw util::CommandLineError("[parse_command_line] Wrong number of command line arguments!");
+		throw dlib::error("[parse_command_line] Wrong number of command line arguments!");
 	}
 
 	if (qValue == NULL || fValue == NULL || oValue == NULL)
 	{
-		throw util::CommandLineError("[parse_command_line] Missing command line option!");
+		throw dlib::error("[parse_command_line] Missing command line option!");
 	}
 
 	// process command line arguments
@@ -106,21 +106,10 @@ int main(int argc, char* argv[])
 		/*********************************/
 
 	}
-	catch (util::CommandLineError& err)
-	{
-		std::cerr << "[main] Error while processing command line arguments!\n"  << err.what() << std::endl;
-		show_usage(argv[0]);
-		return 1;
-	}
-	catch (util::ExitOnError& err)
-	{
-		std::cerr << "[main] Program was terminated because an error occurred!\n" << err.what() << std::endl;
-		return 1;
-	}
 	catch (std::exception& e)
 	{
-		std::cerr << "[main] Program was terminated because an unhandled exception occurred!\n" << std::endl;
-		std::terminate();
+		std::cerr << "[main] Program was terminated because an exception was caught!\n" << e.what() << std::endl;
+		return EXIT_FAILURE;
 	}
 
 	return 0;

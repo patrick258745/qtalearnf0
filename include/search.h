@@ -11,7 +11,6 @@
 #include <cstdlib>
 #include <time.h>
 #include "types.h"
-#include "utilities.h"
 
 class CdlpFilter {
 public:
@@ -94,5 +93,7 @@ private:
 	// private member functions
 	double get_rand (const double& min, const double& max) const;
 };
+
+
 
 #endif /* SEARCH_H_ */

@@ -91,11 +91,6 @@ int main(int argc, char* argv[])
 
 		/*********************************/
 	}
-	catch (util::ExitOnError& err)
-	{
-		std::cerr << "[main] Program was terminated because an error occurred!\n" << err.what() << std::endl;
-		return EXIT_FAILURE;
-	}
 	catch (std::exception& e)
 	{
 		std::cerr << "[main] Program was terminated because an exception was caught!\n" << e.what() << std::endl;

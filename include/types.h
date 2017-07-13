@@ -12,6 +12,7 @@
 #include <vector>
 #include <string>
 #include <dlib/matrix.h>
+#include <dlib/error.h>
 
 /********** qta2f0 types **********/
 typedef dlib::matrix<double,0,1> la_col_vec;	// linear algebra column vector

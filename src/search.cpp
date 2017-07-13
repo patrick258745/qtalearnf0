@@ -3,6 +3,31 @@
 #include <dlib/optimization.h>
 #include "search.h"
 
+/********** utilities **********/
+// calculate binomial coefficient
+static double binomial (const unsigned n, const unsigned k)
+{
+	double result = 1;
+	unsigned int tmp = k;
+
+	if ( tmp > n - tmp )
+		tmp = n - tmp;
+
+	for (unsigned i = 0; i < tmp; ++i)
+	{
+		result *= (n - i);
+		result /= (i + 1);
+	}
+
+	return result;
+}
+
+// calculate factorial recursively
+static double factorial (unsigned n)
+{
+	return (n == 1 || n == 0) ? 1 : factorial(n - 1) * n;
+}
+
 /********** class CdlpFilter **********/
 
 CdlpFilter::CdlpFilter (const state_v& initState, const double& initTime)
@@ -10,7 +35,7 @@ CdlpFilter::CdlpFilter (const state_v& initState, const double& initTime)
 {
 	if (initState.size() == 0)
 	{
-		throw util::ExitOnError("[CdlpFilter] Filter can't be initialized with an empty state!");
+		throw dlib::error("[CdlpFilter] Filter can't be initialized with an empty state!");
 	}
 }
 
@@ -18,7 +43,7 @@ void CdlpFilter::initialize (const state_v& initState, const double& initTime)
 {
 	if (initState.size() == 0)
 	{
-		throw util::ExitOnError("[initialize] Filter can't be initialized with an empty state!");
+		throw dlib::error("[initialize] Filter can't be initialized with an empty state!");
 	}
 
 	m_filterOrder = initState.size();
@@ -30,7 +55,7 @@ void CdlpFilter::calc_filter_coeffs (coeff_v& filterCoeffs, const pitchTarget_s&
 {
 	if (filterCoeffs.size() != m_filterOrder)
 	{
-		throw util::ExitOnError("[calc_filter_coeffs] Wrong size of coefficient vector! " + std::to_string(filterCoeffs.size()) + " != " + std::to_string(m_filterOrder));
+		throw dlib::error("[calc_filter_coeffs] Wrong size of coefficient vector! " + std::to_string(filterCoeffs.size()) + " != " + std::to_string(m_filterOrder));
 	}
 
 	filterCoeffs[0] = m_initState[0] - qtaParams.b;	// 0th coefficient
@@ -39,7 +64,7 @@ void CdlpFilter::calc_filter_coeffs (coeff_v& filterCoeffs, const pitchTarget_s&
 		double acc (0.0);
 		for (unsigned i=0; i<n; ++i)
 		{
-			acc += ( filterCoeffs[i]*std::pow(-qtaParams.l,n-i)*util::binomial(n,i)*util::factorial(i) );
+			acc += ( filterCoeffs[i]*std::pow(-qtaParams.l,n-i)*binomial(n,i)*factorial(i) );
 		}
 
 		if (n==1)
@@ -47,7 +72,7 @@ void CdlpFilter::calc_filter_coeffs (coeff_v& filterCoeffs, const pitchTarget_s&
 			acc += qtaParams.m; // adaption for linear targets; minus changes in following term!
 		}
 
-		filterCoeffs[n] = (m_initState[n] - acc)/util::factorial(n);
+		filterCoeffs[n] = (m_initState[n] - acc)/factorial(n);
 	}
 }
 
@@ -78,7 +103,7 @@ void CdlpFilter::calc_state (state_v& currState, const double& currTime, const p
 {
 	if (currTime < m_initTime)
 	{
-		throw util::ExitOnError("[calc_state] Specified time point is smaller than filter initialization time: " + std::to_string(currTime) + " < " + std::to_string(m_initTime));
+		throw dlib::error("[calc_state] Specified time point is smaller than filter initialization time: " + std::to_string(currTime) + " < " + std::to_string(m_initTime));
 	}
 
 	// setup
@@ -100,7 +125,7 @@ void CdlpFilter::calc_state (state_v& currState, const double& currTime, const p
 			double q (0.0);
 			for (unsigned k=0; k<std::min(N-i,n+1); ++k)
 			{
-				q += (std::pow(-qtaParams.l,n-k)*util::binomial(n,k)*c[i+k]*util::factorial(k+i)/util::factorial(i));
+				q += (std::pow(-qtaParams.l,n-k)*binomial(n,k)*c[i+k]*factorial(k+i)/factorial(i));
 			}
 
 			acc += (std::pow(t,i)*q);
@@ -127,7 +152,7 @@ QtaErrorFunction::QtaErrorFunction (const signal_s& origF0, const state_v& initS
 {
 	if (m_origF0.sampleTimes.size() != (unsigned)m_origF0.sampleValues.size())
 	{
-		throw util::ExitOnError("[QtaErrorFunction] Original f0 samples doesn't match its sample times: " + std::to_string(m_origF0.sampleValues.size()) + " != " + std::to_string(m_origF0.sampleTimes.size()));
+		throw dlib::error("[QtaErrorFunction] Original f0 samples doesn't match its sample times: " + std::to_string(m_origF0.sampleValues.size()) + " != " + std::to_string(m_origF0.sampleTimes.size()));
 	}
 }
 
@@ -135,7 +160,7 @@ void QtaErrorFunction::set_orig_f0(const signal_s& origF0)
 {
 	if (origF0.sampleTimes.size() != (unsigned)origF0.sampleValues.size())
 	{
-		throw util::ExitOnError("[set_orig_f0] Original f0 samples doesn't match its sample times: " + std::to_string(origF0.sampleValues.size()) + " != " + std::to_string(origF0.sampleTimes.size()));
+		throw dlib::error("[set_orig_f0] Original f0 samples doesn't match its sample times: " + std::to_string(origF0.sampleValues.size()) + " != " + std::to_string(origF0.sampleTimes.size()));
 	}
 
 	m_origF0 = origF0;
@@ -209,7 +234,7 @@ void PraatFileIo::read_config_file(QtaErrorFunction& qtaError, bound_s& searchSp
 	fin.open(configFile); // open config file
 	if (!fin.good())
 	{
-		throw util::ExitOnError("[read_config_file] config file not found!");
+		throw dlib::error("[read_config_file] config file not found!");
 	}
 
 	try{
@@ -260,7 +285,7 @@ void PraatFileIo::read_config_file(QtaErrorFunction& qtaError, bound_s& searchSp
 	}
 	catch (std::invalid_argument& e)
 	{
-		throw util::ExitOnError("[read_config_file] invalid argument exceptions occurred while using std::stod!\n" + std::string(e.what()));
+		throw dlib::error("[read_config_file] invalid argument exceptions occurred while using std::stod!\n" + std::string(e.what()));
 	}
 }
 
@@ -271,7 +296,7 @@ void PraatFileIo::read_data_file(QtaErrorFunction& qtaError, const std::string& 
 	fin.open(dataFile); // open data file
 	if (!fin.good())
 	{
-		throw util::ExitOnError("[read_data_file] config file not found!");
+		throw dlib::error("[read_data_file] config file not found!");
 	}
 
 	try{
@@ -307,7 +332,7 @@ void PraatFileIo::read_data_file(QtaErrorFunction& qtaError, const std::string& 
 	}
 	catch (std::invalid_argument& e)
 	{
-		throw util::ExitOnError("[read_data_file] invalid argument exceptions occurred while using std::stod!\n" + std::string(e.what()));
+		throw dlib::error("[read_data_file] invalid argument exceptions occurred while using std::stod!\n" + std::string(e.what()));
 	}
 }
 
@@ -372,7 +397,6 @@ void PraatFileIo::write_praat_file(const QtaErrorFunction& qtaError, const pitch
 }
 
 /********** class Optimizer **********/
-
 void Optimizer::optimize(pitchTarget_s& optParams, const QtaErrorFunction& qtaError, const bound_s& searchSpace, const unsigned& randIters) const
 {
 	// optmization setup

@@ -9,7 +9,6 @@
 #define STATISTICS_H_
 
 #include "types.h"
-#include "utilities.h"
 
 class Evaluater {
 public:

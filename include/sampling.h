@@ -9,7 +9,6 @@
 #define SAMPLING_H_
 
 #include "types.h"
-#include "utilities.h"
 
 class Phoneme {
 public:
