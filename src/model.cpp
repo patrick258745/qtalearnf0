@@ -390,7 +390,8 @@ void Optimizer::optimize(pitchTarget_s& optParams, const QtaErrorFunction& qtaEr
 		}
 		catch (dlib::bobyqa_failure& err)
 		{
-			std::cerr << "WARNING: no convergence during optimization in iteration: " << i << std::endl << err.info << std::endl;
+			// DEBUG message
+			// std::cerr << "WARNING: no convergence during optimization in iteration: " << i << std::endl << err.info << std::endl;
 		}
 
 		// write optimization results back
@@ -404,8 +405,8 @@ void Optimizer::optimize(pitchTarget_s& optParams, const QtaErrorFunction& qtaEr
 		x = get_rand(searchSpace.lower.m,searchSpace.upper.m),get_rand(searchSpace.lower.b,searchSpace.upper.b),get_rand(searchSpace.lower.l,searchSpace.upper.l);
 	}
 
-	// DEBUG: print results
-	std::cout << "mse(" << optParams.m << "," << optParams.b << "," << optParams.l << ") = " << fmin << std::endl;
+	// DEBUG message
+	// std::cout << "mse(" << optParams.m << "," << optParams.b << "," << optParams.l << ") = " << fmin << std::endl;
 }
 
 double Optimizer::get_rand (const double& min, const double& max) const
