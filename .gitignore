@@ -34,6 +34,13 @@ bin/*
 .cproject
 .project
 
+# Tools
+tools/qtaf0/qta*
 
+# Test
+test/qta
+test/svr
+test/mlp
+*.target
 
 
