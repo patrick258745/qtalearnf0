@@ -1,15 +1,18 @@
-########## Input Formular ##########
+#########################################################################
+############################## Input Formular ###########################
+#########################################################################
+
 form quantitativeTargetApproximation
 	optionmenu Task: 1
 		option Search for optimal qTA parameters
 		option F0 resynthesis with qTA parameters
 	comment General options options:
-		boolean read_F0_from_file 0
 		integer f0_range_min_(Hz) 100
 		integer f0_range_max_(Hz) 600
 		real syllable_shift 0
 		integer filter_order 5
-		word corpus_directory ../test/corpus/
+		word corpus_directory ../../test/corpus/
+		word target_file ../../test/qta.targets
 	comment Parameter search options:
 		real slope_range_min_(st/s) -100
 		real slope_range_max_(st/s) 100
@@ -17,13 +20,13 @@ form quantitativeTargetApproximation
 		real offset_range_max_(st) 120
 		real strength_range_min_(1/st) 1
 		real strength_range_max_(1/st) 80
-		word output_target_file ../test/qta.tgs
 	comment F0 resynthesis options:
-		word input_target_file ../test/qta.tgs
-		word output_directory ../test/qta/
+		word output_directory ../../test/qta/
 endform
 
-########## Main Script ##########
+#########################################################################
+############################## Main Script ##############################
+#########################################################################
 
 ##### get input values
 f0_min = f0_range_min
@@ -61,7 +64,7 @@ endif
 
 ##### load targets if neccessary
 if task = 2
-	Read Table from comma-separated file... 'input_target_file$'
+	Read Table from comma-separated file... 'target_file$'
 	Rename... targetsTable
 endif
 
@@ -86,7 +89,7 @@ for current_file from 1 to numberOfFiles
 	wordEnd = Get start time of interval... 1 nintervals
 
 	##### Get F0 PitchTier
-	if (read_F0_from_file)
+	if fileReadable ("'corpus_directory$''name$'.PitchTier")
 		if fileReadable ("'corpus_directory$''name$'.PitchTier")
 			Read from file... 'corpus_directory$''name$'.PitchTier
 		else
@@ -105,10 +108,19 @@ for current_file from 1 to numberOfFiles
 		Remove
 	endif
 	
-	##### get qta F0
+	##### get qta F0 and save targets
 	call qtaAnalysis
+	select TableOfReal targets
+	Write to headerless spreadsheet file... 'corpus_directory$''name$'.targets
+	Remove
 
 	if task = 2
+		##### save result
+		select PitchTier semitoneF0
+		Save as PitchTier spreadsheet file... 'corpus_directory$''name$'.origf0
+		select PitchTier qtaF0
+		Save as PitchTier spreadsheet file... 'corpus_directory$''name$'.qtaf0
+
 		##### create output directory
 		createDirectory: "'output_directory$'"
 		
@@ -118,19 +130,14 @@ for current_file from 1 to numberOfFiles
 		##### create plot
 		call generatePlot
 	endif
-	
-	##### save result
+		
+	##### clean up
 	select PitchTier semitoneF0
-	Save as PitchTier spreadsheet file... 'corpus_directory$''name$'.origf0
 	Remove
 	select PitchTier qtaF0
-	Save as PitchTier spreadsheet file... 'corpus_directory$''name$'.qtaf0
 	Remove
-	select TableOfReal targets
-	Write to headerless spreadsheet file... 'corpus_directory$''name$'.targets
+	select TextGrid 'name$'
 	Remove
-	
-	##### clean up
 	select Sound 'name$'
 	Remove
 endfor
@@ -140,7 +147,17 @@ if task = 1
 	call assembleTargetFile
 endif
 
-#####
+##### final clean up
+if task = 2
+	select Table targetsTable
+	Remove
+endif
+select Strings list
+Remove
+
+#########################################################################
+############################## Procedures ###############################
+#########################################################################
 
 ########## (Procedure) determine qTA F0 ##########
 procedure qtaAnalysis
@@ -243,6 +260,7 @@ procedure qtaAnalysis
 				freq = Get value... i 2
 				fileappend 'corpus_directory$'input 'time' 'freq''newline$'
 			endfor
+			Remove
 
 			if fileReadable("./qtamodel")
 				cnt = cnt + 1
@@ -360,8 +378,8 @@ procedure qtaAnalysis
 		endif
 	endfor
 
-	#filedelete 'corpus_directory$'input
-	#filedelete 'corpus_directory$'output
+	filedelete 'corpus_directory$'input
+	filedelete 'corpus_directory$'output
 
 	##### last row is empty
 	select TableOfReal targets
@@ -373,7 +391,7 @@ endproc
 procedure assembleTargetFile
 
 	##### create result container
-	writeFileLine: "'output_target_file$'", "name,slope,offset,strength,duration,rmse,corr"
+	writeFileLine: "'target_file$'", "name,slope,offset,strength,duration,rmse,corr"
 
 	##### iterate over all files
 	for current_file from 1 to numberOfFiles
@@ -384,7 +402,7 @@ procedure assembleTargetFile
 		name$ = fileName$ - ".wav" - ".WAV"
 		
 		Read TableOfReal from headerless spreadsheet file... 'corpus_directory$''name$'.targets
-		filedelete 'name$'.targets
+		filedelete 'corpus_directory$''name$'.targets
 		select TableOfReal 'name$'
 		nrows = Get number of rows
 
@@ -400,8 +418,10 @@ procedure assembleTargetFile
 			c = Get value... i 6
 			
 			#write targets
-			appendFile: "'output_target_file$'",name$,",",m,",",b,",",l,",",d,",",r,",",c,newline$
+			appendFile: "'target_file$'",name$,",",m,",",b,",",l,",",d,",",r,",",c,newline$
 		endfor
+		select TableOfReal 'name$'
+		Remove
 	endfor
 endproc
 
