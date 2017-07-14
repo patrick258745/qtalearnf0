@@ -1,7 +1,7 @@
-#include <fstream>
+
 #include <dlib/string.h>
 #include <dlib/optimization.h>
-#include "search.h"
+#include "targets.h"
 
 /********** utilities **********/
 // calculate binomial coefficient
@@ -227,16 +227,8 @@ double QtaErrorFunction::correlation_coeff (const pitchTarget_s& qtaParams) cons
 
 /********** class PraatFileIo **********/
 
-void PraatFileIo::read_config_file(QtaErrorFunction& qtaError, bound_s& searchSpace, const std::string& configFile)
+void PraatFileIo::read_input(QtaErrorFunction& qtaError, bound_s& searchSpace, std::ifstream& fin)
 {
-	// create a file-reading object
-	std::ifstream fin;
-	fin.open(configFile); // open config file
-	if (!fin.good())
-	{
-		throw dlib::error("[read_config_file] config file not found!");
-	}
-
 	try{
 		// container for string values
 		std::string line;
@@ -276,39 +268,8 @@ void PraatFileIo::read_config_file(QtaErrorFunction& qtaError, bound_s& searchSp
 		// sixth line
 		std::getline(fin, line);
 		tokens = dlib::split(line, " "); // syllable bounds
-
-		// write results
 		double sylBeginTime (std::stod(tokens[0]));
 		m_sylEndTime = std::stod(tokens[1]);
-		calc_sample_times(m_outSampleTimes, sylBeginTime, m_sylEndTime);
-		qtaError.initialize_filter(state, sylBeginTime);
-	}
-	catch (std::invalid_argument& e)
-	{
-		throw dlib::error("[read_config_file] invalid argument exceptions occurred while using std::stod!\n" + std::string(e.what()));
-	}
-}
-
-void PraatFileIo::read_data_file(QtaErrorFunction& qtaError, const std::string& dataFile) const
-{
-	// create a file-reading object
-	std::ifstream fin;
-	fin.open(dataFile); // open data file
-	if (!fin.good())
-	{
-		throw dlib::error("[read_data_file] config file not found!");
-	}
-
-	try{
-		// container for string values
-		std::string line;
-		std::vector<std::string> tokens;
-
-		// skip first six lines
-		for (unsigned i=0; i<6; i++)
-		{
-			std::getline(fin, line);
-		}
 
 		// 7th line
 		std::getline(fin, line);
@@ -320,32 +281,39 @@ void PraatFileIo::read_data_file(QtaErrorFunction& qtaError, const std::string& 
 		for (unsigned int i=0; i<N; ++i)
 		{
 			std::getline(fin, line);
-			std::size_t pos = line.find_first_of('\t');
-			line.erase(line.begin(),line.begin()+pos+1);
-			tokens = dlib::split(line, "\t");
+			tokens = dlib::split(line, " ");
 			f0.sampleTimes.push_back(std::stod(tokens[0]));
 			f0.sampleValues(i) = std::stod(tokens[1]);
 		}
 
 		// write results
+		calc_sample_times(m_outSampleTimes, sylBeginTime, m_sylEndTime);
+		qtaError.initialize_filter(state, sylBeginTime);
 		qtaError.set_orig_f0(f0);
 	}
 	catch (std::invalid_argument& e)
 	{
-		throw dlib::error("[read_data_file] invalid argument exceptions occurred while using std::stod!\n" + std::string(e.what()));
+		throw dlib::error("[read_config_file] invalid argument exceptions occurred while using std::stod!\n" + std::string(e.what()));
 	}
 }
 
-void PraatFileIo::read_praat_file(QtaErrorFunction& qtaError, bound_s& searchSpace, const std::string& configFile, const std::string& dataFile)
+void PraatFileIo::read_praat_file(QtaErrorFunction& qtaError, bound_s& searchSpace, const std::string& inputFile)
 {
-	read_config_file(qtaError, searchSpace, configFile);
-	read_data_file(qtaError, dataFile);
+	// create a file-reading object
+	std::ifstream fin;
+	fin.open(inputFile); // open data file
+	if (!fin.good())
+	{
+		throw dlib::error("[read_data_file] input file not found!");
+	}
+
+	read_input(qtaError, searchSpace, fin);
 }
 
-void PraatFileIo::read_praat_file(QtaErrorFunction& qtaError, pitchTarget_s& optParams, const std::string& configFile, const std::string& dataFile)
+void PraatFileIo::read_praat_file(QtaErrorFunction& qtaError, pitchTarget_s& optParams, const std::string& inputFile)
 {
 	bound_s tmp;
-	read_praat_file(qtaError, tmp, configFile, dataFile);
+	read_praat_file(qtaError, tmp, inputFile);
 	optParams = tmp.lower;
 }
 

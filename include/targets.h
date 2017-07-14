@@ -1,14 +1,15 @@
 /*
- * search.h
+ * targets.h
  *
  *  Created on: 10 July 2017
  *      Author: Patrick Schmager
  */
 
-#ifndef SEARCH_H_
-#define SEARCH_H_
+#ifndef TARGETS_H_
+#define TARGETS_H_
 
 #include <cstdlib>
+#include <fstream>
 #include <time.h>
 #include "types.h"
 
@@ -66,14 +67,13 @@ public:
 	PraatFileIo (const double& sylEndTime) : m_sylEndTime(sylEndTime) {};
 
 	// public member functions
-	void read_praat_file(QtaErrorFunction& qtaError, bound_s& searchSpace, const std::string& configFile, const std::string& dataFile);
-	void read_praat_file(QtaErrorFunction& qtaError, pitchTarget_s& optParams, const std::string& configFile, const std::string& dataFile);
+	void read_praat_file(QtaErrorFunction& qtaError, bound_s& searchSpace, const std::string& inputFile);
+	void read_praat_file(QtaErrorFunction& qtaError, pitchTarget_s& optParams, const std::string& inputFile);
 	void write_praat_file(const QtaErrorFunction& qtaError, const pitchTarget_s& optParams, const std::string& outputFile) const;
 
 private:
 	// private member functions
-	void read_config_file(QtaErrorFunction& qtaError, bound_s& searchSpace, const std::string& configFile);
-	void read_data_file(QtaErrorFunction& qtaError, const std::string& dataFile) const;
+	void read_input(QtaErrorFunction& qtaError, bound_s& searchSpace, std::ifstream& fin);
 	void calc_sample_times(time_v& sampleTimes, const double& begin, const double& end) const;
 
 	// data members
@@ -96,4 +96,4 @@ private:
 
 
 
-#endif /* SEARCH_H_ */
+#endif /* TARGETS_H_ */

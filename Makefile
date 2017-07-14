@@ -2,7 +2,7 @@ CC := g++
 SRCDIR := src
 BINDIR := bin
 BUILDDIR := build
-EXECUTABLES := $(BINDIR)/qtasearch $(BINDIR)/qtasample $(BINDIR)/qtatrain $(BINDIR)/qtastat
+EXECUTABLES := $(BINDIR)/qtatarget $(BINDIR)/qtasample $(BINDIR)/qtatrain $(BINDIR)/qtatool
  
 SRCEXT := cpp
 SOURCES := $(shell find $(SRCDIR) -type f -name *.$(SRCEXT))
@@ -13,7 +13,7 @@ INC := -I include -I lib
 
 all: ${EXECUTABLES}
 
-$(BINDIR)/qtasearch: $(BUILDDIR)/qtasearch.o $(BUILDDIR)/search.o
+$(BINDIR)/qtatarget: $(BUILDDIR)/qtatarget.o $(BUILDDIR)/targets.o
 	@echo " Linking" $@ "... "
 	@echo " $(CC) $^ -o $@ $(LIB)"; $(CC) $^ -o $@ $(LIB)
 
@@ -25,7 +25,7 @@ $(BINDIR)/qtatrain: $(BUILDDIR)/qtatrain.o $(BUILDDIR)/training.o
 	@echo " Linking" $@ "... "
 	@echo " $(CC) $^ -o $@ $(LIB)"; $(CC) $^ -o $@ $(LIB)
 
-$(BINDIR)/qtastat: $(BUILDDIR)/qtastat.o $(BUILDDIR)/statistics.o
+$(BINDIR)/qtatool: $(BUILDDIR)/qtatool.o $(BUILDDIR)/tools.o
 	@echo " Linking" $@ "... "
 	@echo " $(CC) $^ -o $@ $(LIB)"; $(CC) $^ -o $@ $(LIB)
 

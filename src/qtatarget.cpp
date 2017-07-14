@@ -1,14 +1,13 @@
 #include <iostream>
 #include <string>
-#include <dlib/misc_api.h>
 #include <dlib/cmd_line_parser.h>
 #include "types.h"
-#include "search.h"
+#include "targets.h"
 
 int main(int argc, char* argv[])
 {
-	// variables declaration
-	std::string configFile, dataFile, outputFile;
+	// command line variables
+	std::string inputFile, outputFile;
 
 	try
 	{
@@ -17,10 +16,12 @@ int main(int argc, char* argv[])
 
 		// command line options
 		parser.add_option("h","Display this help message.");
-		parser.add_option("s","Search for optimal parameters.");
-		parser.add_option("r","Read optimal parameters from config file.");
-		parser.add_option("in","Specify config and data input files.",2);
-		parser.add_option("out","Specify output file.",1);
+		parser.set_group_name("Task Options");
+		parser.add_option("s","Search for optimal qTA parameters.");
+		parser.add_option("r","Read optimal qTA parameters from input file.");
+		parser.set_group_name("File Options");
+		parser.add_option("in","Specify praat input file.",1);
+		parser.add_option("out","Specify praat output file.",1);
 
 		// parse command line
 		parser.parse(argc,argv);
@@ -47,8 +48,7 @@ int main(int argc, char* argv[])
 
         if (parser.option("in"))
 		{
-        	configFile = parser.option("in").argument();
-        	dataFile = parser.option("in").argument(1);
+        	inputFile = parser.option("in").argument();
 		}
 		else
 		{
@@ -78,12 +78,12 @@ int main(int argc, char* argv[])
 		// get optimal qta parameters
 		if (parser.option("s"))
 		{
-			praatFiles.read_praat_file(qtaError, searchSpace, configFile, dataFile);
+			praatFiles.read_praat_file(qtaError, searchSpace, inputFile);
 			paramSearch.optimize(optParams, qtaError, searchSpace);
 		}
 		else
 		{
-			praatFiles.read_praat_file(qtaError, optParams, configFile, dataFile);
+			praatFiles.read_praat_file(qtaError, optParams, inputFile);
 		}
 
 		// save results to praat file
@@ -93,7 +93,7 @@ int main(int argc, char* argv[])
 	}
 	catch (std::exception& e)
 	{
-		std::cerr << "[main] Program was terminated because an exception was caught!\n" << e.what() << std::endl;
+		std::cerr << "[main] Program was terminated because an error occurred!\n" << e.what() << std::endl;
 		return EXIT_FAILURE;
 	}
 

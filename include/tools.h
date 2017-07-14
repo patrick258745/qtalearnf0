@@ -1,12 +1,12 @@
 /*
- * plot.h
+ * tools.h
  *
  *  Created on: 10 July 2017
  *      Author: Patrick Schmager
  */
 
-#ifndef STATISTICS_H_
-#define STATISTICS_H_
+#ifndef TOOLS_H_
+#define TOOLS_H_
 
 #include "types.h"
 
@@ -71,4 +71,4 @@ private:
 };
 
 
-#endif /* STATISTICS_H_ */
+#endif /* TOOLS_H_ */
