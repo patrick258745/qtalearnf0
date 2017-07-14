@@ -2,7 +2,8 @@ CC := g++
 SRCDIR := src
 BINDIR := bin
 BUILDDIR := build
-EXECUTABLES := $(BINDIR)/qtatarget $(BINDIR)/qtasample $(BINDIR)/qtatrain $(BINDIR)/qtatool
+QTAF0 := tools/qtaf0
+EXECUTABLES := $(BINDIR)/qtamodel $(BINDIR)/mlasampling $(BINDIR)/mlatraining $(BINDIR)/qtatools
  
 SRCEXT := cpp
 SOURCES := $(shell find $(SRCDIR) -type f -name *.$(SRCEXT))
@@ -13,21 +14,23 @@ INC := -I include -I lib
 
 all: ${EXECUTABLES}
 
-$(BINDIR)/qtatarget: $(BUILDDIR)/qtatarget.o $(BUILDDIR)/targets.o
+$(BINDIR)/qtamodel: $(BUILDDIR)/qtamodel.o $(BUILDDIR)/model.o
+	@echo " Linking" $@ "... "
+	@echo " $(CC) $^ -o $@ $(LIB)"; $(CC) $^ -o $@ $(LIB)
+	@echo "copy $@ to $(QTAF0)"; cp $@ $(QTAF0)/qtamodel
+
+$(BINDIR)/mlasampling: $(BUILDDIR)/mlasampling.o $(BUILDDIR)/sampling.o
 	@echo " Linking" $@ "... "
 	@echo " $(CC) $^ -o $@ $(LIB)"; $(CC) $^ -o $@ $(LIB)
 
-$(BINDIR)/qtasample: $(BUILDDIR)/qtasample.o $(BUILDDIR)/sampling.o
+$(BINDIR)/mlatraining: $(BUILDDIR)/mlatraining.o $(BUILDDIR)/training.o
 	@echo " Linking" $@ "... "
 	@echo " $(CC) $^ -o $@ $(LIB)"; $(CC) $^ -o $@ $(LIB)
 
-$(BINDIR)/qtatrain: $(BUILDDIR)/qtatrain.o $(BUILDDIR)/training.o
+$(BINDIR)/qtatools: $(BUILDDIR)/qtatools.o $(BUILDDIR)/tools.o
 	@echo " Linking" $@ "... "
 	@echo " $(CC) $^ -o $@ $(LIB)"; $(CC) $^ -o $@ $(LIB)
-
-$(BINDIR)/qtatool: $(BUILDDIR)/qtatool.o $(BUILDDIR)/tools.o
-	@echo " Linking" $@ "... "
-	@echo " $(CC) $^ -o $@ $(LIB)"; $(CC) $^ -o $@ $(LIB)
+	@echo "copy $@ to $(QTAF0)"; cp $@ $(QTAF0)/qtatools
 
 $(BUILDDIR)/%.o: $(SRCDIR)/%.$(SRCEXT)
 	@mkdir -p $(BUILDDIR)
@@ -36,10 +39,10 @@ $(BUILDDIR)/%.o: $(SRCDIR)/%.$(SRCEXT)
 
 clean:
 	@echo " Cleaning..."; 
-	@echo " $(RM) -r $(BUILDDIR) $(BINDIR)"; $(RM) -r $(BUILDDIR) $(BINDIR)
+	@echo " $(RM) -r $(BUILDDIR) $(BINDIR) $(QTAF0)"; $(RM) -r $(BUILDDIR) $(BINDIR) $(QTAF0)/qta*
 
 test: all
 	@echo " Testing...";
-	#bash ./learnF0qta.sh test/config.xml
+	bash test/test.sh
 
 .PHONY: clean test
