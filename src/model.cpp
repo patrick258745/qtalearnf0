@@ -1,4 +1,5 @@
 #include <dlib/string.h>
+#include <dlib/threads.h>
 #include <dlib/optimization.h>
 #include "model.h"
 
@@ -417,15 +418,24 @@ void Optimizer::optimize(target_v& optParams, const QtaErrorFunction& qtaError, 
 	const double rho_end (1e-6); // stopping trust region radius -> accuracy
 	const long max_f_evals (10000); // max number of objective function evaluations
 
-	// random iterations
-	la_col_vec x = (lowerBound + upperBound)/2; // optimization variables
-	double fmin (qtaError(x));
-	la_col_vec xtmp (x);
-	double ftmp (fmin);
-	unsigned itNum (nIntervals*20);
+	// initialize
+	double fmin (1e10);
+	la_col_vec xtmp; double ftmp;
+	unsigned itNum (nIntervals*10);
+	dlib::mutex mu;
 
-	for (unsigned i=0; i<itNum; ++i)
+	dlib::parallel_for(0, itNum, [&](unsigned it)
 	{
+		// random initialization
+		la_col_vec x;
+		x.set_size(nIntervals*3);
+		for (unsigned i=0; i<nIntervals; ++i)
+		{
+			x(3*i+0) = get_rand(mmin,mmax);
+			x(3*i+1) = get_rand(bmin,bmax);
+			x(3*i+2) = get_rand(lmin,lmax);
+		}
+
 		try
 		{
 			// optimization algorithm: BOBYQA
@@ -438,20 +448,13 @@ void Optimizer::optimize(target_v& optParams, const QtaErrorFunction& qtaError, 
 		}
 
 		// write optimization results back
+		dlib::auto_mutex lock(mu);
 		if (ftmp < fmin)
 		{
 			fmin = ftmp;
 			xtmp = x;
 		}
-
-		// random initialization for next round
-		for (unsigned i=0; i<nIntervals; ++i)
-		{
-			x(3*i+0) = get_rand(mmin,mmax);
-			x(3*i+1) = get_rand(bmin,bmax);
-			x(3*i+2) = get_rand(lmin,lmax);
-		}
-	}
+	});
 
 	// convert result to target_v
 	optParams.clear();
