@@ -10,65 +10,21 @@
 
 #include "types.h"
 
-class Evaluater {
-public:
-	// public member functions
-
-private:
-	// private member functions
-
-
-	// data members
-
-};
-
 class PlotFile {
 public:
+	// Constructors
+	PlotFile (const std::string& label, const std::string& directory, const double& shift = 0.0);
+
 	// public member functions
+	void plot ();
 
 private:
 	// private member functions
-
-
-	// data members
-
-};
-
-class QtaPlotFile : PlotFile {
-public:
-	// public member functions
-
-private:
-	// private member functions
-
+	void read_plot_data ();
+	void generate_plot_file ();
 
 	// data members
-
+	plot_data_s m_data;
 };
-
-class SvrPlotFile :PlotFile {
-public:
-	// public member functions
-
-private:
-	// private member functions
-
-
-	// data members
-
-};
-
-class MlpPlotFile : PlotFile {
-public:
-	// public member functions
-
-private:
-	// private member functions
-
-
-	// data members
-
-};
-
 
 #endif /* TOOLS_H_ */

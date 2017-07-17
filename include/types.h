@@ -14,7 +14,7 @@
 #include <dlib/matrix.h>
 #include <dlib/error.h>
 
-/********** qta2f0 types **********/
+/********** qtamodel types **********/
 typedef dlib::matrix<double,0,1> la_col_vec;	// linear algebra column vector
 typedef std::vector<double> real_vec;			// vector for real numbers
 
@@ -42,7 +42,7 @@ struct signal_s
 	freq_v sampleValues;
 };
 
-/********** qtadata types **********/
+/********** qtasampling types **********/
 typedef const unsigned int glob_const;
 
 glob_const NUMPHONONSET	= 3;
@@ -75,13 +75,25 @@ typedef std::map<std::string, word_feat_v> 	feat_m;
 typedef std::vector<target_t>			target_v;
 typedef std::map<std::string, target_v>	target_m;
 
-/********** qtatrain types **********/
+/********** qtatraining types **********/
 struct qtaTarget_s
 {
 	pitchTarget_s params;
 	double d;	// duration
 	double r;	// root-mean-squared-error
 	double c;	// correlation-coefficient
+};
+
+/********** qtatools types **********/
+struct plot_data_s
+{
+	std::string 		label;
+	std::string 		directory;
+	double 				shift;
+	double				rmse;
+	std::vector<double> bound;
+	std::vector<double> slope;
+	std::vector<double> offset;
 };
 
 #endif /* TYPES_H_ */

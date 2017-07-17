@@ -45,4 +45,8 @@ test: all
 	@echo " Testing...";
 	bash test/test.sh
 
-.PHONY: clean test
+corpus: all
+	@echo " Processing whole corpus...";
+	bash ../training/training.sh
+
+.PHONY: clean test corpus

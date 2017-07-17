@@ -76,6 +76,10 @@ for current_file from 1 to numberOfFiles
 	fileName$ = Get string... current_file
 	name$ = fileName$ - ".wav" - ".WAV"
 	Read from file... 'corpus_directory$''fileName$'
+	
+	##### print status
+	cnt = cnt + 1
+	printline Process 'name$' ('cnt')
 
 	##### load TextGrid file
 	if fileReadable ("'corpus_directory$''name$'.TextGrid")
@@ -117,9 +121,13 @@ for current_file from 1 to numberOfFiles
 	if task = 2
 		##### save result
 		select PitchTier semitoneF0
-		Save as PitchTier spreadsheet file... 'corpus_directory$''name$'.origf0
+		Down to TableOfReal... Hertz
+		Save as headerless spreadsheet file... 'corpus_directory$''name$'.origf0
+		Remove
 		select PitchTier qtaF0
-		Save as PitchTier spreadsheet file... 'corpus_directory$''name$'.qtaf0
+		Down to TableOfReal... Hertz
+		Save as headerless spreadsheet file... 'corpus_directory$''name$'.qtaf0
+		Remove
 
 		##### create output directory
 		createDirectory: "'output_directory$'"
@@ -236,6 +244,7 @@ procedure qtaAnalysis
 				b_max = b_min
 				l_min = Get value... targetNumber strength
 				l_max = l_min
+				targetNumber = targetNumber + 1
 			endif
 			
 			##### create input file for ./qtatarget
@@ -253,6 +262,7 @@ procedure qtaAnalysis
 			
 			select PitchTier semitoneF0
 			Down to TableOfReal... Hertz
+			Extract row ranges... 'index_first':'index_last'
 			nsamples = Get number of rows
 			fileappend 'corpus_directory$'input 'nsamples''newline$'
 			for i from 1 to nsamples
@@ -261,10 +271,12 @@ procedure qtaAnalysis
 				fileappend 'corpus_directory$'input 'time' 'freq''newline$'
 			endfor
 			Remove
+			select TableOfReal semitoneF0
+			Remove
 
 			if fileReadable("./qtamodel")
-				cnt = cnt + 1
-				runSystem: "printf '\r\t processed targets ['cnt']: '"
+				#cnt = cnt + 1
+				#runSystem: "printf '\r\t processed targets ['cnt']: '"
 				runSystem: "./qtamodel 'flag$' --in 'corpus_directory$'input --out 'corpus_directory$'output"
 			else
 				printline Cannot find ./qtamodel!
@@ -445,21 +457,22 @@ endproc
 ########## (Procedure) plot F0 contours and targets ##########
 procedure generatePlot
 	if fileReadable("./qtatools")
-		runSystem: "printf '\n\t plotted files...'"
-		runSystem: "./qtatools -p --dir 'corpus_directory' --label 'name$'"
+		runSystem: "./qtatools -p --dir 'corpus_directory$' --label 'name$'"
 	else
 		printline Cannot find ./qtatools!
 		exit
 	endif
 	
 	##### clean
-	filedelete 'corpus_directory$''name$'.p
+	filedelete 'corpus_directory$''name$'.plot
 	filedelete 'corpus_directory$''name$'.origf0
 	filedelete 'corpus_directory$''name$'.qtaf0
 	filedelete 'corpus_directory$''name$'.targets
 	createDirectory: "'output_directory$'plots"
 	
 	##### copy
-	#Read from file... 'corpus_directory$''name$'.png
-	#Save as PNG file... 'output_directory$'/plots/'name$'.png
+	Read from file... 'corpus_directory$''name$'.png
+	Save as PNG file... 'output_directory$'/plots/'name$'.png
+	Remove
+	filedelete 'corpus_directory$''name$'.png
 endproc

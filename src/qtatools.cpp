@@ -7,6 +7,7 @@
 int main(int argc, char* argv[])
 {
 	std::string inputFile, plotDir, label;
+	double syllableShift;
 
 	try
 	{
@@ -22,6 +23,8 @@ int main(int argc, char* argv[])
 		parser.add_option("in","Specify target input files.",1);
 		parser.add_option("dir","Specify plot file directory.",1);
 		parser.add_option("label","Specify label of word to plot.",1);
+		parser.set_group_name("Additional Plot Options");
+		parser.add_option("shift","Specify syllable shift in ms.",1);
 
 		// parse command line
 		parser.parse(argc,argv);
@@ -54,7 +57,7 @@ int main(int argc, char* argv[])
 
 		if (parser.option("label"))
 		{
-			plotDir = parser.option("label").argument();
+			label = parser.option("label").argument();
 		}
 		else
 		{
@@ -63,8 +66,14 @@ int main(int argc, char* argv[])
 			return EXIT_FAILURE;
 		}
 
-		// ********** main script **********
+		syllableShift = get_option(parser,"shift",0.0);
 
+		// ********** main script **********
+		if (parser.option("p"))
+		{
+			PlotFile F0plot (label, plotDir, syllableShift);
+			F0plot.plot();
+		}
 
 		// *********************************
 	}
