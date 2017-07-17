@@ -123,6 +123,7 @@ void PlotFile::generate_plot_file ()
 	m_file << "set datafile missing '0'" << std::endl;
 	m_file << "stats '" << m_data.label <<".qtaf0' using 2:3 nooutput" << std::endl;
 	m_file << "set xrange [" << m_data.bound[0] << ":" << m_data.bound[m_data.bound.size()-1] <<"]" << std::endl;
+	//m_file << "set yrange [70:110]" << std::endl;
 	m_file << "set yrange [STATS_min_y-2:STATS_max_y+2]" << std::endl;
 	m_file << "set title 'F0 - " << m_data.label <<" (rmse=" << m_data.rmse <<")'" << std::endl;
 	m_file << "set xlabel 'Time [sec]'" << std::endl;

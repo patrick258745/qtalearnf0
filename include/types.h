@@ -29,6 +29,7 @@ struct pitchTarget_s
 	double b;	// offset
 	double l;	// strength
 };
+typedef std::vector<pitchTarget_s> target_v;	// vector of pitch targets
 
 struct bound_s
 {
@@ -72,7 +73,7 @@ struct syl_feat_s
 typedef std::vector<syl_feat_s>				word_feat_v;
 typedef std::map<std::string, word_feat_v> 	feat_m;
 
-typedef std::vector<target_t>			target_v;
+//typedef std::vector<target_t>			target_v;
 typedef std::map<std::string, target_v>	target_m;
 
 /********** qtatraining types **********/

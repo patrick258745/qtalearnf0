@@ -69,8 +69,8 @@ int main(int argc, char* argv[])
 		}
 
 		/********** main script **********/
-		pitchTarget_s optParams;
-		bound_s searchSpace;
+		target_v optParams;
+		std::vector<bound_s> searchSpace;
 		PraatFileIo praatFiles;
 		QtaErrorFunction qtaError;
 		Optimizer paramSearch;

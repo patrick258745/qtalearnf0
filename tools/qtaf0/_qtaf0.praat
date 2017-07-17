@@ -187,6 +187,21 @@ procedure qtaAnalysis
 		select Table targetsTable
 		targetNumber = Search column... name 'name$'
 	endif
+	
+	##### count intervals
+	for nm1 from 1 to nintervals
+		select TextGrid 'name$'
+		label$ = Get label of interval... 1 nm1
+		if not label$ = ""
+			interval_t = interval_t + 1
+		endif
+	endfor
+	
+	##### create input file for ./qtatarget
+	filedelete 'corpus_directory$'input
+	fileappend 'corpus_directory$'input 'n''newline$'
+	fileappend 'corpus_directory$'input 'interval_t''newline$'
+	interval_t = 0
 
 	##### iterate over syllables
 	for nm from 1 to nintervals
@@ -208,32 +223,8 @@ procedure qtaAnalysis
 			end = tmpE - shift/1000
 		endif
 
-		interval_dur = end - start
-
 		if not label$ = ""
 			interval_t = interval_t + 1
-
-			select PitchTier semitoneF0
-			index_first = Get high index from time... start
-			index_last = Get low index from time... end
-			# syllable shift can lead to problems if there is no F0 in interval
-			if index_last = 0
-				index_last = 1
-			endif
-			tInitial = Get time from index... index_first
-			xInitial = Get value at index... index_first
-			tFinal = end
-
-			if interval_t == 1
-				deriv[1] = xInitial
-				for i from 2 to n
-    				deriv[i] = 0
-				endfor
-			else
-				for i from 1 to n
-    				deriv[i] = derivFinal[i]
-				endfor
-			endif
 
 			##### determine target values
 			if task = 2
@@ -247,148 +238,126 @@ procedure qtaAnalysis
 				targetNumber = targetNumber + 1
 			endif
 			
-			##### create input file for ./qtatarget
-			filedelete 'corpus_directory$'input
-			fileappend 'corpus_directory$'input 'm_min' 'm_max''newline$'
-			fileappend 'corpus_directory$'input 'b_min' 'b_max''newline$'
-			fileappend 'corpus_directory$'input 'l_min' 'l_max''newline$'
-			fileappend 'corpus_directory$'input 'n''newline$'
-			for i from 1 to n
-				val = deriv[i]
-    			fileappend 'corpus_directory$'input 'val' 
-			endfor
-			fileappend 'corpus_directory$'input 'newline$'
-			fileappend 'corpus_directory$'input 'start' 'end''newline$'
+			##### add target information to input file
+			fileappend 'corpus_directory$'input 'm_min' 'm_max' 'b_min' 'b_max' 'l_min' 'l_max' 'start' 'end''newline$'
 			
-			select PitchTier semitoneF0
-			Down to TableOfReal... Hertz
-			Extract row ranges... 'index_first':'index_last'
-			nsamples = Get number of rows
-			fileappend 'corpus_directory$'input 'nsamples''newline$'
-			for i from 1 to nsamples
-				time = Get value... i 1
-				freq = Get value... i 2
-				fileappend 'corpus_directory$'input 'time' 'freq''newline$'
-			endfor
-			Remove
-			select TableOfReal semitoneF0
-			Remove
-
-			if fileReadable("./qtamodel")
-				#cnt = cnt + 1
-				#runSystem: "printf '\r\t processed targets ['cnt']: '"
-				runSystem: "./qtamodel 'flag$' --in 'corpus_directory$'input --out 'corpus_directory$'output"
-			else
-				printline Cannot find ./qtamodel!
-				exit
-			endif
-			
-			##### analyze output file
-			buff$ < 'corpus_directory$'output
-			
-			#First line: qTA parameters
-			len_buff = length(buff$)
-			line_index = index(buff$,newline$)
-			sbuff$ = left$(buff$,line_index-1)
-			buff$ = mid$(buff$,line_index+1,len_buff)
-			len_sbuff = length(sbuff$)
-	
-			#First line: m
-			sep_index = index(sbuff$," ")
-			pbuff$ = left$(sbuff$,sep_index-1)
-			sbuff$ = mid$(sbuff$,sep_index+1,len_sbuff)
-			mBest'interval_t' = 'pbuff$'
-			m = mBest'interval_t'
-	
-			#First line: b
-			sep_index = index(sbuff$," ")
-			pbuff$ = left$(sbuff$,sep_index-1)
-			sbuff$ = mid$(sbuff$,sep_index+1,len_sbuff)
-			bBest'interval_t' = 'pbuff$'
-			b = bBest'interval_t'
-	
-			#First line: lambda
-			lambdaBest'interval_t' = 'sbuff$'
-			lambda = lambdaBest'interval_t'
-	
-			duration'interval_t' = end - start
-			d = duration'interval_t'
-			
-			#Second line: final F0 articulatory state
-			len_buff = length(buff$)
-			line_index = index(buff$,newline$)
-			sbuff$ = left$(buff$,line_index-1)
-			buff$ = mid$(buff$,line_index+1,len_buff)
-			len_sbuff = length(sbuff$)
-	
-			#Second line: Final state
-			for i from 1 to n-1
-    			sep_index = index(sbuff$," ")
-				pbuff$ = left$(sbuff$,sep_index-1)
-				sbuff$ = mid$(sbuff$,sep_index+1,len_sbuff)
-				derivFinal[i] = 'pbuff$'
-			endfor
-
-			#Second line: last derivative
-			derivFinal[n] = 'sbuff$'
-	
-			#Third line: rmse and correlation results
-			len_buff = length(buff$)
-			line_index = index(buff$,newline$)
-			sbuff$ = left$(buff$,line_index-1)
-			buff$ = mid$(buff$,line_index+1,len_buff)
-			len_sbuff = length(sbuff$)
-	
-			#Third line: rmse
-			sep_index = index(sbuff$," ")
-			pbuff$ = left$(sbuff$,sep_index-1)
-			sbuff$ = mid$(sbuff$,sep_index+1,len_sbuff)
-			rmse'interval_t' = 'pbuff$'
-			rmse = rmse'interval_t'
-	
-			#Third line: correlation
-			corr'interval_t' = 'sbuff$'
-			corr = corr'interval_t'
-	
-			#Forth line: number of sample
-			len_buff = length(buff$)
-			line_index = index(buff$,newline$)
-			sbuff$ = left$(buff$,line_index-1)
-			buff$ = mid$(buff$,line_index+1,len_buff)
-			len_sbuff = length(sbuff$)
-			number_of_row = 'sbuff$'
-	
-			#Remaining: time and resynthesized f0
-			for i from 1 to number_of_row
-				len_buff = length(buff$)
-				line_index = index(buff$,newline$)
-				sbuff$ = left$(buff$,line_index-1)
-				buff$ = mid$(buff$,line_index+1,len_buff)
-				len_sbuff = length(sbuff$)
-	
-				sep_index = index(sbuff$," ")
-				pbuff$ = left$(sbuff$,sep_index-1)
-				sbuff$ = mid$(sbuff$,sep_index+1,len_sbuff)
-				sampletime = 'pbuff$'
-				fvalue = 'sbuff$'
-	
-				select PitchTier qtaF0
-				Add point... sampletime fvalue
-			endfor
-			
-			#Save targets
+			#####Save interval duration
+			interval_dur = end - start
 			select TableOfReal targets
 			nrows = Get number of rows
-			Set value... nrows 1 m
-			Set value... nrows 2 b
-			Set value... nrows 3 lambda			
-			Set value... nrows 4 d
-			Set value... nrows 5 rmse
-			Set value... nrows 6 corr
+			Set value... nrows 4 interval_dur
 			Insert row (index)... nrows + 1
-
 		endif
 	endfor
+		
+	##### write original f0 to file
+	select PitchTier semitoneF0
+	Down to TableOfReal... Hertz
+	nsamples = Get number of rows
+	fileappend 'corpus_directory$'input 'nsamples''newline$'
+	for i from 1 to nsamples
+		time = Get value... i 1
+		freq = Get value... i 2
+		fileappend 'corpus_directory$'input 'time' 'freq''newline$'
+	endfor
+	Remove
+
+	##### call C++ program
+	if fileReadable("./qtamodel")
+		#cnt = cnt + 1
+		#runSystem: "printf '\r\t processed targets ['cnt']: '"
+		runSystem: "./qtamodel 'flag$' --in 'corpus_directory$'input --out 'corpus_directory$'output"
+	else
+		printline Cannot find ./qtamodel!
+		exit
+	endif
+		
+	##### analyze output file
+	buff$ < 'corpus_directory$'output
+	
+	#first line: error measures
+	len_buff = length(buff$)
+	line_index = index(buff$,newline$)
+	sbuff$ = left$(buff$,line_index-1)
+	buff$ = mid$(buff$,line_index+1,len_buff)
+	len_sbuff = length(sbuff$)
+	
+	#rmse
+	sep_index = index(sbuff$," ")
+	pbuff$ = left$(sbuff$,sep_index-1)
+	sbuff$ = mid$(sbuff$,sep_index+1,len_sbuff)
+	rmse'interval_t' = 'pbuff$'
+	rmse = rmse'interval_t'
+
+	#corr
+	corr'interval_t' = 'sbuff$'
+	corr = corr'interval_t'
+		
+	# following lines: get target values
+	for nm from 1 to interval_t
+		#qTA parameters
+		len_buff = length(buff$)
+		line_index = index(buff$,newline$)
+		sbuff$ = left$(buff$,line_index-1)
+		buff$ = mid$(buff$,line_index+1,len_buff)
+		len_sbuff = length(sbuff$)
+
+		#m
+		sep_index = index(sbuff$," ")
+		pbuff$ = left$(sbuff$,sep_index-1)
+		sbuff$ = mid$(sbuff$,sep_index+1,len_sbuff)
+		mBest'interval_t' = 'pbuff$'
+		m = mBest'interval_t'
+
+		#b
+		sep_index = index(sbuff$," ")
+		pbuff$ = left$(sbuff$,sep_index-1)
+		sbuff$ = mid$(sbuff$,sep_index+1,len_sbuff)
+		bBest'interval_t' = 'pbuff$'
+		b = bBest'interval_t'
+		
+		#lambda
+		lambdaBest'interval_t' = 'sbuff$'
+		lambda = lambdaBest'interval_t'
+	
+		duration'interval_t' = end - start
+		d = duration'interval_t'
+		
+		#Save targets
+		select TableOfReal targets
+		nrows = Get number of rows
+		Set value... nm 1 m
+		Set value... nm 2 b
+		Set value... nm 3 lambda			
+		Set value... nm 5 rmse
+		Set value... nm 6 corr
+	endfor
+			
+	#next line: number of sample
+	len_buff = length(buff$)
+	line_index = index(buff$,newline$)
+	sbuff$ = left$(buff$,line_index-1)
+	buff$ = mid$(buff$,line_index+1,len_buff)
+	len_sbuff = length(sbuff$)
+	number_of_row = 'sbuff$'
+
+	#Remaining: time and resynthesized f0
+	for i from 1 to number_of_row
+		len_buff = length(buff$)
+		line_index = index(buff$,newline$)
+		sbuff$ = left$(buff$,line_index-1)
+		buff$ = mid$(buff$,line_index+1,len_buff)
+		len_sbuff = length(sbuff$)
+
+		sep_index = index(sbuff$," ")
+		pbuff$ = left$(sbuff$,sep_index-1)
+		sbuff$ = mid$(sbuff$,sep_index+1,len_sbuff)
+		sampletime = 'pbuff$'
+		fvalue = 'sbuff$'
+
+		select PitchTier qtaF0
+		Add point... sampletime fvalue
+	endfor		
 
 	filedelete 'corpus_directory$'input
 	filedelete 'corpus_directory$'output
