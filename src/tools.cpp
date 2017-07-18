@@ -108,7 +108,7 @@ void PlotFile::read_plot_data ()
 	m_data.rmse /= (double)numberTargets;
 }
 
-void PlotFile::generate_plot_file ()
+void PlotFile::generate_plot_file (const std::string& outputFile)
 {
 	// setup
 	std::ofstream m_file;
@@ -117,7 +117,7 @@ void PlotFile::generate_plot_file ()
 	// write image file information to plot file
 	m_file << "##### output file options #####" << std::endl;
 	m_file << "set terminal pngcairo size 1536,512 enhanced font 'Verdana,14'" << std::endl;
-	m_file << "set output '" << m_data.label <<".png'" << std::endl;
+	m_file << "set output '" << outputFile <<"'" << std::endl;
 
 	// write general plot settings to plot file
 	m_file << std::endl << "##### general settings #####" << std::endl;
@@ -157,11 +157,11 @@ void PlotFile::generate_plot_file ()
 	m_file.close();
 }
 
-void PlotFile::plot ()
+void PlotFile::plot (const std::string& outputFile)
 {
 	// prepare plot
 	read_plot_data ();
-	generate_plot_file ();
+	generate_plot_file (outputFile);
 
 	// change directory and call gnuplot
 	std::string command = "cd " + m_data.directory + "; gnuplot " + m_data.label + ".plot";
@@ -172,7 +172,7 @@ void PlotFile::plot ()
 	}
 }
 
-void Statistics::print(const std::string& targetFile)
+void Statistics::print(const std::string& targetFile, const std::string& outputFile)
 {
 	// create a file-reading object for target file
 	std::ifstream fin;
@@ -222,57 +222,62 @@ void Statistics::print(const std::string& targetFile)
 		}
 	}
 
-	std::cout << ">>>> STATISTICS <<<<<" << std::endl
-			  << "number words:\t\t" << wordCnt << std::endl
-			  << "number syllables:\t" << syllCnt << std::endl
-			  << "syllables/words:\t" << (double)syllCnt/(double)wordCnt << std::endl
+	// write to file
+	std::ofstream fout;
+	fout.open(outputFile);
 
-			  << "\nslope" << std::endl
-			  << "\tmin:\t\t" << slope.min() << std::endl
-			  << "\tmax:\t\t" << slope.max() << std::endl
-			  << "\tmean:\t\t" << slope.mean() << std::endl
-			  << "\tvariance:\t" << slope.variance() << std::endl
-			  << "\tskewness:\t" << slope.skewness() << std::endl
-			  << "\tkurtosis:\t" << slope.ex_kurtosis() << std::endl
+	fout << ">>>> STATISTICS <<<<<" << std::endl
+		 << "number words:\t\t" << wordCnt << std::endl
+		 << "number syllables:\t" << syllCnt << std::endl
+		 << "syllables/words:\t" << (double)syllCnt/(double)wordCnt << std::endl
 
-			  << "\noffset" << std::endl
-			  << "\tmin:\t\t" << offset.min() << std::endl
-			  << "\tmax:\t\t" << offset.max() << std::endl
-			  << "\tmean:\t\t" << offset.mean() << std::endl
-			  << "\tvariance:\t" << offset.variance() << std::endl
-			  << "\tskewness:\t" << offset.skewness() << std::endl
-			  << "\tkurtosis:\t" << offset.ex_kurtosis() << std::endl
+		 << "\nslope" << std::endl
+		 << "\tmin:\t\t" << slope.min() << std::endl
+		 << "\tmax:\t\t" << slope.max() << std::endl
+		 << "\tmean:\t\t" << slope.mean() << std::endl
+		 << "\tvariance:\t" << slope.variance() << std::endl
+		 << "\tskewness:\t" << slope.skewness() << std::endl
+		 << "\tkurtosis:\t" << slope.ex_kurtosis() << std::endl
 
-			  << "\nstrength" << std::endl
-			  << "\tmin:\t\t" << strength.min() << std::endl
-			  << "\tmax:\t\t" << strength.max() << std::endl
-			  << "\tmean:\t\t" << strength.mean() << std::endl
-			  << "\tvariance:\t" << strength.variance() << std::endl
-			  << "\tskewness:\t" << strength.skewness() << std::endl
-			  << "\tkurtosis:\t" << strength.ex_kurtosis() << std::endl
+		 << "\noffset" << std::endl
+		 << "\tmin:\t\t" << offset.min() << std::endl
+		 << "\tmax:\t\t" << offset.max() << std::endl
+		 << "\tmean:\t\t" << offset.mean() << std::endl
+		 << "\tvariance:\t" << offset.variance() << std::endl
+		 << "\tskewness:\t" << offset.skewness() << std::endl
+		 << "\tkurtosis:\t" << offset.ex_kurtosis() << std::endl
 
-			  << "\nduration" << std::endl
-			  << "\tmin:\t\t" << duration.min() << std::endl
-			  << "\tmax:\t\t" << duration.max() << std::endl
-			  << "\tmean:\t\t" << duration.mean() << std::endl
-			  << "\tvariance:\t" << duration.variance() << std::endl
-			  << "\tskewness:\t" << duration.skewness() << std::endl
-			  << "\tkurtosis:\t" << duration.ex_kurtosis() << std::endl
+		 << "\nstrength" << std::endl
+		 << "\tmin:\t\t" << strength.min() << std::endl
+		 << "\tmax:\t\t" << strength.max() << std::endl
+		 << "\tmean:\t\t" << strength.mean() << std::endl
+		 << "\tvariance:\t" << strength.variance() << std::endl
+		 << "\tskewness:\t" << strength.skewness() << std::endl
+		 << "\tkurtosis:\t" << strength.ex_kurtosis() << std::endl
 
-			  << "\nrmse" << std::endl
-			  << "\tmin:\t\t" << rmse.min() << std::endl
-			  << "\tmax:\t\t" << rmse.max() << std::endl
-			  << "\tmean:\t\t" << rmse.mean() << std::endl
-			  << "\tvariance:\t" << rmse.variance() << std::endl
-			  << "\tskewness:\t" << rmse.skewness() << std::endl
-			  << "\tkurtosis:\t" << rmse.ex_kurtosis() << std::endl
+		 << "\nduration" << std::endl
+		 << "\tmin:\t\t" << duration.min() << std::endl
+		 << "\tmax:\t\t" << duration.max() << std::endl
+		 << "\tmean:\t\t" << duration.mean() << std::endl
+		 << "\tvariance:\t" << duration.variance() << std::endl
+		 << "\tskewness:\t" << duration.skewness() << std::endl
+		 << "\tkurtosis:\t" << duration.ex_kurtosis() << std::endl
 
-			  << "\ncorr" << std::endl
-			  << "\tmin:\t\t" << corr.min() << std::endl
-			  << "\tmax:\t\t" << corr.max() << std::endl
-			  << "\tmean:\t\t" << corr.mean() << std::endl
-			  << "\tvariance:\t" << corr.variance() << std::endl
-			  << "\tskewness:\t" << corr.skewness() << std::endl
-			  << "\tkurtosis:\t" << corr.ex_kurtosis() << std::endl;
+		 << "\nrmse" << std::endl
+		 << "\tmin:\t\t" << rmse.min() << std::endl
+		 << "\tmax:\t\t" << rmse.max() << std::endl
+		 << "\tmean:\t\t" << rmse.mean() << std::endl
+		 << "\tvariance:\t" << rmse.variance() << std::endl
+		 << "\tskewness:\t" << rmse.skewness() << std::endl
+		 << "\tkurtosis:\t" << rmse.ex_kurtosis() << std::endl
 
+		 << "\ncorr" << std::endl
+		 << "\tmin:\t\t" << corr.min() << std::endl
+		 << "\tmax:\t\t" << corr.max() << std::endl
+		 << "\tmean:\t\t" << corr.mean() << std::endl
+		 << "\tvariance:\t" << corr.variance() << std::endl
+		 << "\tskewness:\t" << corr.skewness() << std::endl
+		 << "\tkurtosis:\t" << corr.ex_kurtosis() << std::endl;
+
+	fout.close();
 }

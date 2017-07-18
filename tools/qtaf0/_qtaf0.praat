@@ -417,7 +417,7 @@ procedure qtaResynthesis
 	select Manipulation 'name$'
 	Get resynthesis (overlap-add)
 	createDirectory: "'output_directory$'audios"
-	nowarn Save as WAV file: "'output_directory$'/audios/'name$'_qta.wav"
+	nowarn Save as WAV file: "'output_directory$'audios/'name$'_qta.wav"
 	Remove
 	select Manipulation 'name$'
 	Remove
@@ -425,8 +425,9 @@ endproc
 
 ########## (Procedure) plot F0 contours and targets ##########
 procedure generatePlot
+	createDirectory: "'output_directory$'plots"
 	if fileReadable("./qtatools")
-		runSystem: "./qtatools -p --dir 'corpus_directory$' --label 'name$'"
+		runSystem: "./qtatools -p --dir 'corpus_directory$' --label 'name$' --out 'output_directory$'plots/'name$'.png"
 	else
 		printline Cannot find ./qtatools!
 		exit
@@ -437,9 +438,4 @@ procedure generatePlot
 	filedelete 'corpus_directory$''name$'.origf0
 	filedelete 'corpus_directory$''name$'.qtaf0
 	filedelete 'corpus_directory$''name$'.targets
-	createDirectory: "'output_directory$'plots"
-	
-	##### copy
-	runSystem: "cp 'corpus_directory$''name$'.png 'output_directory$'plots/'name$'.png"
-	filedelete 'corpus_directory$''name$'.png
 endproc

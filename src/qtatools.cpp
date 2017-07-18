@@ -6,7 +6,7 @@
 
 int main(int argc, char* argv[])
 {
-	std::string inputFile, plotDir, label;
+	std::string inputFile, outputFile, plotDir, label;
 	double syllableShift;
 
 	try
@@ -21,6 +21,7 @@ int main(int argc, char* argv[])
 		parser.add_option("s","Calculate some statistics.");
 		parser.set_group_name("File Options");
 		parser.add_option("in","Specify target input files.",1);
+		parser.add_option("out","Specify output file (stat or png).",1);
 		parser.add_option("dir","Specify plot file directory.",1);
 		parser.add_option("label","Specify label of word to plot.",1);
 		parser.set_group_name("Additional Plot Options");
@@ -30,7 +31,7 @@ int main(int argc, char* argv[])
 		parser.parse(argc,argv);
 
 		// check command line options
-		const char* one_time_opts[] = {"h", "p", "s", "in", "dir", "label"};
+		const char* one_time_opts[] = {"h", "p", "s", "in", "out", "dir", "label"};
 		parser.check_one_time_options(one_time_opts);
 		const char* incompatible[] = {"p", "s"};
 		parser.check_incompatible_options(incompatible);
@@ -49,20 +50,9 @@ int main(int argc, char* argv[])
 		{
 			inputFile = parser.option("in").argument();
 		}
-		else
+		else if (parser.option("s"))
 		{
 			std::cout << "Error in command line:\n   You must specify a target file.\n";
-			std::cout << "\nTry the -h option for more information." << std::endl;
-			return EXIT_FAILURE;
-		}
-
-		if (parser.option("dir"))
-		{
-			plotDir = parser.option("dir").argument();
-		}
-		else if (parser.option("p"))
-		{
-			std::cout << "Error in command line:\n   You must specify a label.\n";
 			std::cout << "\nTry the -h option for more information." << std::endl;
 			return EXIT_FAILURE;
 		}
@@ -78,18 +68,40 @@ int main(int argc, char* argv[])
 			return EXIT_FAILURE;
 		}
 
+		if (parser.option("dir"))
+		{
+			plotDir = parser.option("dir").argument();
+		}
+		else if (parser.option("p"))
+		{
+			std::cout << "Error in command line:\n   You must specify a label.\n";
+			std::cout << "\nTry the -h option for more information." << std::endl;
+			return EXIT_FAILURE;
+		}
+
+		if (parser.option("out"))
+		{
+			outputFile = parser.option("out").argument();
+		}
+		else
+		{
+			std::cout << "Error in command line:\n   You must specify an output file.\n";
+			std::cout << "\nTry the -h option for more information." << std::endl;
+			return EXIT_FAILURE;
+		}
+
 		syllableShift = get_option(parser,"shift",0.0);
 
 		// ********** main script **********
 		if (parser.option("p"))
 		{
 			PlotFile F0plot (label, plotDir, syllableShift);
-			F0plot.plot();
+			F0plot.plot(outputFile);
 		}
 		else
 		{
 			Statistics stat;
-			stat.print(inputFile);
+			stat.print(inputFile, outputFile);
 		}
 
 		// *********************************
