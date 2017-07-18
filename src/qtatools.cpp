@@ -49,17 +49,29 @@ int main(int argc, char* argv[])
 		{
 			inputFile = parser.option("in").argument();
 		}
+		else
+		{
+			std::cout << "Error in command line:\n   You must specify a target file.\n";
+			std::cout << "\nTry the -h option for more information." << std::endl;
+			return EXIT_FAILURE;
+		}
 
 		if (parser.option("dir"))
 		{
 			plotDir = parser.option("dir").argument();
+		}
+		else if (parser.option("p"))
+		{
+			std::cout << "Error in command line:\n   You must specify a label.\n";
+			std::cout << "\nTry the -h option for more information." << std::endl;
+			return EXIT_FAILURE;
 		}
 
 		if (parser.option("label"))
 		{
 			label = parser.option("label").argument();
 		}
-		else
+		else if (parser.option("p"))
 		{
 			std::cout << "Error in command line:\n   You must specify a label.\n";
 			std::cout << "\nTry the -h option for more information." << std::endl;
@@ -73,6 +85,11 @@ int main(int argc, char* argv[])
 		{
 			PlotFile F0plot (label, plotDir, syllableShift);
 			F0plot.plot();
+		}
+		else
+		{
+			Statistics stat;
+			stat.print(inputFile);
 		}
 
 		// *********************************

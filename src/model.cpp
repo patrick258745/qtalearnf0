@@ -414,7 +414,8 @@ void Optimizer::optimize(target_v& optParams, const QtaErrorFunction& qtaError, 
 
 	// optmization setup
 	long npt (2*lowerBound.size()+1);	// number of interpolation points
-	const double rho_begin (5); // initial trust region radius
+	//const double rho_begin (5); // initial trust region radius
+	const double rho_begin ( (std::min(std::min(mmax-mmin, bmax-bmin),lmax-lmin)-1)/2.0 ); // initial trust region radius
 	const double rho_end (1e-6); // stopping trust region radius -> accuracy
 	const long max_f_evals (1e6); // max number of objective function evaluations
 
@@ -444,7 +445,7 @@ void Optimizer::optimize(target_v& optParams, const QtaErrorFunction& qtaError, 
 		catch (dlib::bobyqa_failure& err)
 		{
 			// DEBUG message
-			//std::cerr << "WARNING: no convergence during optimization in iteration: " << it << std::endl << err.info << std::endl;
+			// std::cerr << "WARNING: no convergence during optimization in iteration: " << it << std::endl << err.info << std::endl;
 		}
 
 		// write optimization results back

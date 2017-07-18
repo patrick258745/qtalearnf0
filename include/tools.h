@@ -27,4 +27,10 @@ private:
 	plot_data_s m_data;
 };
 
+class Statistics {
+public:
+	// public member functions
+	void print (const std::string& targetFile);
+};
+
 #endif /* TOOLS_H_ */

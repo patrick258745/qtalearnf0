@@ -1,4 +1,5 @@
 #include <dlib/string.h>
+#include <dlib/statistics.h>
 #include "tools.h"
 
 PlotFile::PlotFile (const std::string& label, const std::string& directory, const double& shift)
@@ -169,4 +170,109 @@ void PlotFile::plot ()
 	{
 		throw dlib::error("[plot] couldn't execute gnuplot command: " + command);
 	}
+}
+
+void Statistics::print(const std::string& targetFile)
+{
+	// create a file-reading object for target file
+	std::ifstream fin;
+	fin.open(targetFile); // open input file
+	if (!fin.good())
+	{
+		throw dlib::error("[read_plot_data] TextGrid file not found! " + targetFile);
+	}
+
+	// setup
+	std::string line;
+	std::vector<std::string> tokens;
+	std::getline(fin, line);	// ignore first line, header
+
+	// running statistics
+	dlib::running_stats<double> slope;
+	dlib::running_stats<double> offset;
+	dlib::running_stats<double> strength;
+	dlib::running_stats<double> duration;
+	dlib::running_stats<double> rmse;
+	dlib::running_stats<double> corr;
+	unsigned wordCnt (0), syllCnt (0);
+	std::string label ("");
+
+	while (std::getline(fin, line))
+	{
+		syllCnt++;
+		tokens = dlib::split(line, ",");
+		if (tokens[0] != label)
+		{
+			wordCnt++;
+			label = tokens[0];
+
+		}
+		try
+		{
+			slope.add(std::stod(tokens[1]));
+			offset.add(std::stod(tokens[2]));
+			strength.add(std::stod(tokens[3]));
+			duration.add(std::stod(tokens[4]));
+			rmse.add(std::stod(tokens[5]));
+			corr.add(std::stod(tokens[6]));
+		}
+		catch (std::invalid_argument& e)
+		{
+			throw dlib::error("[plot] invalid argument exceptions occurred while using std::stod!\n" + std::string(e.what()));
+		}
+	}
+
+	std::cout << ">>>> STATISTICS <<<<<" << std::endl
+			  << "number words:\t\t" << wordCnt << std::endl
+			  << "number syllables:\t" << syllCnt << std::endl
+			  << "syllables/words:\t" << (double)syllCnt/(double)wordCnt << std::endl
+
+			  << "\nslope" << std::endl
+			  << "\tmin:\t\t" << slope.min() << std::endl
+			  << "\tmax:\t\t" << slope.max() << std::endl
+			  << "\tmean:\t\t" << slope.mean() << std::endl
+			  << "\tvariance:\t" << slope.variance() << std::endl
+			  << "\tskewness:\t" << slope.skewness() << std::endl
+			  << "\tkurtosis:\t" << slope.ex_kurtosis() << std::endl
+
+			  << "\noffset" << std::endl
+			  << "\tmin:\t\t" << offset.min() << std::endl
+			  << "\tmax:\t\t" << offset.max() << std::endl
+			  << "\tmean:\t\t" << offset.mean() << std::endl
+			  << "\tvariance:\t" << offset.variance() << std::endl
+			  << "\tskewness:\t" << offset.skewness() << std::endl
+			  << "\tkurtosis:\t" << offset.ex_kurtosis() << std::endl
+
+			  << "\nstrength" << std::endl
+			  << "\tmin:\t\t" << strength.min() << std::endl
+			  << "\tmax:\t\t" << strength.max() << std::endl
+			  << "\tmean:\t\t" << strength.mean() << std::endl
+			  << "\tvariance:\t" << strength.variance() << std::endl
+			  << "\tskewness:\t" << strength.skewness() << std::endl
+			  << "\tkurtosis:\t" << strength.ex_kurtosis() << std::endl
+
+			  << "\nduration" << std::endl
+			  << "\tmin:\t\t" << duration.min() << std::endl
+			  << "\tmax:\t\t" << duration.max() << std::endl
+			  << "\tmean:\t\t" << duration.mean() << std::endl
+			  << "\tvariance:\t" << duration.variance() << std::endl
+			  << "\tskewness:\t" << duration.skewness() << std::endl
+			  << "\tkurtosis:\t" << duration.ex_kurtosis() << std::endl
+
+			  << "\nrmse" << std::endl
+			  << "\tmin:\t\t" << rmse.min() << std::endl
+			  << "\tmax:\t\t" << rmse.max() << std::endl
+			  << "\tmean:\t\t" << rmse.mean() << std::endl
+			  << "\tvariance:\t" << rmse.variance() << std::endl
+			  << "\tskewness:\t" << rmse.skewness() << std::endl
+			  << "\tkurtosis:\t" << rmse.ex_kurtosis() << std::endl
+
+			  << "\ncorr" << std::endl
+			  << "\tmin:\t\t" << corr.min() << std::endl
+			  << "\tmax:\t\t" << corr.max() << std::endl
+			  << "\tmean:\t\t" << corr.mean() << std::endl
+			  << "\tvariance:\t" << corr.variance() << std::endl
+			  << "\tskewness:\t" << corr.skewness() << std::endl
+			  << "\tkurtosis:\t" << corr.ex_kurtosis() << std::endl;
+
 }

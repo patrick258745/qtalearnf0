@@ -440,8 +440,6 @@ procedure generatePlot
 	createDirectory: "'output_directory$'plots"
 	
 	##### copy
-	Read from file... 'corpus_directory$''name$'.png
-	Save as PNG file... 'output_directory$'/plots/'name$'.png
-	Remove
+	runSystem: "cp 'corpus_directory$''name$'.png 'output_directory$'plots/'name$'.png"
 	filedelete 'corpus_directory$''name$'.png
 endproc
