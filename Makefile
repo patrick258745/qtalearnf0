@@ -8,8 +8,8 @@ EXECUTABLES := $(BINDIR)/qtamodel $(BINDIR)/mlasampling $(BINDIR)/mlatraining $(
 SRCEXT := cpp
 SOURCES := $(shell find $(SRCDIR) -type f -name *.$(SRCEXT))
 OBJECTS := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(SRCEXT)=.o))
-CFLAGS := -g -Wall -std=c++11 -O3
-LIB := -L -lm -lpthread -lX11
+CFLAGS := -g -Wall -std=c++11 -O3 -DDLIB_NO_GUI_SUPPORT -DDLIB_USE_BLAS -DDLIB_USE_LAPACK
+LIB := -L -lm -lpthread -lopenblas -llapack
 INC := -I include/ -I lib/
 
 all: ${EXECUTABLES}
@@ -38,7 +38,7 @@ $(BUILDDIR)/%.o: $(SRCDIR)/%.$(SRCEXT)
 	@echo " $(CC) $(CFLAGS) $(INC) -c -o $@ $<"; $(CC) $(CFLAGS) $(INC) -c -o $@ $<
 
 $(BUILDDIR)/source.o: lib/dlib/all/source.cpp
-	@echo " $(CC) $(CFLAGS) -c lib/dlib/all/source.cpp -o build/source.o"; $(CC) -std=c++11 -c lib/dlib/all/source.cpp -o build/source.o
+	@echo " $(CC) $(CFLAGS) lib/dlib/all/source.cpp -c -o build/source.o"; $(CC) $(CFLAGS) lib/dlib/all/source.cpp -c -o build/source.o
 
 clean:
 	@echo " Cleaning..."; 

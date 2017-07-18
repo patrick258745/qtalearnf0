@@ -416,12 +416,12 @@ void Optimizer::optimize(target_v& optParams, const QtaErrorFunction& qtaError, 
 	long npt (2*lowerBound.size()+1);	// number of interpolation points
 	const double rho_begin (5); // initial trust region radius
 	const double rho_end (1e-6); // stopping trust region radius -> accuracy
-	const long max_f_evals (10000); // max number of objective function evaluations
+	const long max_f_evals (1e6); // max number of objective function evaluations
 
 	// initialize
-	double fmin (1e10);
+	double fmin (1e6);
 	la_col_vec xtmp; double ftmp;
-	unsigned itNum (nIntervals*10);
+	unsigned itNum (10+nIntervals*5);
 	dlib::mutex mu;
 
 	dlib::parallel_for(0, itNum, [&](unsigned it)
@@ -439,22 +439,27 @@ void Optimizer::optimize(target_v& optParams, const QtaErrorFunction& qtaError, 
 		try
 		{
 			// optimization algorithm: BOBYQA
-			ftmp = dlib::find_min_bobyqa(qtaError,x,npt,lowerBound,upperBound,	rho_begin,rho_end,max_f_evals);
+			ftmp = dlib::find_min_bobyqa(qtaError,x,npt,lowerBound,upperBound,rho_begin,rho_end,max_f_evals);
 		}
 		catch (dlib::bobyqa_failure& err)
 		{
 			// DEBUG message
-			// std::cerr << "WARNING: no convergence during optimization in iteration: " << i << std::endl << err.info << std::endl;
+			//std::cerr << "WARNING: no convergence during optimization in iteration: " << it << std::endl << err.info << std::endl;
 		}
 
 		// write optimization results back
 		dlib::auto_mutex lock(mu);
-		if (ftmp < fmin)
+		if (ftmp < fmin && ftmp > 0.0)	// opt returns 0 by error
 		{
 			fmin = ftmp;
 			xtmp = x;
 		}
 	});
+
+	if (fmin == 1e6)
+	{
+		throw dlib::error("[optimize] BOBYQA algorithms didn't converge! Try to increase number of evaluations");
+	}
 
 	// convert result to target_v
 	optParams.clear();
