@@ -1,0 +1,52 @@
+>>>> STATISTICS <<<<<
+number words:		11
+number syllables:	30
+syllables/words:	2.72727
+
+slope
+	min:		-50
+	max:		50
+	mean:		3.52235
+	variance:	1215.62
+	skewness:	-0.0424004
+	kurtosis:	-1.36269
+
+offset
+	min:		80
+	max:		110
+	mean:		92.1684
+	variance:	88.7766
+	skewness:	0.276586
+	kurtosis:	-1.02873
+
+strength
+	min:		8.29766
+	max:		80
+	mean:		43.3177
+	variance:	476.562
+	skewness:	0.294469
+	kurtosis:	-0.922069
+
+duration
+	min:		0.0965852
+	max:		0.617768
+	mean:		0.279578
+	variance:	0.0216242
+	skewness:	0.768832
+	kurtosis:	-0.472347
+
+rmse
+	min:		0.184604
+	max:		2.2217
+	mean:		0.629208
+	variance:	0.335526
+	skewness:	2.26072
+	kurtosis:	4.09188
+
+corr
+	min:		0.864626
+	max:		0.997529
+	mean:		0.959886
+	variance:	0.0017852
+	skewness:	-1.03234
+	kurtosis:	-0.493284

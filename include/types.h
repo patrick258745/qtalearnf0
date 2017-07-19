@@ -57,8 +57,8 @@ glob_const NUMFEATACC	= 3;
 glob_const NUMFEATPOS	= 8;
 glob_const NUMFEATSYL	= NUMFEATPHON + NUMFEATACC + NUMFEATPOS;
 
-typedef signed int 			feat_t;
-typedef double				target_t;
+typedef double	 			feat_t;
+typedef double				ptarget_t;
 typedef std::vector<feat_t> phon_feat_v;
 typedef std::vector<feat_t>	acc_feat_v;
 typedef std::vector<feat_t>	pos_feat_v;
@@ -73,7 +73,7 @@ struct syl_feat_s
 typedef std::vector<syl_feat_s>				word_feat_v;
 typedef std::map<std::string, word_feat_v> 	feat_m;
 
-//typedef std::vector<target_t>			target_v;
+typedef std::vector<ptarget_t>			ptarget_v;
 typedef std::map<std::string, target_v>	target_m;
 
 /********** qtatraining types **********/
