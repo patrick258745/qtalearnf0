@@ -70,12 +70,6 @@ struct syl_feat_s
 	pos_feat_v 					positions;
 };
 
-typedef std::vector<syl_feat_s>				word_feat_v;
-typedef std::map<std::string, word_feat_v> 	feat_m;
-
-typedef std::vector<ptarget_t>			ptarget_v;
-typedef std::map<std::string, target_v>	target_m;
-
 /********** qtatraining types **********/
 struct qtaTarget_s
 {

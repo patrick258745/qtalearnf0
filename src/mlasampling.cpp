@@ -59,7 +59,8 @@ int main(int argc, char* argv[])
 		}
 
 		// ********** main script **********
-
+        DataAssembler samples (sampaFile, targetFile);
+        samples.write_to_file(outputFile);
 
 		// *********************************
 	}

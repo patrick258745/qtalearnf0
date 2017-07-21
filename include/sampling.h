@@ -13,13 +13,10 @@
 
 class Phoneme {
 public:
-	// constructors
-	Phoneme (const std::string& sampa) { determine_features(sampa); }
-
 	// public member functions
 	phon_feat_v get_features() { return m_features; };
 
-private:
+protected:
 	// private member functions
 	void determine_features (std::string sampa);
 
@@ -27,73 +24,30 @@ private:
 	phon_feat_v m_features;
 };
 
-class Consonant : Phoneme {
+class Consonant : public Phoneme {
+public:
+	// constructor
+	Consonant (const std::string& sampa) { determine_features(sampa); }
+
 private:
 	// private member functions
 	void determine_features (std::string sampa);
 
 	// data members
-	static const std::map<std::string, phon_feat_v> CONSONANTS{
-			{""	  , {0, 0, 0, 0, 0, 0, 0} },
-			{"p"  , {0, 0, 1, 0, 0, 0, 0} },
-			{"b"  , {1, 0, 1, 0, 0, 0, 0} },
-			{"t"  , {0, 0, 1, 0, 0, 0, 1} },
-			{"d"  , {1, 0, 1, 0, 0, 0, 1} },
-			{"k"  , {0, 0, 1, 0, 0, 0, 2} },
-			{"g"  , {1, 0, 1, 0, 0, 0, 2} },
-			{"?"  , {1, 0, 1, 0, 0, 0, 3} },
-			{"f"  , {0, 0, 0, 1, 0, 0, 0} },
-			{"v"  , {1, 0, 0, 1, 0, 0, 0} },
-			{"s"  , {0, 0, 0, 1, 0, 0, 1} },
-			{"z"  , {1, 0, 0, 1, 0, 0, 1} },
-			{"S"  , {0, 0, 0, 1, 0, 0, 1} },
-			{"Z"  , {1, 0, 0, 1, 0, 0, 1} },
-			{"T"  , {0, 0, 0, 1, 0, 0, 1} },
-			{"D"  , {1, 0, 0, 1, 0, 0, 1} },
-			{"C"  , {0, 0, 0, 1, 0, 0, 2} },
-			{"j"  , {1, 0, 0, 1, 0, 0, 2} },
-			{"x"  , {0, 0, 0, 1, 0, 0, 2} },
-			{"h"  , {0, 0, 0, 1, 0, 0, 3} },
-			{"m"  , {1, 1, 0, 0, 0, 0, 0} },
-			{"n"  , {1, 1, 0, 0, 0, 0, 1} },
-			{"N"  , {1, 1, 0, 0, 0, 0, 2} },
-			{"l"  , {1, 0, 0, 0, 0, 1, 1} },
-			{"R"  , {1, 0, 0, 1, 0, 0, 2} },
-			{"r"  , {1, 0, 0, 1, 0, 0, 2} },
-			{"pf" , {0, 0, 1, 1, 0, 0, 0} },
-			{"ps" , {0, 0, 1, 1, 0, 0, 1} },
-			{"ts" , {0, 0, 1, 1, 0, 0, 1} },
-			{"tS" , {0, 0, 1, 1, 0, 0, 1} },
-			{"pS" , {0, 0, 1, 1, 0, 0, 1} },
-			{"dZ" , {1, 0, 1, 1, 0, 0, 1} },
-	};
+	static const std::map<std::string, phon_feat_v> CONSONANTS;
 };
 
-class Vowel : Phoneme {
+class Vowel : public Phoneme {
+public:
+	// constructor
+	Vowel (const std::string& sampa) { determine_features(sampa); }
+
 private:
 	// private member functions
 	void determine_features (std::string sampa);
 
 	// data members
-	static const std::map<std::string, phon_feat_v> Vowel::VOWELS{
-			{"i" , {-2, 3, 0, 0, 0} },
-			{"I" , {-1, 2, 0, 0, 0} },
-			{"e" , {-2, 1, 0, 0, 0} },
-			{"E" , {-2,-1, 0, 0, 0} },
-			{"y" , {-2, 3, 1, 0, 0} },
-			{"Y" , {-1, 2, 1, 0, 0} },
-			{"2" , {-2, 1, 1, 0, 0} },
-			{"9" , {-2,-1, 1, 0, 0} },
-			{"@" , { 0, 0, 0, 0, 0} },
-			{"6" , { 0,-2, 0, 0, 0} },
-			{"a" , { 0,-3, 0, 0, 0} },
-			{"A" , { 2,-3, 0, 0, 0} },
-			{"u" , { 2, 3, 1, 0, 0} },
-			{"U" , { 1, 2, 1, 0, 0} },
-			{"o" , { 2, 1, 1, 0, 0} },
-			{"O" , { 2,-1, 1, 0, 0} },
-			{"=" , { 0, 0, 0, 0, 0} }
-	};
+	static const std::map<std::string, phon_feat_v> VOWELS;
 };
 
 class Syllable {
@@ -103,6 +57,7 @@ public:
 
 	// public member functions
 	syl_feat_s get_features() { return m_features; };
+	feat_t get_number_phonemes() { return m_nOnset+m_nNucleus+m_nCoda; };
 
 private:
 	// private member functions
@@ -110,7 +65,7 @@ private:
 
 	// data members
 	syl_feat_s m_features;
-	feat_t m_nOnset, m_nCoda;
+	feat_t m_nOnset, m_nCoda, m_nNucleus;
 };
 
 class Word {
@@ -119,7 +74,7 @@ public:
 	Word (const std::string& sampa, const std::string& accents) { determine_feature_string(sampa, accents); };
 
 	// public member functions
-	std::string get_feature_string () { return m_feature_string; };
+	std::vector<std::string> get_feature_string_vector () { return m_feature_string; };
 
 private:
 	// private member functions
@@ -127,31 +82,24 @@ private:
 	static void filter_accents (std::string& sampa);
 
 	// data members
-	std::string m_feature_string;
-};
-
-class SampaConverter {
-public:
-	// public member functions
-
-private:
-	// private member functions
-
-
-	// data members
-
+	std::vector<std::string> m_feature_string;
 };
 
 class DataAssembler {
 public:
+	// constructor
+	DataAssembler (const std::string& sampaFile, const std::string& targetFile);
+
 	// public member functions
+	void write_to_file(const std::string& sampleFile);
 
 private:
 	// private member functions
-
+	void read_input_files(const std::string& sampaFile, const std::string& targetFile);
 
 	// data members
-
+	std::map<std::string,Word> 						m_featMap;
+	std::map<std::string,std::vector<std::string>> 	m_targetMap;
 };
 
 
