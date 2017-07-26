@@ -1,4 +1,5 @@
 #include "training.h"
+#include <dlib/threads.h>
 #include <dlib/optimization.h>
 
 MlaTrainer::MlaTrainer (const std::string& trainingFile, const std::string& algorithmFile)
@@ -211,45 +212,53 @@ svr_model_t SupportVectorRegression::train(const svr_trainer_t& trainer, const s
 
 la_col_vec SupportVectorRegression::cross_validation(const svr_trainer_t& trainer, const sample_v& samples, const std::vector<double>& targets)
 {
-	return {0};//dlib::cross_validate_regression_trainer(trainer, samples, targets, 10);
+	dlib::matrix<double,1,2> result = dlib::cross_validate_regression_trainer(trainer, samples, targets, 5);
+	return dlib::trans(result);
 }
 
 
 la_col_vec SupportVectorRegression::model_selection(const sample_v& samples, const std::vector<double>& targets)
 {
 	// define parameter search space {C,gamma,epsilon}
-	la_col_vec lowerBound(3,1), upperBound(3,1);
+	la_col_vec lowerBound(3), upperBound(3);
 	lowerBound = 1e-5, 1e-15, 1e-5;
 	upperBound = 1e15, 1e3, 1e5;
 
 	// create grid for grid search
-	dlib::matrix<double> grid = get_grid(lowerBound, upperBound, 5);
+	dlib::matrix<double> grid = get_grid(lowerBound, upperBound, 15);
 
     // loop over grid
-	double best_result (1e4);
-	la_col_vec best_params;
+	double best_result (1e6);
+	la_col_vec best_params(3);
+	best_params = lowerBound;
 
-    for (long col = 0; col < grid.nc(); ++col)
-    {
+	// error function
+	SvrCvError cvError (samples, targets);
+
+	dlib::mutex mu;
+	//for(long col = 0; col < grid.nc(); ++col)
+	dlib::parallel_for(0, grid.nc(), [&](long col)
+	{
         // do cross validation and then check if the results are the best
-    	la_col_vec params;
+    	la_col_vec params(3);
     	params = grid(0, col),grid(1, col),grid(2, col);
-        SvrCvError cvError (samples, targets);
         double result = cvError(params);
 
         // save the best results
+        dlib::auto_mutex lock(mu);
+        std::cout << result << std::endl;
         if (result < best_result)
         {
         	best_params = params;
             best_result = result;
         }
-    }
+    });
 
     // optimization with BOBYQA
     lowerBound = log(lowerBound);
     upperBound = log(upperBound);
     best_params = log(best_params);
-    double fmin = dlib::find_min_bobyqa(SvrCvError(samples, targets), best_params, best_params.size()*2+1, lowerBound, upperBound, min(lowerBound-upperBound)/10, 1e-3, 1000);
+    double fmin = dlib::find_min_bobyqa(SvrCvError(samples, targets), best_params, best_params.size()*2+1, lowerBound, upperBound, min(upperBound-lowerBound)/10, 1e-3, 1000);
 
     return exp(best_params);
 }
@@ -265,14 +274,13 @@ double SvrCvError::operator() (const la_col_vec& arg) const
 dlib::matrix<double> SupportVectorRegression::get_grid(const la_col_vec& lowerBound, const la_col_vec& upperBound, const unsigned& numPerDim)
 {
 	// get one dimension
-	la_col_vec cSpace 		= dlib::logspace(log10(upperBound(0)), log10(lowerBound(0)), numPerDim);
-	la_col_vec gammaSpace 	= dlib::logspace(log10(upperBound(1)), log10(lowerBound(1)), numPerDim);
-	la_col_vec epsilonSpace = dlib::logspace(log10(upperBound(2)), log10(lowerBound(2)), numPerDim);
+	dlib::matrix<double> cSpace 		= dlib::logspace(log10(upperBound(0)), log10(lowerBound(0)), numPerDim);
+	dlib::matrix<double> gammaSpace 	= dlib::logspace(log10(upperBound(1)), log10(lowerBound(1)), numPerDim);
+	dlib::matrix<double> epsilonSpace 	= dlib::logspace(log10(upperBound(2)), log10(lowerBound(2)), numPerDim);
 
 	// create grid points and return
 	dlib::matrix<double> tmpGrid = dlib::cartesian_product(cSpace, gammaSpace);
 	return dlib::cartesian_product(tmpGrid, epsilonSpace);
-
 }
 
 void SupportVectorRegression::train()
@@ -314,10 +322,10 @@ void SupportVectorRegression::model_selection()
 	la_col_vec optDuration = model_selection(m_samples, m_targets.durations);
 
 	// print out results
-	std::cout << "slope:\tC=" << optSlope(0) << " gamma=" << optSlope(1) << " epsilon=" << optSlope(2) << std::endl;
-	std::cout << "offset:\tC=" << optOffset(0) << " gamma=" << optOffset(1) << " epsilon=" << optOffset(2) << std::endl;
-	std::cout << "strength:\tC=" << optStrength(0) << " gamma=" << optStrength(1) << " epsilon=" << optStrength(2) << std::endl;
-	std::cout << "duration:\tC=" << optDuration(0) << " gamma=" << optDuration(1) << " epsilon=" << optDuration(2) << std::endl;
+	std::cout << "slope:\t\tC=" << optSlope(0) << "\tgamma=" << optSlope(1) << "\tepsilon=" << optSlope(2) << std::endl;
+	//std::cout << "offset:\t\tC=" << optOffset(0) << "\tgamma=" << optOffset(1) << "\tepsilon=" << optOffset(2) << std::endl;
+	//std::cout << "strength:\tC=" << optStrength(0) << "\tgamma=" << optStrength(1) << "\tepsilon=" << optStrength(2) << std::endl;
+	//std::cout << "duration:\tC=" << optDuration(0) << "\tgamma=" << optDuration(1) << "\tepsilon=" << optDuration(2) << std::endl;
 }
 
 void SupportVectorRegression::predict()
