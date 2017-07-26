@@ -8,7 +8,7 @@ EXECUTABLES := $(BINDIR)/qtamodel $(BINDIR)/mlasampling $(BINDIR)/mlatraining $(
 SRCEXT := cpp
 SOURCES := $(shell find $(SRCDIR) -type f -name *.$(SRCEXT))
 OBJECTS := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(SRCEXT)=.o))
-CFLAGS := -g -Wall -std=c++11 -O3 -DDLIB_NO_GUI_SUPPORT
+CFLAGS := -g -std=c++11 -O3 -DDLIB_NO_GUI_SUPPORT
 LIB := -L -lm -lpthread
 INC := -I include/ -I lib/
 
@@ -23,7 +23,7 @@ $(BINDIR)/mlasampling: $(BUILDDIR)/mlasampling.o $(BUILDDIR)/sampling.o
 	@echo " Linking" $@ "... "
 	@echo " $(CC) $^ -o $@ $(LIB)"; $(CC) $^ -o $@ $(LIB)
 
-$(BINDIR)/mlatraining: $(BUILDDIR)/mlatraining.o $(BUILDDIR)/training.o
+$(BINDIR)/mlatraining: $(BUILDDIR)/mlatraining.o $(BUILDDIR)/training.o $(BUILDDIR)/source.o
 	@echo " Linking" $@ "... "
 	@echo " $(CC) $^ -o $@ $(LIB)"; $(CC) $^ -o $@ $(LIB)
 
@@ -35,7 +35,7 @@ $(BINDIR)/qtatools: $(BUILDDIR)/qtatools.o $(BUILDDIR)/tools.o
 $(BUILDDIR)/%.o: $(SRCDIR)/%.$(SRCEXT)
 	@mkdir -p $(BUILDDIR)
 	@mkdir -p $(BINDIR)
-	@echo " $(CC) $(CFLAGS) $(INC) -c -o $@ $<"; $(CC) $(CFLAGS) $(INC) -c -o $@ $<
+	@echo " $(CC) $(CFLAGS) -Wall $(INC) -c -o $@ $<"; $(CC) $(CFLAGS) $(INC) -c -o $@ $<
 
 $(BUILDDIR)/source.o: lib/dlib/all/source.cpp
 	@echo " $(CC) $(CFLAGS) lib/dlib/all/source.cpp -c -o build/source.o"; $(CC) $(CFLAGS) lib/dlib/all/source.cpp -c -o build/source.o

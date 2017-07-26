@@ -6,7 +6,7 @@
 
 int main(int argc, char* argv[])
 {
-	std::string inputFile, outputFile, modelFile;
+	std::string inputFile, algorithmFile;
 
 	try
 	{
@@ -22,22 +22,19 @@ int main(int argc, char* argv[])
 		parser.add_option("m","Perform model-selection on a set of samples.");
 		parser.set_group_name("File Options");
 		parser.add_option("in","Specify sample input files.",1);
-		parser.add_option("out","Specify output file containing predicted targets.",1);
-		parser.add_option("model","Specify algorithm model file (xml).",1);
+		parser.add_option("alg","Specify algorithm file (xml).",1);
 
 		// parse command line
 		parser.parse(argc,argv);
 
 		// check command line options
-		const char* one_time_opts[] = {"h", "t", "p", "c", "m", "in", "out", "model"};
+		const char* one_time_opts[] = {"h", "t", "p", "c", "m", "in", "alg"};
 		parser.check_one_time_options(one_time_opts);
 		const char* incompatible[] = {"t", "p", "c", "m"};
 		parser.check_incompatible_options(incompatible);
-		const char* t_ops[] = {"t", "c", "m"};
-		const char* t_sub_ops[] = {"in", "model"};
-		const char* p_sub_ops[] = {"in", "out", "model"};
+		const char* t_ops[] = {"t", "c", "m", "p"};
+		const char* t_sub_ops[] = {"in", "alg"};
 		parser.check_sub_options(t_ops, t_sub_ops);
-		parser.check_sub_options("p", p_sub_ops);
 
 		// process command line options
 		if (parser.option("h"))
@@ -58,30 +55,20 @@ int main(int argc, char* argv[])
 			return EXIT_FAILURE;
 		}
 
-		if (parser.option("out"))
+		if (parser.option("alg"))
 		{
-			outputFile = parser.option("out").argument();
+			algorithmFile = parser.option("alg").argument();
 		}
 		else
 		{
-			std::cout << "Error in command line:\n   You must specify an output file.\n";
-			std::cout << "\nTry the -h option for more information." << std::endl;
-			return EXIT_FAILURE;
-		}
-
-		if (parser.option("model"))
-		{
-			modelFile = parser.option("model").argument();
-		}
-		else
-		{
-			std::cout << "Error in command line:\n   You must specify an algorithm model file.\n";
+			std::cout << "Error in command line:\n   You must specify an algorithm file.\n";
 			std::cout << "\nTry the -h option for more information." << std::endl;
 			return EXIT_FAILURE;
 		}
 
 		// ********** main script **********
-
+		MlaTrainer trainer (inputFile, algorithmFile);
+		trainer.perform_task(parser);
 
 		// *********************************
 	}

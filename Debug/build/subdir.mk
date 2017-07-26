@@ -1,0 +1,19 @@
+################################################################################
+# Automatically-generated file. Do not edit!
+################################################################################
+
+# Add inputs and outputs from these tool invocations to the build variables 
+O_SRCS += \
+../build/mlasampling.o \
+../build/mlatraining.o \
+../build/model.o \
+../build/qtamodel.o \
+../build/qtatools.o \
+../build/sampling.o \
+../build/source.o \
+../build/tools.o \
+../build/training.o 
+
+
+# Each subdirectory must supply rules for building sources it contributes
+

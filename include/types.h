@@ -13,6 +13,7 @@
 #include <string>
 #include <dlib/matrix.h>
 #include <dlib/error.h>
+#include <dlib/svm.h>
 
 /********** qtamodel types **********/
 typedef dlib::matrix<double,0,1> la_col_vec;	// linear algebra column vector
@@ -43,7 +44,7 @@ struct signal_s
 	freq_v sampleValues;
 };
 
-/********** qtasampling types **********/
+/********** mlasampling types **********/
 typedef const unsigned int glob_const;
 
 glob_const NUMPHONONSET	= 3;
@@ -70,14 +71,42 @@ struct syl_feat_s
 	pos_feat_v 					positions;
 };
 
-/********** qtatraining types **********/
+/********** mlatraining types **********/
+typedef dlib::matrix<double, NUMFEATSYL, 1> sample_t;
+
 struct qtaTarget_s
 {
-	pitchTarget_s params;
+	std::string label;
+	double m;	// slope
+	double b;	// offset
+	double l;	// strength
 	double d;	// duration
 	double r;	// root-mean-squared-error
 	double c;	// correlation-coefficient
 };
+
+struct training_target_s
+{
+	std::vector<double> slopes;
+	std::vector<double> offsets;
+	std::vector<double> strengths;
+	std::vector<double> durations;
+};
+
+typedef std::vector<sample_t> sample_v;
+typedef std::vector<qtaTarget_s> qta_target_v;
+typedef std::map<std::string, std::string> algorithm_m;
+
+typedef dlib::radial_basis_kernel<sample_t> kernel_t;
+typedef dlib::svr_trainer<kernel_t> svr_trainer_t;
+typedef dlib::decision_function<kernel_t> svr_model_t;
+struct svr_params
+{
+	double C;
+	double gamma;
+	double epsilon;
+};
+
 
 /********** qtatools types **********/
 struct plot_data_s

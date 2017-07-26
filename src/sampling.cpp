@@ -443,7 +443,7 @@ DataAssembler::DataAssembler (const std::string& sampaFile, const std::string& t
 
 void DataAssembler::read_input_files(const std::string& sampaFile, const std::string& targetFile)
 {
-	// create a file-reading object for feature-file
+	// create a file-reading object for sampa-file
 	std::ifstream finS;
 	finS.open(sampaFile); // open input file
 	if (!finS.good())
