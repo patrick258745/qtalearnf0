@@ -1,12 +1,15 @@
 #include "training.h"
 #include <dlib/threads.h>
 #include <dlib/optimization.h>
+#include <stdlib.h>     /* srand, rand */
+#include <time.h>       /* time */
 
 MlaTrainer::MlaTrainer (const std::string& trainingFile, const std::string& algorithmFile)
 {
 	parse_xml(algorithmFile, *this);
 	read_samples(trainingFile);
 	scale_samples(0,1);
+	randomize_data();
 }
 
 void MlaTrainer::perform_task (const dlib::command_line_parser& parser)
@@ -129,13 +132,52 @@ void MlaTrainer::normalize_samples ()
     // now normalize each sample
     for (unsigned long i = 0; i < m_samples.size(); ++i)
         m_samples[i] = normalizer(m_samples[i]);
+}
 
-    // randomize samples
-    //randomize_samples(m_samples, m_targets);
+void MlaTrainer::randomize_data ()
+{
+	// initialize random seed
+	srand (time(NULL));
+
+	unsigned N (m_samples.size());
+	for (unsigned i=0; i<N; ++i)
+	{
+		unsigned randPos (rand()%(N-1)+1);
+		std::string label (m_targets[randPos].label);
+
+		// get start position of word
+		unsigned start (randPos);
+		while ((start-1) >= 0 && m_targets[start-1].label == label)
+		{
+			--start;
+		}
+
+		// get end position of word
+		unsigned end (randPos);
+		while ((end+1) < N && m_targets[end+1].label == label)
+		{
+			++end;
+		}
+
+		// shift random word to end
+		for (unsigned pos=start; pos<=end; ++pos)
+		{
+			m_targets.push_back(m_targets[pos]);
+			m_samples.push_back(m_samples[pos]);
+		}
+
+		// delete random word
+		for (unsigned pos=end; pos>=start; --pos)
+		{
+			m_targets.erase(m_targets.begin()+pos);
+			m_samples.erase(m_samples.begin()+pos);
+		}
+	}
 }
 
 MlAlgorithm::MlAlgorithm (const sample_v& samples, const qta_target_v& targets, const algorithm_m& params)
 {
+	m_targets_orig = targets;
 	m_samples = samples;
 	m_params = params;
 
@@ -191,6 +233,28 @@ double MlAlgorithm::get_value(std::string param)
 	return value;
 }
 
+double SvrCvError::operator() (const la_col_vec& logArg) const
+{
+	la_col_vec arg = exp(logArg);
+	svr_params params ({arg(0), arg(1), arg(2)});
+	svr_trainer_t trainer = SupportVectorRegression::build_trainer(params);
+	la_col_vec result = SupportVectorRegression::cross_validation(trainer, m_samples, m_targets);
+
+	return result(0);
+}
+
+dlib::matrix<double> SupportVectorRegression::get_grid(const la_col_vec& lowerBound, const la_col_vec& upperBound, const unsigned& numPerDim)
+{
+	// get one dimension
+	dlib::matrix<double> cSpace 		= dlib::logspace(log10(upperBound(0)), log10(lowerBound(0)), numPerDim);
+	dlib::matrix<double> gammaSpace 	= dlib::logspace(log10(upperBound(1)), log10(lowerBound(1)), numPerDim);
+	dlib::matrix<double> epsilonSpace 	= dlib::logspace(log10(upperBound(2)), log10(lowerBound(2)), numPerDim);
+
+	// create grid points and return
+	dlib::matrix<double> tmpGrid = dlib::cartesian_product(cSpace, gammaSpace);
+	return dlib::cartesian_product(tmpGrid, epsilonSpace);
+}
+
 svr_trainer_t SupportVectorRegression::build_trainer(const svr_params& params)
 {
 	// create a trainer
@@ -212,75 +276,80 @@ svr_model_t SupportVectorRegression::train(const svr_trainer_t& trainer, const s
 
 la_col_vec SupportVectorRegression::cross_validation(const svr_trainer_t& trainer, const sample_v& samples, const std::vector<double>& targets)
 {
-	dlib::matrix<double,1,2> result = dlib::cross_validate_regression_trainer(trainer, samples, targets, 5);
+	dlib::matrix<double,1,2> result = dlib::cross_validate_regression_trainer(trainer, samples, targets, 10);
 	return dlib::trans(result);
 }
-
 
 la_col_vec SupportVectorRegression::model_selection(const sample_v& samples, const std::vector<double>& targets)
 {
 	// define parameter search space {C,gamma,epsilon}
 	la_col_vec lowerBound(3), upperBound(3);
-	lowerBound = 1e-5, 1e-15, 1e-5;
-	upperBound = 1e15, 1e3, 1e5;
+	lowerBound = 1e-2, 1e-5, 1e-4;
+	upperBound = 1e3, 1e1, 1e0;
+
+	// store optimal parameters
+	svr_params bestParams;
+	double bestResult (1e6);
 
 	// create grid for grid search
-	dlib::matrix<double> grid = get_grid(lowerBound, upperBound, 15);
+	dlib::matrix<double> grid = get_grid(lowerBound, upperBound, 5);
 
-    // loop over grid
-	double best_result (1e6);
-	la_col_vec best_params(3);
-	best_params = lowerBound;
-
-	// error function
-	SvrCvError cvError (samples, targets);
-
+	// loop over grid
 	dlib::mutex mu;
-	//for(long col = 0; col < grid.nc(); ++col)
-	dlib::parallel_for(0, grid.nc(), [&](long col)
+	dlib::parallel_for(0, grid.nc(), [&](long col) //for(long col = 0; col < grid.nc(); ++col)
 	{
         // do cross validation and then check if the results are the best
-    	la_col_vec params(3);
-    	params = grid(0, col),grid(1, col),grid(2, col);
-        double result = cvError(params);
+		svr_params params ({grid(0, col),grid(1, col),grid(2, col)});
+    	svr_trainer_t trainer = SupportVectorRegression::build_trainer(params);
+    	la_col_vec tmp = SupportVectorRegression::cross_validation(trainer, samples, targets);
+        double result = tmp(0);
 
         // save the best results
         dlib::auto_mutex lock(mu);
-        std::cout << result << std::endl;
-        if (result < best_result)
+        if (result < bestResult)
         {
-        	best_params = params;
-            best_result = result;
+        	bestParams = params;
+            bestResult = result;
         }
-    });
+    	//DEBUG
+    	std::cout << col << ": cverror(" << params.C << "," << params.gamma << "," << params.epsilon << " = " << result << std::endl;
+    }
+	);
 
     // optimization with BOBYQA
+	la_col_vec arg(3);
+	arg = bestParams.C,bestParams.gamma,bestParams.epsilon;
+
+	// log scale
     lowerBound = log(lowerBound);
     upperBound = log(upperBound);
-    best_params = log(best_params);
-    double fmin = dlib::find_min_bobyqa(SvrCvError(samples, targets), best_params, best_params.size()*2+1, lowerBound, upperBound, min(upperBound-lowerBound)/10, 1e-3, 1000);
+    la_col_vec logArg = log(arg);
 
-    return exp(best_params);
+    try
+    {
+    	// optimization
+    	dlib::find_min_bobyqa(SvrCvError (samples, targets), logArg, arg.size()*2+1, lowerBound, upperBound, min(upperBound-lowerBound)/10, 1e-2, 100);
+    }
+	catch (dlib::bobyqa_failure& err)
+	{
+		// DEBUG message
+		// std::cerr << "WARNING: no convergence during optimization in iteration: " << it << std::endl << err.info << std::endl;
+	}
+
+    return exp(logArg);
 }
 
-double SvrCvError::operator() (const la_col_vec& arg) const
+std::vector<double> SupportVectorRegression::predict(const svr_trainer_t& trainer, const sample_v& samplesTrain, const std::vector<double>& targetsTrain, const sample_v& samplesTest)
 {
-	svr_params params ({arg(0), arg(1), arg(2)});
-	svr_trainer_t trainer = SupportVectorRegression::build_trainer(params);
-	la_col_vec result = SupportVectorRegression::cross_validation(trainer, m_samples, m_targets);
-	return result(0);
-}
+	std::vector<double> predictedTargets;
 
-dlib::matrix<double> SupportVectorRegression::get_grid(const la_col_vec& lowerBound, const la_col_vec& upperBound, const unsigned& numPerDim)
-{
-	// get one dimension
-	dlib::matrix<double> cSpace 		= dlib::logspace(log10(upperBound(0)), log10(lowerBound(0)), numPerDim);
-	dlib::matrix<double> gammaSpace 	= dlib::logspace(log10(upperBound(1)), log10(lowerBound(1)), numPerDim);
-	dlib::matrix<double> epsilonSpace 	= dlib::logspace(log10(upperBound(2)), log10(lowerBound(2)), numPerDim);
+	svr_model_t regFunction = train(trainer, samplesTrain, targetsTrain);
+	for (sample_t s : samplesTest)
+	{
+		predictedTargets.push_back(regFunction(s));
+	}
 
-	// create grid points and return
-	dlib::matrix<double> tmpGrid = dlib::cartesian_product(cSpace, gammaSpace);
-	return dlib::cartesian_product(tmpGrid, epsilonSpace);
+	return predictedTargets;
 }
 
 void SupportVectorRegression::train()
@@ -307,10 +376,10 @@ void SupportVectorRegression::cross_validation()
 	svr_trainer_t durationTrainer = build_trainer({get_value("Dpenalty"), get_value("Dgamma"), get_value("Depsilon")});
 
 	// do cross validation and print results
-	std::cout << "slope:    " << cross_validation(slopeTrainer, m_samples, m_targets.slopes);
-	std::cout << "offset:   " << cross_validation(offsetTrainer, m_samples, m_targets.offsets);
-	std::cout << "strength: " << cross_validation(strengthTrainer, m_samples, m_targets.strengths);
-	std::cout << "duration: " << cross_validation(durationTrainer, m_samples, m_targets.durations);
+	std::cout << "slope:    " << dlib::trans(cross_validation(slopeTrainer, m_samples, m_targets.slopes));
+	std::cout << "offset:   " << dlib::trans(cross_validation(offsetTrainer, m_samples, m_targets.offsets));
+	std::cout << "strength: " << dlib::trans(cross_validation(strengthTrainer, m_samples, m_targets.strengths));
+	std::cout << "duration: " << dlib::trans(cross_validation(durationTrainer, m_samples, m_targets.durations));
 }
 
 void SupportVectorRegression::model_selection()
@@ -323,12 +392,64 @@ void SupportVectorRegression::model_selection()
 
 	// print out results
 	std::cout << "slope:\t\tC=" << optSlope(0) << "\tgamma=" << optSlope(1) << "\tepsilon=" << optSlope(2) << std::endl;
-	//std::cout << "offset:\t\tC=" << optOffset(0) << "\tgamma=" << optOffset(1) << "\tepsilon=" << optOffset(2) << std::endl;
-	//std::cout << "strength:\tC=" << optStrength(0) << "\tgamma=" << optStrength(1) << "\tepsilon=" << optStrength(2) << std::endl;
-	//std::cout << "duration:\tC=" << optDuration(0) << "\tgamma=" << optDuration(1) << "\tepsilon=" << optDuration(2) << std::endl;
+	std::cout << "offset:\t\tC=" << optOffset(0) << "\tgamma=" << optOffset(1) << "\tepsilon=" << optOffset(2) << std::endl;
+	std::cout << "strength:\tC=" << optStrength(0) << "\tgamma=" << optStrength(1) << "\tepsilon=" << optStrength(2) << std::endl;
+	std::cout << "duration:\tC=" << optDuration(0) << "\tgamma=" << optDuration(1) << "\tepsilon=" << optDuration(2) << std::endl;
 }
 
 void SupportVectorRegression::predict()
 {
+	// initialize
+	unsigned nFolds (10);
+	unsigned N (m_samples.size()), cnt (0);
+
+	// result container
+	qta_target_v predictedTargets;
+
+	// get trainer depending on parameters
+	svr_trainer_t slopeTrainer = build_trainer({get_value("Mpenalty"), get_value("Mgamma"), get_value("Mepsilon")});
+	svr_trainer_t offsetTrainer = build_trainer({get_value("Bpenalty"), get_value("Bgamma"), get_value("Bepsilon")});
+	svr_trainer_t strengthTrainer = build_trainer({get_value("Lpenalty"), get_value("Lgamma"), get_value("Lepsilon")});
+	svr_trainer_t durationTrainer = build_trainer({get_value("Dpenalty"), get_value("Dgamma"), get_value("Depsilon")});
+
+	// do prediction
+	while(cnt<N)
+	{
+		sample_v samplesTest;
+		unsigned start (cnt), end(cnt);
+		std::string label (m_targets_orig[cnt].label);
+
+		// get test samples
+		while (label == m_targets_orig[cnt].label)
+		{
+			samplesTest.push_back(m_samples[cnt]);
+			++end;
+		}
+
+		// delete from training data
+		sample_v samplesTraining (m_samples);
+		samplesTraining.erase(samplesTraining.begin()+start, samplesTraining.begin()+end);
+
+		training_target_s targetsTraining (m_targets);
+		targetsTraining.slopes.erase(targetsTraining.slopes.begin()+start, targetsTraining.slopes.begin()+end);
+		targetsTraining.offsets.erase(targetsTraining.offsets.begin()+start, targetsTraining.offsets.begin()+end);
+		targetsTraining.strengths.erase(targetsTraining.strengths.begin()+start, targetsTraining.strengths.begin()+end);
+		targetsTraining.durations.erase(targetsTraining.durations.begin()+start, targetsTraining.durations.begin()+end);
+
+		training_target_s tmp;
+		tmp.slopes = predict(slopeTrainer, samplesTraining, targetsTraining.slopes, samplesTest);
+		tmp.offsets = predict(offsetTrainer, samplesTraining, targetsTraining.offsets, samplesTest);
+		tmp.strengths = predict(strengthTrainer, samplesTraining, targetsTraining.strengths, samplesTest);
+		tmp.durations = predict(durationTrainer, samplesTraining, targetsTraining.durations, samplesTest);
+
+		// store result
+		for (unsigned i=0; i<end-start; ++i)
+		{
+			cnt++;
+			qtaTarget_s t = {label, tmp.slopes[i], tmp.offsets[i], tmp.strengths[i], tmp.durations[i], 0, 0};
+			std::cout << label << std::endl;
+		}
+
+	}
 
 }

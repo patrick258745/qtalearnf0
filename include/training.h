@@ -23,6 +23,7 @@ private:
 	// private member functions
 	void read_samples (const std::string& sampleFile);
 	void scale_samples (const double& lower, const double& upper);
+	void randomize_data();
 	void normalize_samples ();
 
 	// data members
@@ -55,6 +56,7 @@ protected:
 
 	sample_v 			m_samples;
 	training_target_s	m_targets;
+	qta_target_v	m_targets_orig;
 	algorithm_m 		m_params;
 };
 
@@ -75,12 +77,13 @@ public:
 	static svr_model_t train(const svr_trainer_t& trainer, const sample_v& samples, const std::vector<double>& targets);
 	static la_col_vec cross_validation(const svr_trainer_t& trainer, const sample_v& samples, const std::vector<double>& targets);
 	static la_col_vec model_selection(const sample_v& samples, const std::vector<double>& targets);
+	static std::vector<double> predict(const svr_trainer_t& trainer, const sample_v& samplesTrain, const std::vector<double>& targetsTrain, const sample_v& samplesTest);
 	static dlib::matrix<double> get_grid(const la_col_vec& lowerBound, const la_col_vec& upperBound, const unsigned& numPerDim);
 };
 
 class SvrCvError{
 public:
-	SvrCvError (const sample_v& samples, const std::vector<double> targets) : m_samples(samples), m_targets(targets) {}
+	SvrCvError (const sample_v& samples, const std::vector<double>& targets) : m_samples(samples), m_targets(targets) {}
     double operator() (const la_col_vec& arg) const;
 
 private:

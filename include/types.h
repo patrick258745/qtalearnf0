@@ -107,6 +107,11 @@ struct svr_params
 	double epsilon;
 };
 
+struct training_data_s
+{
+	training_target_s targets;
+	sample_v samples;
+};
 
 /********** qtatools types **********/
 struct plot_data_s
