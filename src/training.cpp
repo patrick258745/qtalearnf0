@@ -9,11 +9,15 @@ MlaTrainer::MlaTrainer (const std::string& trainingFile, const std::string& algo
 	parse_xml(algorithmFile, *this);
 	read_samples(trainingFile);
 	scale_samples(0,1);
-	randomize_data();
 }
 
 void MlaTrainer::perform_task (const dlib::command_line_parser& parser)
 {
+	if (!parser.option("p"))
+	{
+		randomize_data();
+	}
+
 	std::string& alg (m_algorithmParams.at("type"));
 	if (alg == "svr")
 	{
@@ -400,8 +404,7 @@ void SupportVectorRegression::model_selection()
 void SupportVectorRegression::predict()
 {
 	// initialize
-	unsigned nFolds (10);
-	unsigned N (m_samples.size()), cnt (0);
+	unsigned N (m_samples.size());
 
 	// result container
 	qta_target_v predictedTargets;
@@ -412,29 +415,30 @@ void SupportVectorRegression::predict()
 	svr_trainer_t strengthTrainer = build_trainer({get_value("Lpenalty"), get_value("Lgamma"), get_value("Lepsilon")});
 	svr_trainer_t durationTrainer = build_trainer({get_value("Dpenalty"), get_value("Dgamma"), get_value("Depsilon")});
 
+	// create output file and write results to it
+	std::ofstream fout;
+	fout.open (m_params.at("output"));
+	fout << std::fixed << std::setprecision(6);
+	fout << "name,slope,offset,strength,duration,rmse,corr" << std::endl;
+
 	// do prediction
-	while(cnt<N)
+	for (unsigned n=0; n<N; ++n)
 	{
 		sample_v samplesTest;
-		unsigned start (cnt), end(cnt);
-		std::string label (m_targets_orig[cnt].label);
+		std::string label (m_targets_orig[n].label);
 
-		// get test samples
-		while (label == m_targets_orig[cnt].label)
-		{
-			samplesTest.push_back(m_samples[cnt]);
-			++end;
-		}
+		// add to test data
+		samplesTest.push_back(m_samples[n]);
 
 		// delete from training data
 		sample_v samplesTraining (m_samples);
-		samplesTraining.erase(samplesTraining.begin()+start, samplesTraining.begin()+end);
+		samplesTraining.erase(samplesTraining.begin()+n);
 
 		training_target_s targetsTraining (m_targets);
-		targetsTraining.slopes.erase(targetsTraining.slopes.begin()+start, targetsTraining.slopes.begin()+end);
-		targetsTraining.offsets.erase(targetsTraining.offsets.begin()+start, targetsTraining.offsets.begin()+end);
-		targetsTraining.strengths.erase(targetsTraining.strengths.begin()+start, targetsTraining.strengths.begin()+end);
-		targetsTraining.durations.erase(targetsTraining.durations.begin()+start, targetsTraining.durations.begin()+end);
+		targetsTraining.slopes.erase(targetsTraining.slopes.begin()+n);
+		targetsTraining.offsets.erase(targetsTraining.offsets.begin()+n);
+		targetsTraining.strengths.erase(targetsTraining.strengths.begin()+n);
+		targetsTraining.durations.erase(targetsTraining.durations.begin()+n);
 
 		training_target_s tmp;
 		tmp.slopes = predict(slopeTrainer, samplesTraining, targetsTraining.slopes, samplesTest);
@@ -443,13 +447,8 @@ void SupportVectorRegression::predict()
 		tmp.durations = predict(durationTrainer, samplesTraining, targetsTraining.durations, samplesTest);
 
 		// store result
-		for (unsigned i=0; i<end-start; ++i)
-		{
-			cnt++;
-			qtaTarget_s t = {label, tmp.slopes[i], tmp.offsets[i], tmp.strengths[i], tmp.durations[i], 0, 0};
-			std::cout << label << std::endl;
-		}
-
+		qtaTarget_s t = {label, tmp.slopes[0], tmp.offsets[0], tmp.strengths[0], tmp.durations[0], 0, 0};
+		fout << label << "," << tmp.slopes[0] << "," << tmp.offsets[0] << "," << tmp.strengths[0] << "," << tmp.durations[0] << "," << 0.0 << "," << 0.0 << std::endl;
 	}
 
 }
