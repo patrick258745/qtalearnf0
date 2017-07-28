@@ -1,6 +1,12 @@
+##### computing tasks #####
+doQtaSearch="0"
+doSvrPrediction="1"
+doSvrModelSelection="0"
+
 ##### user data #####
 fmin="100"
 fmax="600"
+smean="232.86"
 mmin="-10"
 mmax="10"
 bmin="85"
@@ -20,20 +26,38 @@ resynth="\"F0 resynthesis with qTA parameters\""
 
 START_TIME=$SECONDS
 
-# search optimal qta parameters
-$praat --run $script $search $fmin $fmax $shift $order $data_path/corpus/ $data_path/corpus.target $mmin $mmax $bmin $bmax $lmin $lmax $data_path/qta/;
+if [ $doQtaSearch = 1 ]
+then
+  # search optimal qta parameters
+  $praat --run $script $search $fmin $fmax $smean $shift $order $data_path/corpus/ $data_path/corpus.target $mmin $mmax $bmin $bmax $lmin $lmax $data_path/qta/;
 
-# resynthesis with optimal qta parameters
-$praat --run $script $resynth $fmin $fmax $shift $order $data_path/corpus/ $data_path/corpus.target $mmin $mmax $bmin $bmax $lmin $lmax $data_path/qta/;
+  if [ "$(uchardet $data_path/corpus.target)" = "UTF-16" ]
+  then
+    iconv -f UTF-16 -t UTF-8 $data_path/corpus.target > $data_path/corpus.target.tmp
+    mv $data_path/corpus.target.tmp $data_path/corpus.target
+  fi
 
-# create training data
-$program_path/bin/mlasampling --in $data_path/corpus.sampa $data_path/corpus.target --out $data_path/corpus.sample;
+  # resynthesis with optimal qta parameters
+  $praat --run $script $resynth $fmin $fmax $smean $shift $order $data_path/corpus/ $data_path/corpus.target $mmin $mmax $bmin $bmax $lmin $lmax $data_path/qta/;
 
-# predict targets using support vector regression
-$program_path/bin/mlatraining -p --in $data_path/corpus.sample --alg $data_path/svr/svr.algorithm;
+  # create training data
+  $program_path/bin/mlasampling --in $data_path/corpus.sampa $data_path/corpus.target --out $data_path/corpus.sample;
+fi
 
-# resynthesis with predicted svr targets
-$praat --run $script $resynth $fmin $fmax $shift $order $data_path/corpus/ $data_path/svr/prediction.target $mmin $mmax $bmin $bmax $lmin $lmax $data_path/svr/;
+if [ $doSvrPrediction = 1 ]
+then
+  # predict targets using support vector regression
+  $program_path/bin/mlatraining -p --in $data_path/corpus.sample --alg $data_path/svr/svr.algorithm;
+
+  # resynthesis with predicted svr targets
+  $praat --run $script $resynth $fmin $fmax $smean $shift $order $data_path/corpus/ $data_path/svr/prediction.target $mmin $mmax $bmin $bmax $lmin $lmax $data_path/svr/;
+fi
+
+if [ $doSvrModelSelection = 1 ]
+then
+  # predict targets using support vector regression
+  $program_path/bin/mlatraining -m --in $data_path/corpus.sample --alg $data_path/svr/svr.algorithm;
+fi
 
 ELAPSED_TIME=$(($SECONDS - $START_TIME))
 echo ">>> $(($ELAPSED_TIME/60)) min $(($ELAPSED_TIME%60)) sec <<<"

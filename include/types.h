@@ -24,18 +24,22 @@ typedef real_vec	state_v;	// filter state; derivatives
 typedef real_vec	coeff_v;	// filter coefficients
 typedef la_col_vec 	freq_v;		// frequency values
 
-struct pitchTarget_s
+struct pitch_target_s
 {
+	std::string label;
 	double m;	// slope
 	double b;	// offset
 	double l;	// strength
+	double d;	// duration
+	double r;	// root-mean-squared-error
+	double c;	// correlation-coefficient
 };
-typedef std::vector<pitchTarget_s> target_v;	// vector of pitch targets
+typedef std::vector<pitch_target_s> target_v;	// vector of pitch targets
 
 struct bound_s
 {
-	pitchTarget_s lower;
-	pitchTarget_s upper;
+	pitch_target_s lower;
+	pitch_target_s upper;
 };
 
 struct signal_s
@@ -72,45 +76,34 @@ struct syl_feat_s
 };
 
 /********** mlatraining types **********/
+typedef std::map<std::string, std::string> algorithm_m;
 typedef dlib::matrix<double, NUMFEATSYL, 1> sample_t;
-
-struct qtaTarget_s
+typedef std::vector<sample_t> sample_v;
+struct scaler_s
 {
-	std::string label;
-	double m;	// slope
-	double b;	// offset
-	double l;	// strength
-	double d;	// duration
-	double r;	// root-mean-squared-error
-	double c;	// correlation-coefficient
+	double min;
+	double max;
 };
+const double FEATLOW	= 0;
+const double FEATUP	= 1;
 
-struct training_target_s
+struct training_s
 {
+	sample_v 			samples;
 	std::vector<double> slopes;
 	std::vector<double> offsets;
 	std::vector<double> strengths;
 	std::vector<double> durations;
 };
 
-typedef std::vector<sample_t> sample_v;
-typedef std::vector<qtaTarget_s> qta_target_v;
-typedef std::map<std::string, std::string> algorithm_m;
-
-typedef dlib::radial_basis_kernel<sample_t> kernel_t;
-typedef dlib::svr_trainer<kernel_t> svr_trainer_t;
-typedef dlib::decision_function<kernel_t> svr_model_t;
+typedef dlib::radial_basis_kernel<sample_t> svr_kernel_t;
+typedef dlib::svr_trainer<svr_kernel_t> svr_trainer_t;
+typedef dlib::decision_function<svr_kernel_t> svr_model_t;
 struct svr_params
 {
 	double C;
 	double gamma;
 	double epsilon;
-};
-
-struct training_data_s
-{
-	training_target_s targets;
-	sample_v samples;
 };
 
 /********** qtatools types **********/

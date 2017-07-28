@@ -4,20 +4,16 @@
 #include <stdlib.h>     /* srand, rand */
 #include <time.h>       /* time */
 
+// *************** MLATRAINER ***************
+
 MlaTrainer::MlaTrainer (const std::string& trainingFile, const std::string& algorithmFile)
 {
 	parse_xml(algorithmFile, *this);
 	read_samples(trainingFile);
-	scale_samples(0,1);
 }
 
 void MlaTrainer::perform_task (const dlib::command_line_parser& parser)
 {
-	if (!parser.option("p"))
-	{
-		randomize_data();
-	}
-
 	std::string& alg (m_algorithmParams.at("type"));
 	if (alg == "svr")
 	{
@@ -62,7 +58,7 @@ void MlaTrainer::read_samples (const std::string& sampleFile)
 	while (std::getline(fin, line))
 	{
 		sample_t currentSample;
-		qtaTarget_s currentTarget;
+		pitch_target_s currentTarget;
 		tokens = dlib::split(line, ",");
 
 		try
@@ -90,107 +86,183 @@ void MlaTrainer::read_samples (const std::string& sampleFile)
 	}
 }
 
-void MlaTrainer::scale_samples (const double& lower, const double& upper)
+// *************** DATASCALER ***************
+
+scaler_s DataScaler::min_max_scale(std::vector<double>& data) const
 {
-	std::vector<double> minVal (NUMFEATSYL, 1e3);
-	std::vector<double> maxVal (NUMFEATSYL, -1e3);
+	// running statistics
+	dlib::running_stats<double> stat;
+	for (double& d : data)
+	{
+		stat.add(d);
+	}
+	scaler_s scale;
+	scale.min = stat.min();
+	scale.max = stat.max();
+
+	// min-max scaling
+	for (double& d : data)
+	{
+		double range (stat.max()-stat.min());
+		if (range > 0)
+		{
+			d = m_lower + (m_upper-m_lower) * ((d-scale.min)/range);
+		}
+		else // all features have same value
+		{
+			d = m_lower;
+		}
+
+	}
+
+	return scale;
+}
+
+void DataScaler::min_max_rescale(std::vector<double>& data, const scaler_s& scale) const
+{
+	// min-max rescaling
+	for (double& d : data)
+	{
+		d = ((d - m_lower)/(m_upper-m_lower))*(scale.max-scale.min) + scale.min;
+	}
+}
+
+void DataScaler::min_max_scale(sample_v& samples)
+{
+	std::vector<dlib::running_stats<double>> stats (NUMFEATSYL);
 
 	// get min and max values per feature (global)
-	for (sample_t s : m_samples)
+	for (sample_t& s : samples)
 	{
 		for (unsigned i=0; i<NUMFEATSYL; ++i)
 		{
-			minVal[i] = std::min(minVal[i], s(i));
-			maxVal[i] = std::max(maxVal[i], s(i));
+			stats[i].add(s(i));
 		}
 	}
 
 	// scale features
-	for (sample_t& s : m_samples)
+	for (sample_t& s : samples)
 	{
 		for (unsigned i=0; i<NUMFEATSYL; ++i)
 		{
-			// scaling
-			double diff = maxVal[i] - minVal[i];
-			if (diff == 0)
+			double range (stats[i].max()-stats[i].min());
+			if (range > 0)
 			{
-				s(i) = lower;
+				s(i) = m_lower + (m_upper-m_lower) * ((s(i)-stats[i].min())/range);// scale value
 			}
-			else if (diff > 0)
+			else // all features have same value
 			{
-				s(i) = lower + (upper-lower) * (s(i)-minVal[i])/(diff);// scale value
-			}
-			else
-			{
-				throw dlib::error("[read_samples] Wrong scaling! max<min!");
+				s(i) = m_lower;
 			}
 		}
 	}
 }
 
-void MlaTrainer::normalize_samples ()
+void DataScaler::min_max_scale(training_s& trainingData)
 {
-    dlib::vector_normalizer<sample_t> normalizer;
-    // Let the normalizer learn the mean and standard deviation of the samples.
-    normalizer.train(m_samples);
-    // now normalize each sample
-    for (unsigned long i = 0; i < m_samples.size(); ++i)
-        m_samples[i] = normalizer(m_samples[i]);
+	min_max_scale(trainingData.samples);
+	m_slopeScale = min_max_scale(trainingData.slopes);
+	m_offsetScale = min_max_scale(trainingData.offsets);
+	m_strengthScale = min_max_scale(trainingData.strengths);
+	m_durationScale = min_max_scale(trainingData.durations);
 }
 
-void MlaTrainer::randomize_data ()
+void DataScaler::min_max_rescale(training_s& trainingData)
+{
+	min_max_rescale(trainingData.slopes, m_slopeScale);
+	min_max_rescale(trainingData.offsets, m_offsetScale);
+	min_max_rescale(trainingData.strengths, m_strengthScale);
+	min_max_rescale(trainingData.durations, m_durationScale);
+}
+
+// *************** MLALGORITHM ***************
+
+MlAlgorithm::MlAlgorithm (const sample_v& samples, const target_v& targets, const algorithm_m& params) : m_scaler(FEATLOW,FEATUP)
+{
+	// get data
+	m_params = params;
+	m_targets = targets;
+	m_data.samples = samples;
+
+	// randomize data
+	//randomize_data(m_targets, m_data.samples);
+
+	// save data to training format
+	for (pitch_target_s t : targets)
+	{
+		m_data.slopes.push_back(t.m);
+		m_data.offsets.push_back(t.b);
+		m_data.strengths.push_back(t.l);
+		m_data.durations.push_back(t.d);
+	}
+
+	// normalize training data
+	//m_scaler.min_max_scale(m_data.samples);
+	m_scaler.min_max_scale(m_data);
+}
+
+double MlAlgorithm::get_value(const std::string& param) const
+{
+	double value (0.0);
+	try
+	{
+		value = std::stod(m_params.at(param));
+	}
+	catch (std::out_of_range& e)
+	{
+		throw dlib::error("[get_value] the following parameter was not defined: " + param + "\n" + std::string(e.what()));
+	}
+	catch (std::invalid_argument& e)
+	{
+		throw dlib::error("[get_value] invalid argument exceptions occurred while using std::stod!\n" + std::string(e.what()));
+	}
+
+	return value;
+}
+
+void MlAlgorithm::randomize_data (target_v& targets, sample_v& samples)
 {
 	// initialize random seed
 	srand (time(NULL));
 
-	unsigned N (m_samples.size());
+	unsigned N (samples.size());
 	for (unsigned i=0; i<N; ++i)
 	{
 		unsigned randPos (rand()%(N-1)+1);
-		std::string label (m_targets[randPos].label);
+		std::string label (targets[randPos].label);
 
 		// get start position of word
 		unsigned start (randPos);
-		while ((start-1) >= 0 && m_targets[start-1].label == label)
+		while (targets[start-1].label == label)
 		{
+			if (start-1 <= 0)
+				break;
 			--start;
+
 		}
 
 		// get end position of word
 		unsigned end (randPos);
-		while ((end+1) < N && m_targets[end+1].label == label)
+		while (targets[end+1].label == label)
 		{
+			if (end+1 >= N)
+				break;
 			++end;
 		}
 
 		// shift random word to end
 		for (unsigned pos=start; pos<=end; ++pos)
 		{
-			m_targets.push_back(m_targets[pos]);
-			m_samples.push_back(m_samples[pos]);
+			targets.push_back(targets[pos]);
+			samples.push_back(samples[pos]);
 		}
 
 		// delete random word
 		for (unsigned pos=end; pos>=start; --pos)
 		{
-			m_targets.erase(m_targets.begin()+pos);
-			m_samples.erase(m_samples.begin()+pos);
+			targets.erase(targets.begin()+pos);
+			samples.erase(samples.begin()+pos);
 		}
-	}
-}
-
-MlAlgorithm::MlAlgorithm (const sample_v& samples, const qta_target_v& targets, const algorithm_m& params)
-{
-	m_targets_orig = targets;
-	m_samples = samples;
-	m_params = params;
-
-	for (qtaTarget_s t : targets)
-	{
-		m_targets.slopes.push_back(t.m);
-		m_targets.offsets.push_back(t.b);
-		m_targets.strengths.push_back(t.l);
-		m_targets.durations.push_back(t.d);
 	}
 }
 
@@ -211,6 +283,7 @@ void MlAlgorithm::perform_task(const dlib::command_line_parser& parser)
 	else if (parser.option("m"))
 	{
 		model_selection();
+		write_algorithm_file(parser.option("alg").argument());
 	}
 	else
 	{
@@ -218,24 +291,23 @@ void MlAlgorithm::perform_task(const dlib::command_line_parser& parser)
 	}
 }
 
-double MlAlgorithm::get_value(std::string param)
+void MlAlgorithm::write_algorithm_file(const std::string& algFile) const
 {
-	double value (0.0);
-	try
+	// create output file and write results to it
+	std::ofstream fout;
+	fout.open (algFile);
+	fout << "<algorithm" << std::endl;
+
+	for (auto p : m_params)
 	{
-		value = std::stod(m_params.at(param));
-	}
-	catch (std::out_of_range& e)
-	{
-		throw dlib::error("[get_value] the following parameter was not defined: " + param + "\n" + std::string(e.what()));
-	}
-	catch (std::invalid_argument& e)
-	{
-		throw dlib::error("[get_value] invalid argument exceptions occurred while using std::stod!\n" + std::string(e.what()));
+		fout << "\t" << p.first << "=\"" << p.second << "\"" << std::endl;
 	}
 
-	return value;
+	fout << "></algorithm>";
+	fout.close();
 }
+
+// *************** SVRERROR ***************
 
 double SvrCvError::operator() (const la_col_vec& logArg) const
 {
@@ -247,12 +319,14 @@ double SvrCvError::operator() (const la_col_vec& logArg) const
 	return result(0);
 }
 
+// *************** SUPPORTVECTORREGRESSION ***************
+
 dlib::matrix<double> SupportVectorRegression::get_grid(const la_col_vec& lowerBound, const la_col_vec& upperBound, const unsigned& numPerDim)
 {
 	// get one dimension
 	dlib::matrix<double> cSpace 		= dlib::logspace(log10(upperBound(0)), log10(lowerBound(0)), numPerDim);
 	dlib::matrix<double> gammaSpace 	= dlib::logspace(log10(upperBound(1)), log10(lowerBound(1)), numPerDim);
-	dlib::matrix<double> epsilonSpace 	= dlib::logspace(log10(upperBound(2)), log10(lowerBound(2)), numPerDim);
+	dlib::matrix<double> epsilonSpace 	= dlib::logspace(log10(upperBound(2)), log10(lowerBound(2)), 3);
 
 	// create grid points and return
 	dlib::matrix<double> tmpGrid = dlib::cartesian_product(cSpace, gammaSpace);
@@ -266,7 +340,7 @@ svr_trainer_t SupportVectorRegression::build_trainer(const svr_params& params)
 
 	// setup parameters for trainer
 	trainer.set_c(params.C);
-	trainer.set_kernel(kernel_t(params.gamma));
+	trainer.set_kernel(svr_kernel_t(params.gamma));
 	trainer.set_epsilon_insensitivity(params.epsilon);
 
 	// return trainer
@@ -288,15 +362,15 @@ la_col_vec SupportVectorRegression::model_selection(const sample_v& samples, con
 {
 	// define parameter search space {C,gamma,epsilon}
 	la_col_vec lowerBound(3), upperBound(3);
-	lowerBound = 1e-2, 1e-5, 1e-4;
-	upperBound = 1e3, 1e1, 1e0;
+	lowerBound = 1e-5, 1e-5, 1e-4;
+	upperBound = 1e5, 1e5, 1e-1;
 
 	// store optimal parameters
 	svr_params bestParams;
 	double bestResult (1e6);
 
 	// create grid for grid search
-	dlib::matrix<double> grid = get_grid(lowerBound, upperBound, 5);
+	dlib::matrix<double> grid = get_grid(lowerBound, upperBound, 15);
 
 	// loop over grid
 	dlib::mutex mu;
@@ -315,8 +389,11 @@ la_col_vec SupportVectorRegression::model_selection(const sample_v& samples, con
         	bestParams = params;
             bestResult = result;
         }
-    	//DEBUG
-    	std::cout << col << ": cverror(" << params.C << "," << params.gamma << "," << params.epsilon << " = " << result << std::endl;
+
+		// DEBUG message
+		#ifdef DEBUG_MSG
+        std::cout << "\t[model_selection] " << col << ": mse(" << params.C << "," << params.gamma << "," << params.epsilon << ")\t\t= " << result << std::endl;
+		#endif
     }
 	);
 
@@ -331,13 +408,20 @@ la_col_vec SupportVectorRegression::model_selection(const sample_v& samples, con
 
     try
     {
+		// DEBUG message
+		#ifdef DEBUG_MSG
+		std::cout << "\t[model_selection] Grid search completed. Initialize BOBYQA ... start(" << dlib::trans(arg) << ")"  << std::endl;
+		#endif
+
     	// optimization
     	dlib::find_min_bobyqa(SvrCvError (samples, targets), logArg, arg.size()*2+1, lowerBound, upperBound, min(upperBound-lowerBound)/10, 1e-2, 100);
     }
 	catch (dlib::bobyqa_failure& err)
 	{
 		// DEBUG message
-		// std::cerr << "WARNING: no convergence during optimization in iteration: " << it << std::endl << err.info << std::endl;
+		#ifdef DEBUG_MSG
+		std::cout << "\t[model_selection] WARNING: no convergence during optimization" << std::endl << err.info << std::endl;
+		#endif
 	}
 
     return exp(logArg);
@@ -365,10 +449,10 @@ void SupportVectorRegression::train()
 	svr_trainer_t durationTrainer = build_trainer({get_value("Dpenalty"), get_value("Dgamma"), get_value("Depsilon")});
 
 	// do the training and save the models to files
-	dlib::serialize(m_params.at("Mmodel")) << train(slopeTrainer, m_samples, m_targets.slopes);
-	dlib::serialize(m_params.at("Bmodel")) << train(offsetTrainer, m_samples, m_targets.offsets);
-	dlib::serialize(m_params.at("Lmodel")) << train(strengthTrainer, m_samples, m_targets.strengths);
-	dlib::serialize(m_params.at("Dmodel")) << train(durationTrainer, m_samples, m_targets.durations);
+	dlib::serialize(m_params.at("Mmodel")) << train(slopeTrainer, m_data.samples, m_data.slopes);
+	dlib::serialize(m_params.at("Bmodel")) << train(offsetTrainer, m_data.samples, m_data.offsets);
+	dlib::serialize(m_params.at("Lmodel")) << train(strengthTrainer, m_data.samples, m_data.strengths);
+	dlib::serialize(m_params.at("Dmodel")) << train(durationTrainer, m_data.samples, m_data.durations);
 }
 
 void SupportVectorRegression::cross_validation()
@@ -380,34 +464,50 @@ void SupportVectorRegression::cross_validation()
 	svr_trainer_t durationTrainer = build_trainer({get_value("Dpenalty"), get_value("Dgamma"), get_value("Depsilon")});
 
 	// do cross validation and print results
-	std::cout << "slope:    " << dlib::trans(cross_validation(slopeTrainer, m_samples, m_targets.slopes));
-	std::cout << "offset:   " << dlib::trans(cross_validation(offsetTrainer, m_samples, m_targets.offsets));
-	std::cout << "strength: " << dlib::trans(cross_validation(strengthTrainer, m_samples, m_targets.strengths));
-	std::cout << "duration: " << dlib::trans(cross_validation(durationTrainer, m_samples, m_targets.durations));
+	std::cout << "slope:    " << dlib::trans(cross_validation(slopeTrainer, m_data.samples, m_data.slopes));
+	std::cout << "offset:   " << dlib::trans(cross_validation(offsetTrainer, m_data.samples, m_data.offsets));
+	std::cout << "strength: " << dlib::trans(cross_validation(strengthTrainer, m_data.samples, m_data.strengths));
+	std::cout << "duration: " << dlib::trans(cross_validation(durationTrainer, m_data.samples, m_data.durations));
 }
 
 void SupportVectorRegression::model_selection()
 {
 	// perform model selection
-	la_col_vec optSlope = model_selection(m_samples, m_targets.slopes);
-	la_col_vec optOffset = model_selection(m_samples, m_targets.offsets);
-	la_col_vec optStrength = model_selection(m_samples, m_targets.strengths);
-	la_col_vec optDuration = model_selection(m_samples, m_targets.durations);
+	la_col_vec optSlope = model_selection(m_data.samples, m_data.slopes);
+	la_col_vec optOffset = model_selection(m_data.samples, m_data.offsets);
+	la_col_vec optStrength = model_selection(m_data.samples, m_data.strengths);
+	la_col_vec optDuration = model_selection(m_data.samples, m_data.durations);
 
 	// print out results
-	std::cout << "slope:\t\tC=" << optSlope(0) << "\tgamma=" << optSlope(1) << "\tepsilon=" << optSlope(2) << std::endl;
-	std::cout << "offset:\t\tC=" << optOffset(0) << "\tgamma=" << optOffset(1) << "\tepsilon=" << optOffset(2) << std::endl;
-	std::cout << "strength:\tC=" << optStrength(0) << "\tgamma=" << optStrength(1) << "\tepsilon=" << optStrength(2) << std::endl;
-	std::cout << "duration:\tC=" << optDuration(0) << "\tgamma=" << optDuration(1) << "\tepsilon=" << optDuration(2) << std::endl;
+	std::cout << "slope:\t\tC=" << optSlope(0) << "\t\tgamma=" << optSlope(1) << "\t\tepsilon=" << optSlope(2) << std::endl;
+	std::cout << "offset:\t\tC=" << optOffset(0) << "\t\tgamma=" << optOffset(1) << "\t\tepsilon=" << optOffset(2) << std::endl;
+	std::cout << "strength:\tC=" << optStrength(0) << "\t\tgamma=" << optStrength(1) << "\t\tepsilon=" << optStrength(2) << std::endl;
+	std::cout << "duration:\tC=" << optDuration(0) << "\t\tgamma=" << optDuration(1) << "\t\tepsilon=" << optDuration(2) << std::endl;
+
+	// store results
+	m_params.at("Mpenalty") = std::to_string(optSlope(0));
+	m_params.at("Bpenalty") = std::to_string(optOffset(0));
+	m_params.at("Lpenalty") = std::to_string(optStrength(0));
+	m_params.at("Dpenalty") = std::to_string(optDuration(0));
+
+	m_params.at("Mgamma") = std::to_string(optSlope(1));
+	m_params.at("Bgamma") = std::to_string(optOffset(1));
+	m_params.at("Lgamma") = std::to_string(optStrength(1));
+	m_params.at("Dgamma") = std::to_string(optDuration(1));
+
+	m_params.at("Mepsilon") = std::to_string(optSlope(2));
+	m_params.at("Bepsilon") = std::to_string(optOffset(2));
+	m_params.at("Lepsilon") = std::to_string(optStrength(2));
+	m_params.at("Depsilon") = std::to_string(optDuration(2));
 }
 
 void SupportVectorRegression::predict()
 {
 	// initialize
-	unsigned N (m_samples.size());
+	unsigned N (m_data.samples.size());
 
 	// result container
-	qta_target_v predictedTargets;
+	target_v predictedTargets(N);
 
 	// get trainer depending on parameters
 	svr_trainer_t slopeTrainer = build_trainer({get_value("Mpenalty"), get_value("Mgamma"), get_value("Mepsilon")});
@@ -415,40 +515,57 @@ void SupportVectorRegression::predict()
 	svr_trainer_t strengthTrainer = build_trainer({get_value("Lpenalty"), get_value("Lgamma"), get_value("Lepsilon")});
 	svr_trainer_t durationTrainer = build_trainer({get_value("Dpenalty"), get_value("Dgamma"), get_value("Depsilon")});
 
+	// do prediction
+	dlib::parallel_for(0,N, [&](long n)// for (unsigned n=0; n<N; ++n)
+	{
+		// prepare
+		training_s dataTraining (m_data), dataTest;
+		std::string label (m_targets[n].label);
+
+		// add to test samples
+		dataTest.samples.push_back(m_data.samples[n]);
+
+		// delete from training data
+		dataTraining.samples.erase(dataTraining.samples.begin()+n);
+		dataTraining.slopes.erase(dataTraining.slopes.begin()+n);
+		dataTraining.offsets.erase(dataTraining.offsets.begin()+n);
+		dataTraining.strengths.erase(dataTraining.strengths.begin()+n);
+		dataTraining.durations.erase(dataTraining.durations.begin()+n);
+
+		dataTest.slopes = predict(slopeTrainer, dataTraining.samples, dataTraining.slopes, dataTest.samples);
+		dataTest.offsets = predict(offsetTrainer, dataTraining.samples, dataTraining.offsets, dataTest.samples);
+		dataTest.strengths = predict(strengthTrainer, dataTraining.samples, dataTraining.strengths, dataTest.samples);
+		dataTest.durations = predict(durationTrainer, dataTraining.samples, dataTraining.durations, dataTest.samples);
+
+		// rescale predicted target values
+		m_scaler.min_max_rescale(dataTest);
+
+		// store result
+		pitch_target_s t;
+		t.label = label;
+		t.m = dataTest.slopes[0];
+		t.b = dataTest.offsets[0];
+		t.l = dataTest.strengths[0];
+		t.d = dataTest.durations[0];
+		t.r = 0.0;
+		t.c = 0.0;
+		predictedTargets[n] = t;
+
+		// DEBUG message
+		#ifdef DEBUG_MSG
+		std::cout << "\t[predict] (" << n << ") predicted: " << label << " " << t.m << " " << t.b << " " << t.l <<  std::endl;
+		#endif
+	});
+
 	// create output file and write results to it
 	std::ofstream fout;
 	fout.open (m_params.at("output"));
 	fout << std::fixed << std::setprecision(6);
 	fout << "name,slope,offset,strength,duration,rmse,corr" << std::endl;
 
-	// do prediction
-	for (unsigned n=0; n<N; ++n)
+	for (pitch_target_s t : predictedTargets)
 	{
-		sample_v samplesTest;
-		std::string label (m_targets_orig[n].label);
-
-		// add to test data
-		samplesTest.push_back(m_samples[n]);
-
-		// delete from training data
-		sample_v samplesTraining (m_samples);
-		samplesTraining.erase(samplesTraining.begin()+n);
-
-		training_target_s targetsTraining (m_targets);
-		targetsTraining.slopes.erase(targetsTraining.slopes.begin()+n);
-		targetsTraining.offsets.erase(targetsTraining.offsets.begin()+n);
-		targetsTraining.strengths.erase(targetsTraining.strengths.begin()+n);
-		targetsTraining.durations.erase(targetsTraining.durations.begin()+n);
-
-		training_target_s tmp;
-		tmp.slopes = predict(slopeTrainer, samplesTraining, targetsTraining.slopes, samplesTest);
-		tmp.offsets = predict(offsetTrainer, samplesTraining, targetsTraining.offsets, samplesTest);
-		tmp.strengths = predict(strengthTrainer, samplesTraining, targetsTraining.strengths, samplesTest);
-		tmp.durations = predict(durationTrainer, samplesTraining, targetsTraining.durations, samplesTest);
-
-		// store result
-		qtaTarget_s t = {label, tmp.slopes[0], tmp.offsets[0], tmp.strengths[0], tmp.durations[0], 0, 0};
-		fout << label << "," << tmp.slopes[0] << "," << tmp.offsets[0] << "," << tmp.strengths[0] << "," << tmp.durations[0] << "," << 0.0 << "," << 0.0 << std::endl;
+		fout << t.label << "," << t.m << "," << t.b << "," << t.l << "," << t.d << "," << 0.0 << "," << 0.0 << std::endl;
 	}
-
+	fout.close();
 }

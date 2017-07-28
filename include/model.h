@@ -25,8 +25,8 @@ public:
 
 private:
 	// private member functions
-	void calc_filter_coeffs (coeff_v& filterCoeffs, const pitchTarget_s& qtaParams, const state_v& startState) const;
-	void calc_state (state_v& currState, const double& currTime, const double& startTime, const pitchTarget_s& qtaParams) const;
+	void calc_filter_coeffs (coeff_v& filterCoeffs, const pitch_target_s& qtaParams, const state_v& startState) const;
+	void calc_state (state_v& currState, const double& currTime, const double& startTime, const pitch_target_s& qtaParams) const;
 
 	// data members
 	unsigned	m_filterOrder;

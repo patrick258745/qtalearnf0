@@ -51,7 +51,7 @@ void CdlpFilter::initialize (const state_v& initState, const time_v& intervalBou
 	m_intervalBounds = intervalBounds;
 }
 
-void CdlpFilter::calc_filter_coeffs (coeff_v& filterCoeffs, const pitchTarget_s& qtaParams, const state_v& startState) const
+void CdlpFilter::calc_filter_coeffs (coeff_v& filterCoeffs, const pitch_target_s& qtaParams, const state_v& startState) const
 {
 	if (filterCoeffs.size() != m_filterOrder)
 	{
@@ -122,7 +122,7 @@ void CdlpFilter::calc_f0 (signal_s& freqResp, const target_v& qtaVector) const
 	}
 }
 
-void CdlpFilter::calc_state (state_v& currState, const double& endTime, const double& startTime, const pitchTarget_s& qtaParams) const
+void CdlpFilter::calc_state (state_v& currState, const double& endTime, const double& startTime, const pitch_target_s& qtaParams) const
 {
 	// setup
 	double t (endTime - startTime); // sample time
@@ -199,7 +199,11 @@ double QtaErrorFunction::operator() ( const la_col_vec& arg) const
 	target_v qtaVector;
 	for (int i=0; i<arg.size(); i+=3)
 	{
-		qtaVector.push_back({arg(i+0),arg(i+1),arg(i+2)});
+		pitch_target_s tmp;
+		tmp.m = arg(i+0);
+		tmp.b = arg(i+1);
+		tmp.l = arg(i+2);
+		qtaVector.push_back(tmp);
 	}
 	return mean_squared_error(qtaVector);
 }
@@ -262,14 +266,23 @@ void PraatFileIo::read_input(QtaErrorFunction& qtaError, std::vector<bound_s>& s
 
 		// second line
 		std::getline(fin, line);
-		unsigned I (std::stoi(line));	// number of intervals
+		double fInit (std::stod(line));	// initial f0 - speaker value
 
 		// third line
 		std::getline(fin, line);
+		unsigned I (std::stoi(line));	// number of intervals
+
+		// fourth line
+		std::getline(fin, line);
 		tokens = dlib::split(line, " ");
-		// search bounds/ targets
-		pitchTarget_s lowerBound ({std::stod(tokens[0]), std::stod(tokens[2]), std::stod(tokens[4])});
-		pitchTarget_s upperBound ({std::stod(tokens[1]), std::stod(tokens[3]), std::stod(tokens[5])});
+		// search bounds/targets
+		pitch_target_s lowerBound, upperBound;
+		lowerBound.m = std::stod(tokens[0]);
+		lowerBound.b = std::stod(tokens[2]);
+		lowerBound.l = std::stod(tokens[4]);
+		upperBound.m = std::stod(tokens[1]);
+		upperBound.b = std::stod(tokens[3]);
+		upperBound.l = std::stod(tokens[5]);
 		searchSpace.push_back({lowerBound, upperBound});
 		// interval information
 		syllableBounds.push_back(std::stod(tokens[6]));
@@ -281,7 +294,13 @@ void PraatFileIo::read_input(QtaErrorFunction& qtaError, std::vector<bound_s>& s
 			std::getline(fin, line);
 			tokens = dlib::split(line, " ");
 			syllableBounds.push_back(std::stod(tokens[7]));
-			searchSpace.push_back({{std::stod(tokens[0]), std::stod(tokens[2]), std::stod(tokens[4])}, {std::stod(tokens[1]), std::stod(tokens[3]), std::stod(tokens[5])}});
+			lowerBound.m = std::stod(tokens[0]);
+			lowerBound.b = std::stod(tokens[2]);
+			lowerBound.l = std::stod(tokens[4]);
+			upperBound.m = std::stod(tokens[1]);
+			upperBound.b = std::stod(tokens[3]);
+			upperBound.l = std::stod(tokens[5]);
+			searchSpace.push_back({lowerBound, upperBound});
 		}
 
 		// next line
@@ -300,7 +319,8 @@ void PraatFileIo::read_input(QtaErrorFunction& qtaError, std::vector<bound_s>& s
 		}
 
 		// calculate initial state
-		initState.push_back(f0.sampleValues(0));
+		//initState.push_back(f0.sampleValues(0));
+		initState.push_back(fInit);
 		for (unsigned int i=1; i<M; ++i)
 		{
 			initState.push_back(0.0);
@@ -364,7 +384,7 @@ void PraatFileIo::write_praat_file(const QtaErrorFunction& qtaError, const targe
 	fout << qtaError.root_mean_squared_error(optParams) << " " << qtaError.correlation_coeff(optParams) << std::endl;
 
 	// from line 2: optimal parameters
-	for (pitchTarget_s p : optParams)
+	for (pitch_target_s p : optParams)
 	{
 		fout << p.m << " " << p.b << " " << p.l << std::endl;
 	}
@@ -383,6 +403,11 @@ void PraatFileIo::write_praat_file(const QtaErrorFunction& qtaError, const targe
 
 	// close output file
 	fout.close();
+
+	// DEBUG message
+	#ifdef DEBUG_MSG
+	std::cout << "\t[write_praat_file] rmse = " << qtaError.root_mean_squared_error(optParams) << std::endl;
+	#endif
 }
 
 /********** class Optimizer **********/
@@ -445,7 +470,9 @@ void Optimizer::optimize(target_v& optParams, const QtaErrorFunction& qtaError, 
 		catch (dlib::bobyqa_failure& err)
 		{
 			// DEBUG message
-			// std::cerr << "WARNING: no convergence during optimization in iteration: " << it << std::endl << err.info << std::endl;
+			#ifdef DEBUG_MSG
+			std::cout << "\t[optimize] WARNING: no convergence during optimization in iteration: " << it << std::endl << err.info << std::endl;
+			#endif
 		}
 
 		// write optimization results back
@@ -466,11 +493,17 @@ void Optimizer::optimize(target_v& optParams, const QtaErrorFunction& qtaError, 
 	optParams.clear();
 	for (unsigned i=0; i<nIntervals; ++i)
 	{
-		optParams.push_back({xtmp(3*i+0), xtmp(3*i+1), xtmp(3*i+2)});
+		pitch_target_s opt;
+		opt.m = xtmp(3*i+0);
+		opt.b = xtmp(3*i+1);
+		opt.l = xtmp(3*i+2);
+		optParams.push_back(opt);
 	}
 
 	// DEBUG message
-	std::cout << "mse = " << fmin << std::endl;
+	#ifdef DEBUG_MSG
+	std::cout << "\t[optimize] mse = " << fmin << std::endl;
+	#endif
 }
 
 double Optimizer::get_rand (const double& min, const double& max) const

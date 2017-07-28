@@ -8,7 +8,7 @@ EXECUTABLES := $(BINDIR)/qtamodel $(BINDIR)/mlasampling $(BINDIR)/mlatraining $(
 SRCEXT := cpp
 SOURCES := $(shell find $(SRCDIR) -type f -name *.$(SRCEXT))
 OBJECTS := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(SRCEXT)=.o))
-CFLAGS := -g -std=c++11 -O3 -DDLIB_NO_GUI_SUPPORT
+CFLAGS := -g -std=c++11 -O3 -DDLIB_NO_GUI_SUPPORT -DDEBUG_MSG
 LIB := -L -lm -lpthread
 INC := -I include/ -I lib/
 

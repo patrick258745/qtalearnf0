@@ -9,6 +9,7 @@ form quantitativeTargetApproximation
 	comment General options options:
 		integer f0_range_min_(Hz) 100
 		integer f0_range_max_(Hz) 600
+		integer speaker_mean_(Hz) 232.86
 		real syllable_shift 0
 		integer filter_order 5
 		word corpus_directory ../../test/corpus/
@@ -31,6 +32,7 @@ endform
 ##### get input values
 f0_min = f0_range_min
 f0_max = f0_range_max
+s_mean = 12*log2(speaker_mean)
 m_min = slope_range_min
 m_max = slope_range_max
 b_min = offset_range_min
@@ -79,7 +81,7 @@ for current_file from 1 to numberOfFiles
 	
 	##### print status
 	cnt = cnt + 1
-	printline Process 'name$' ('cnt')
+	printline [praat] ('cnt') Process 'name$' 
 
 	##### load TextGrid file
 	if fileReadable ("'corpus_directory$''name$'.TextGrid")
@@ -100,13 +102,13 @@ for current_file from 1 to numberOfFiles
 			exit Missing pulse File 'name$'
 		endif
 		select PitchTier 'name$'
-		Formula... 12 * ln (self) / ln(2); semitone
+		Formula... 12*log2(self); semitone
 		Rename... semitoneF0
 	else
 		select Sound 'name$'
 		To Manipulation... 0.01 f0_min f0_max
 		Extract pitch tier
-		Formula... 12 * ln (self) / ln(2); semitone
+		Formula... 12*log2(self); semitone
 		Rename... semitoneF0
 		select Manipulation 'name$'
 		Remove
@@ -200,6 +202,7 @@ procedure qtaAnalysis
 	##### create input file for ./qtatarget
 	filedelete 'corpus_directory$'input
 	fileappend 'corpus_directory$'input 'n''newline$'
+	fileappend 'corpus_directory$'input 's_mean''newline$'
 	fileappend 'corpus_directory$'input 'interval_t''newline$'
 	interval_t = 0
 
@@ -264,8 +267,6 @@ procedure qtaAnalysis
 
 	##### call C++ program
 	if fileReadable("./qtamodel")
-		#cnt = cnt + 1
-		#runSystem: "printf '\r\t processed targets ['cnt']: '"
 		runSystem: "./qtamodel 'flag$' --in 'corpus_directory$'input --out 'corpus_directory$'output"
 	else
 		printline Cannot find ./qtamodel!
