@@ -318,6 +318,12 @@ void PraatFileIo::read_input(QtaErrorFunction& qtaError, std::vector<bound_s>& s
 			f0.sampleValues(i) = std::stod(tokens[1]);
 		}
 
+		// correct wrong segmentation (word ends before last F0 value)
+		if (syllableBounds[I] < f0.sampleTimes[N-1])
+		{
+			syllableBounds[I] = f0.sampleTimes[N-1];
+		}
+
 		// calculate initial state
 		//initState.push_back(f0.sampleValues(0));
 		initState.push_back(fInit);

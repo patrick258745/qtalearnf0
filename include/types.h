@@ -14,6 +14,7 @@
 #include <dlib/matrix.h>
 #include <dlib/error.h>
 #include <dlib/svm.h>
+#include <dlib/mlp.h>
 
 /********** qtamodel types **********/
 typedef dlib::matrix<double,0,1> la_col_vec;	// linear algebra column vector
@@ -105,6 +106,16 @@ struct svr_params
 	double gamma;
 	double epsilon;
 };
+
+struct mlp_params
+{
+	unsigned num1layer;
+	unsigned num2layer;
+	double alpha;
+	double momentum;
+};
+
+typedef dlib::mlp::kernel_1a_c mlp_kernel_t;
 
 /********** qtatools types **********/
 struct plot_data_s

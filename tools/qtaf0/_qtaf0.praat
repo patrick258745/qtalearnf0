@@ -13,7 +13,7 @@ form quantitativeTargetApproximation
 		real syllable_shift 0
 		integer filter_order 5
 		word corpus_directory ../../test/corpus/
-		word target_file ../../test/qta.targets
+		word target_file ../../test/qta.target
 	comment Parameter search options:
 		real slope_range_min_(st/s) -100
 		real slope_range_max_(st/s) 100
@@ -188,6 +188,7 @@ procedure qtaAnalysis
 	if task = 2
 		select Table targetsTable
 		targetNumber = Search column... name 'name$'
+		printline 'name$' 'targetNumber'
 	endif
 	
 	##### count intervals

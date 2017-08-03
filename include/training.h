@@ -123,13 +123,33 @@ public:
 	MultiLayerPerceptron (const sample_v& samples, const target_v& targets, const algorithm_m& params) : MlAlgorithm(samples,targets,params) {};
 	~MultiLayerPerceptron() {};
 
+	static la_col_vec cross_validation(mlp_params params, const training_s& trainingData, unsigned folds);
+	static double measure_error(const la_col_vec& mses);
+
 private:
 	// public member functions
-	void train () override {};
-	void predict () override {};
-	void cross_validation () override {};
-	void model_selection () override {};
+	void train () override;
+	void predict () override;
+	void cross_validation () override;
+	void model_selection () override;
 
+	// helper
+	mlp_params get_default_params() const;
+	static dlib::matrix<double> get_grid(const la_col_vec& lowerBound, const la_col_vec& upperBound, const unsigned& numPerDim);
+
+	static void train (mlp_kernel_t& network, const training_s& data);
+	static la_col_vec predict (mlp_kernel_t& network, training_s& testData);
+	static la_col_vec model_selection(const training_s& data);
+
+};
+
+class MlpCvError{
+public:
+	MlpCvError (const training_s& data) : m_data(data) {}
+    double operator() (const la_col_vec& arg) const;
+
+private:
+    const training_s& m_data;
 };
 
 #endif /* TRAINING_H_ */
