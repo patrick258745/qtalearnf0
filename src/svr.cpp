@@ -130,6 +130,11 @@ std::vector<double> SupportVectorRegression::predict(const svr_trainer_t& traine
 		predictedTargets.push_back(regFunction(s));
 	}
 
+	// DEBUG message
+	#ifdef DEBUG_MSG
+	std::cout << "\t[predict] Number of support vectors: " << regFunction.basis_vectors.size() << std::endl;
+	#endif
+
 	return predictedTargets;
 }
 

@@ -179,7 +179,7 @@ MlAlgorithm::MlAlgorithm (const sample_v& samples, const target_v& targets, cons
 	m_data.samples = samples;
 
 	// randomize data
-	//randomize_data(m_targets, m_data.samples);
+	randomize_data(m_targets, m_data.samples);
 
 	// save data to training format
 	for (pitch_target_s t : targets)
@@ -229,10 +229,9 @@ void MlAlgorithm::randomize_data (target_v& targets, sample_v& samples)
 		unsigned start (randPos);
 		while (targets[start-1].label == label)
 		{
-			if (start-1 <= 0)
+			if (start-1 < 0)
 				break;
 			--start;
-
 		}
 
 		// get end position of word
@@ -252,11 +251,8 @@ void MlAlgorithm::randomize_data (target_v& targets, sample_v& samples)
 		}
 
 		// delete random word
-		for (unsigned pos=end; pos>=start; --pos)
-		{
-			targets.erase(targets.begin()+pos);
-			samples.erase(samples.begin()+pos);
-		}
+		targets.erase(targets.begin()+start, targets.begin()+end+1);
+		samples.erase(samples.begin()+start, samples.begin()+end+1);
 	}
 }
 
