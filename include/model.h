@@ -47,6 +47,7 @@ public:
 
 	double operator() ( const la_col_vec& arg) const;
 	double correlation_coeff (const target_v& qtaVector) const;
+	double mean_absolute_error (const target_v& qtaVector) const;
 	double root_mean_squared_error (const target_v& qtaVector) const;
 
 private:

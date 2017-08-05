@@ -31,6 +31,8 @@ class Statistics {
 public:
 	// public member functions
 	void print (const std::string& targetFile, const std::string& outputFile);
+	void plot (const std::string& targetFile, const std::string& directory);
+	void generate_plot_file (const std::string& targetFile, const std::string& directory, const std::string& fileName, const std::string& column);
 };
 
 #endif /* TOOLS_H_ */

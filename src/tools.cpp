@@ -73,7 +73,7 @@ void PlotFile::read_plot_data ()
 
 	// ********** target file **********
 	// create a file-reading object for TextGrid file (syllable bounds)
-	fileName = m_data.directory + m_data.label + ".targets";
+	fileName = m_data.directory + m_data.label + ".target";
 	std::ifstream finTarget;
 	finTarget.open(fileName); // open target file
 	if (!finTarget.good())
@@ -92,7 +92,6 @@ void PlotFile::read_plot_data ()
 		{
 			m_data.slope.push_back(std::stod(tokens[1]));
 			m_data.offset.push_back(std::stod(tokens[2]));
-			m_data.rmse += std::stod(tokens[5]);
 		}
 		catch (std::invalid_argument& e)
 		{
@@ -101,11 +100,25 @@ void PlotFile::read_plot_data ()
 
 	}
 
+	fileName = m_data.directory + m_data.label + ".measures";
+	std::ifstream finMeasures;
+	finMeasures.open(fileName); // open measures file
+	if (finMeasures.good())
+	{
+		std::getline(finMeasures, line); // ignore first line, header
+		std::getline(finMeasures, line);
+		tokens = dlib::split(line, "\t");
+		m_data.rmse = std::stod(tokens[2]);
+	}
+	else
+	{
+		throw dlib::error("[read_plot_data] measures file not found! " + fileName);
+	}
+
 	if (numberIntervals-2 != numberTargets)
 	{
 		//throw dlib::error("[read_plot_data] Different number of intervals and targets! " + std::to_string(numberIntervals-2) + " != " + std::to_string(numberTargets));
 	}
-	m_data.rmse /= (double)numberTargets;
 }
 
 void PlotFile::generate_plot_file (const std::string& outputFile)
@@ -192,6 +205,7 @@ void Statistics::print(const std::string& targetFile, const std::string& outputF
 	dlib::running_stats<double> offset;
 	dlib::running_stats<double> strength;
 	dlib::running_stats<double> duration;
+	dlib::running_stats<double> mae;
 	dlib::running_stats<double> rmse;
 	dlib::running_stats<double> corr;
 	unsigned wordCnt (0), syllCnt (0);
@@ -213,12 +227,32 @@ void Statistics::print(const std::string& targetFile, const std::string& outputF
 			offset.add(std::stod(tokens[2]));
 			strength.add(std::stod(tokens[3]));
 			duration.add(std::stod(tokens[4]));
-			rmse.add(std::stod(tokens[5]));
-			corr.add(std::stod(tokens[6]));
 		}
 		catch (std::invalid_argument& e)
 		{
 			throw dlib::error("[plot] invalid argument exceptions occurred while using std::stod!\n" + std::string(e.what()));
+		}
+	}
+
+	// create a file-reading object for measures file
+	std::ifstream finM;
+	finM.open(targetFile.substr(0, targetFile.size()-7) + ".measures"); // open input file
+	if (!fin.good())
+	{
+		std::getline(finM, line);	// ignore first line, header
+		while (std::getline(finM, line))
+		{
+			tokens = dlib::split(line, ",");
+			try
+			{
+				mae.add(std::stod(tokens[1]));
+				rmse.add(std::stod(tokens[2]));
+				corr.add(std::stod(tokens[3]));
+			}
+			catch (std::invalid_argument& e)
+			{
+				throw dlib::error("[plot] invalid argument exceptions occurred while using std::stod!\n" + std::string(e.what()));
+			}
 		}
 	}
 
@@ -236,48 +270,97 @@ void Statistics::print(const std::string& targetFile, const std::string& outputF
 		 << "\tmax:\t\t" << slope.max() << std::endl
 		 << "\tmean:\t\t" << slope.mean() << std::endl
 		 << "\tvariance:\t" << slope.variance() << std::endl
-		 << "\tskewness:\t" << slope.skewness() << std::endl
-		 << "\tkurtosis:\t" << slope.ex_kurtosis() << std::endl
 
 		 << "\noffset" << std::endl
 		 << "\tmin:\t\t" << offset.min() << std::endl
 		 << "\tmax:\t\t" << offset.max() << std::endl
 		 << "\tmean:\t\t" << offset.mean() << std::endl
 		 << "\tvariance:\t" << offset.variance() << std::endl
-		 << "\tskewness:\t" << offset.skewness() << std::endl
-		 << "\tkurtosis:\t" << offset.ex_kurtosis() << std::endl
 
 		 << "\nstrength" << std::endl
 		 << "\tmin:\t\t" << strength.min() << std::endl
 		 << "\tmax:\t\t" << strength.max() << std::endl
 		 << "\tmean:\t\t" << strength.mean() << std::endl
 		 << "\tvariance:\t" << strength.variance() << std::endl
-		 << "\tskewness:\t" << strength.skewness() << std::endl
-		 << "\tkurtosis:\t" << strength.ex_kurtosis() << std::endl
 
 		 << "\nduration" << std::endl
 		 << "\tmin:\t\t" << duration.min() << std::endl
 		 << "\tmax:\t\t" << duration.max() << std::endl
 		 << "\tmean:\t\t" << duration.mean() << std::endl
 		 << "\tvariance:\t" << duration.variance() << std::endl
-		 << "\tskewness:\t" << duration.skewness() << std::endl
-		 << "\tkurtosis:\t" << duration.ex_kurtosis() << std::endl
 
-		 << "\nrmse" << std::endl
+		 << "\nMAE" << std::endl
+		 << "\tmin:\t\t" << mae.min() << std::endl
+		 << "\tmax:\t\t" << mae.max() << std::endl
+		 << "\tmean:\t\t" << mae.mean() << std::endl
+		 << "\tvariance:\t" << mae.variance() << std::endl
+
+		 << "\nRMSE" << std::endl
 		 << "\tmin:\t\t" << rmse.min() << std::endl
 		 << "\tmax:\t\t" << rmse.max() << std::endl
 		 << "\tmean:\t\t" << rmse.mean() << std::endl
 		 << "\tvariance:\t" << rmse.variance() << std::endl
-		 << "\tskewness:\t" << rmse.skewness() << std::endl
-		 << "\tkurtosis:\t" << rmse.ex_kurtosis() << std::endl
 
-		 << "\ncorr" << std::endl
+		 << "\nCORR" << std::endl
 		 << "\tmin:\t\t" << corr.min() << std::endl
 		 << "\tmax:\t\t" << corr.max() << std::endl
 		 << "\tmean:\t\t" << corr.mean() << std::endl
 		 << "\tvariance:\t" << corr.variance() << std::endl
-		 << "\tskewness:\t" << corr.skewness() << std::endl
-		 << "\tkurtosis:\t" << corr.ex_kurtosis() << std::endl;
+		 ;
 
 	fout.close();
+}
+
+void Statistics::plot (const std::string& targetFile, const std::string& directory)
+{
+	// plot slope
+	generate_plot_file (targetFile, directory, "hist-slope.png", "2");
+	std::string command = "cd " + directory + "; gnuplot hist.plot";
+
+	const int dir_err1 = system(command.c_str());
+	if (-1 == dir_err1)
+	{
+		throw dlib::error("[plot] couldn't execute gnuplot command: " + command);
+	}
+
+	// plot offset
+	generate_plot_file (targetFile, directory, "hist-offset.png", "3");
+	command = "cd " + directory + "; gnuplot hist.plot";
+	const int dir_err2 = system(command.c_str());
+
+	// plot strength
+	generate_plot_file (targetFile, directory, "hist-strength.png", "4");
+	command = "cd " + directory + "; gnuplot hist.plot";
+	const int dir_err3 = system(command.c_str());
+
+	// plot duration
+	generate_plot_file (targetFile, directory, "hist-duration.png", "5");
+	command = "cd " + directory + "; gnuplot hist.plot; rm hist.plot";
+	const int dir_err4 = system(command.c_str());
+}
+
+void Statistics::generate_plot_file (const std::string& targetFile, const std::string& directory, const std::string& fileName, const std::string& column)
+{
+	// setup
+	std::ofstream m_file;
+	m_file.open(directory + "hist.plot");
+
+	// write image file information to plot file
+	m_file << "##### output file options #####" << std::endl;
+	m_file << "set terminal pngcairo size 1536,512 enhanced font 'Verdana,14'" << std::endl;
+	m_file << "set output '" << fileName <<"'" << std::endl;
+	m_file << "set datafile separator ','" << std::endl;
+	m_file << "set style fill solid 0.5" << std::endl;
+	m_file << "stats '" << targetFile <<"' using " << column <<" nooutput" << std::endl;
+
+	// histogram options
+	m_file << std::endl << "bin_width = (STATS_max-STATS_min)/100;" << std::endl;
+	m_file << "set boxwidth bin_width;" << std::endl;
+	m_file << "bin_number(x) = floor(x/bin_width)" << std::endl;
+	m_file << "rounded(x) = bin_width * ( bin_number(x) + 0.5 )" << std::endl;
+
+	// plot information
+	m_file << std::endl << "plot '" << targetFile << "' using (rounded($" << column <<")):(1) notitle smooth frequency with boxes lc rgb'green'" << std::endl;
+
+	m_file.close();
 }

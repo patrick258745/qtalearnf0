@@ -208,6 +208,16 @@ double QtaErrorFunction::operator() ( const la_col_vec& arg) const
 	return mean_squared_error(qtaVector);
 }
 
+double QtaErrorFunction::mean_absolute_error (const target_v& qtaVector) const
+{
+	signal_s filteredF0;
+	filteredF0.sampleTimes = m_origF0.sampleTimes;
+	m_lowPassFilter.calc_f0(filteredF0, qtaVector);
+
+	// return error between filtered and original f0
+	return dlib::mean(dlib::abs(filteredF0.sampleValues - m_origF0.sampleValues));
+}
+
 double QtaErrorFunction::mean_squared_error (const target_v& qtaVector) const
 {
 	signal_s filteredF0;
@@ -386,8 +396,8 @@ void PraatFileIo::write_praat_file(const QtaErrorFunction& qtaError, const targe
 	fout.open (outputFile);
 	fout << std::fixed << std::setprecision(6);
 
-	// line 1: rmse + corr
-	fout << qtaError.root_mean_squared_error(optParams) << " " << qtaError.correlation_coeff(optParams) << std::endl;
+	// line 1: mae + rmse + corr
+	fout << qtaError.mean_absolute_error(optParams) << " " << qtaError.root_mean_squared_error(optParams) << " " << qtaError.correlation_coeff(optParams) << std::endl;
 
 	// from line 2: optimal parameters
 	for (pitch_target_s p : optParams)

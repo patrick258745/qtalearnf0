@@ -117,7 +117,11 @@ for current_file from 1 to numberOfFiles
 	##### get qta F0 and save targets
 	call qtaAnalysis
 	select TableOfReal targets
-	Write to headerless spreadsheet file... 'corpus_directory$''name$'.targets
+	Write to headerless spreadsheet file... 'corpus_directory$''name$'.target
+	Remove
+	
+	select TableOfReal measures
+	Write to headerless spreadsheet file... 'corpus_directory$''name$'.measures
 	Remove
 
 	if task = 2
@@ -153,6 +157,7 @@ for current_file from 1 to numberOfFiles
 endfor
 
 ##### create ensemble target file if needed
+call assembleMeasuresFile
 if task = 1
 	call assembleTargetFile
 endif
@@ -175,20 +180,22 @@ procedure qtaAnalysis
 	##### store results
 	Create PitchTier... qtaF0 wordStart wordEnd
 
-	Create TableOfReal... targets 1 6
+	Create TableOfReal... targets 1 4
 	Set column label (index)... 1 slope
 	Set column label (index)... 2 offset
 	Set column label (index)... 3 strength
 	Set column label (index)... 4 duration
-	Set column label (index)... 5 rmse
-	Set column label (index)... 6 corr
+	
+	Create TableOfReal... measures 1 3
+	Set column label (index)... 1 mae
+	Set column label (index)... 2 rmse
+	Set column label (index)... 3 corr
 	
 	##### counter variables
 	interval_t = 0
 	if task = 2
 		select Table targetsTable
 		targetNumber = Search column... name 'name$'
-		printline 'name$' 'targetNumber'
 	endif
 	
 	##### count intervals
@@ -284,6 +291,13 @@ procedure qtaAnalysis
 	buff$ = mid$(buff$,line_index+1,len_buff)
 	len_sbuff = length(sbuff$)
 	
+	#mae
+	sep_index = index(sbuff$," ")
+	pbuff$ = left$(sbuff$,sep_index-1)
+	sbuff$ = mid$(sbuff$,sep_index+1,len_sbuff)
+	mae'interval_t' = 'pbuff$'
+	mae = mae'interval_t'
+	
 	#rmse
 	sep_index = index(sbuff$," ")
 	pbuff$ = left$(sbuff$,sep_index-1)
@@ -294,6 +308,12 @@ procedure qtaAnalysis
 	#corr
 	corr'interval_t' = 'sbuff$'
 	corr = corr'interval_t'
+	
+	#Save error measures
+	select TableOfReal measures
+	Set value... 1 1 mae			
+	Set value... 1 2 rmse
+	Set value... 1 3 corr
 		
 	# following lines: get target values
 	for nm from 1 to interval_t
@@ -331,8 +351,6 @@ procedure qtaAnalysis
 		Set value... nm 1 m
 		Set value... nm 2 b
 		Set value... nm 3 lambda			
-		Set value... nm 5 rmse
-		Set value... nm 6 corr
 	endfor
 			
 	#next line: number of sample
@@ -361,8 +379,8 @@ procedure qtaAnalysis
 		Add point... sampletime fvalue
 	endfor		
 
-	filedelete 'corpus_directory$'input
-	filedelete 'corpus_directory$'output
+	#filedelete 'corpus_directory$'input
+	#filedelete 'corpus_directory$'output
 
 	##### last row is empty
 	select TableOfReal targets
@@ -374,7 +392,9 @@ endproc
 procedure assembleTargetFile
 
 	##### create result container
-	writeFileLine: "'target_file$'", "name,slope,offset,strength,duration,rmse,corr"
+	measures_file$ = target_file$ - ".target" + ".measures"
+	writeFileLine: "'target_file$'", "name,slope,offset,strength,duration"
+	writeFileLine: "'measures_file$'", "name,mae,rmse,corr"
 
 	##### iterate over all files
 	for current_file from 1 to numberOfFiles
@@ -384,8 +404,8 @@ procedure assembleTargetFile
 		fileName$ = Get string... current_file
 		name$ = fileName$ - ".wav" - ".WAV"
 		
-		Read TableOfReal from headerless spreadsheet file... 'corpus_directory$''name$'.targets
-		filedelete 'corpus_directory$''name$'.targets
+		Read TableOfReal from headerless spreadsheet file... 'corpus_directory$''name$'.target
+		filedelete 'corpus_directory$''name$'.target
 		select TableOfReal 'name$'
 		nrows = Get number of rows
 
@@ -397,12 +417,43 @@ procedure assembleTargetFile
 			b = Get value... i 2
 			l = Get value... i 3
 			d = Get value... i 4
-			r = Get value... i 5
-			c = Get value... i 6
 			
 			#write targets
-			appendFile: "'target_file$'",name$,",",m,",",b,",",l,",",d,",",r,",",c,newline$
+			appendFile: "'target_file$'",name$,",",m,",",b,",",l,",",d,newline$
 		endfor
+		select TableOfReal 'name$'
+		Remove
+	endfor
+endproc
+
+########## (Procedure) Create ensemble measures file ##########
+procedure assembleMeasuresFile
+
+	##### create result container
+	measures_file$ = target_file$ - ".target" + ".measures"
+	writeFileLine: "'measures_file$'", "name,mae,rmse,corr"
+
+	##### iterate over all files
+	for current_file from 1 to numberOfFiles
+
+		##### get current target file
+		select Strings list
+		fileName$ = Get string... current_file
+		name$ = fileName$ - ".wav" - ".WAV"
+		
+		##### get current measures file	
+		Read TableOfReal from headerless spreadsheet file... 'corpus_directory$''name$'.measures
+		filedelete 'corpus_directory$''name$'.measures
+
+		#read measures
+		select TableOfReal 'name$'
+		mae = Get value... 1 1
+		rmse = Get value... 1 2
+		corr = Get value... 1 3
+		
+		#write targets
+		appendFile: "'measures_file$'",name$,",",mae,",",rmse,",",corr,newline$
+
 		select TableOfReal 'name$'
 		Remove
 	endfor
@@ -439,5 +490,5 @@ procedure generatePlot
 	filedelete 'corpus_directory$''name$'.plot
 	filedelete 'corpus_directory$''name$'.origf0
 	filedelete 'corpus_directory$''name$'.qtaf0
-	filedelete 'corpus_directory$''name$'.targets
+	filedelete 'corpus_directory$''name$'.target
 endproc

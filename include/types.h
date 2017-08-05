@@ -32,8 +32,6 @@ struct pitch_target_s
 	double b;	// offset
 	double l;	// strength
 	double d;	// duration
-	double r;	// root-mean-squared-error
-	double c;	// correlation-coefficient
 };
 typedef std::vector<pitch_target_s> target_v;	// vector of pitch targets
 

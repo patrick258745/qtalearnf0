@@ -35,7 +35,10 @@ int main(int argc, char* argv[])
 		parser.check_one_time_options(one_time_opts);
 		const char* incompatible[] = {"p", "s"};
 		parser.check_incompatible_options(incompatible);
-		parser.check_sub_option("p", "dir");
+		const char* required_sub_ops[] = {"dir", "out"};
+		const char* t_ops[] = {"p", "s"};
+		parser.check_sub_options(t_ops, required_sub_ops);
+		parser.check_sub_option("p", "label");
 		parser.check_sub_option("s", "in");
 
 		// process command line options
@@ -72,9 +75,9 @@ int main(int argc, char* argv[])
 		{
 			plotDir = parser.option("dir").argument();
 		}
-		else if (parser.option("p"))
+		else
 		{
-			std::cout << "Error in command line:\n   You must specify a label.\n";
+			std::cout << "Error in command line:\n   You must specify a plot file directory.\n";
 			std::cout << "\nTry the -h option for more information." << std::endl;
 			return EXIT_FAILURE;
 		}
@@ -102,6 +105,7 @@ int main(int argc, char* argv[])
 		{
 			Statistics stat;
 			stat.print(inputFile, outputFile);
+			stat.plot(inputFile, plotDir);
 		}
 
 		// *********************************

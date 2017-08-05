@@ -11,6 +11,10 @@
 #include <map>
 #include <dlib/xml_parser.h>
 #include <dlib/cmd_line_parser.h>
+#include <dlib/threads.h>
+#include <dlib/optimization.h>
+#include <stdlib.h>     /* srand, rand */
+#include <time.h>       /* time */
 #include "types.h"
 
 class MlaTrainer : public dlib::document_handler{
@@ -78,6 +82,7 @@ protected:
 	void write_algorithm_file(const std::string& algFile) const;
 	double get_value(const std::string& param) const;
 	static void randomize_data(target_v& targets, sample_v& samples);
+	static double loss (const double& x, const double& y);
 
 	training_s	m_data;
 	algorithm_m m_params;
