@@ -1,7 +1,7 @@
 ##### computing tasks #####
-doQtaSearch="0"
+doQtaSearch="1"
 doSvrModelSelection="0"
-doSvrPrediction="1"
+doSvrPrediction="0"
 doMlpModelSelection="0"
 doMlpPrediction="0"
 
@@ -33,14 +33,20 @@ then
   # search optimal qta parameters
   $praat --run $script $search $fmin $fmax $smean $shift $order $data_path/corpus/ $data_path/qta/corpus.target $mmin $mmax $bmin $bmax $lmin $lmax $data_path/qta/;
 
+  # resynthesis with optimal qta parameters
+  $praat --run $script $resynth $fmin $fmax $smean $shift $order $data_path/corpus/ $data_path/qta/corpus.target $mmin $mmax $bmin $bmax $lmin $lmax $data_path/qta/;
+
   if [ "$(uchardet $data_path/qta/corpus.target)" = "UTF-16" ]
   then
     iconv -f UTF-16 -t UTF-8 $data_path/qta/corpus.target > $data_path/qta/corpus.target.tmp
     mv $data_path/qta/corpus.target.tmp $data_path/qta/corpus.target
   fi
 
-  # resynthesis with optimal qta parameters
-  $praat --run $script $resynth $fmin $fmax $smean $shift $order $data_path/corpus/ $data_path/qta/corpus.target $mmin $mmax $bmin $bmax $lmin $lmax $data_path/qta/;
+  if [ "$(uchardet $data_path/qta/corpus.measures)" = "UTF-16" ]
+  then
+    iconv -f UTF-16 -t UTF-8 $data_path/qta/corpus.measures > $data_path/qta/corpus.measures.tmp
+    mv $data_path/qta/corpus.measures.tmp $data_path/qta/corpus.measures
+  fi
 
   # calculate statistics
   $program_path/bin/qtatools -s --in $data_path/qta/corpus.target --out $data_path/qta/corpus.stat --dir $data_path/qta/
@@ -63,6 +69,12 @@ then
   # resynthesis with predicted svr targets
   $praat --run $script $resynth $fmin $fmax $smean $shift $order $data_path/corpus/ $data_path/svr/corpus.target $mmin $mmax $bmin $bmax $lmin $lmax $data_path/svr/;
 
+  if [ "$(uchardet $data_path/svr/corpus.measures)" = "UTF-16" ]
+  then
+    iconv -f UTF-16 -t UTF-8 $data_path/svr/corpus.measures > $data_path/svr/corpus.measures.tmp
+    mv $data_path/svr/corpus.measures.tmp $data_path/svr/corpus.measures
+  fi
+
   # calculate statistics
   $program_path/bin/qtatools -s --in $data_path/svr/corpus.target --out $data_path/svr/corpus.stat --dir $data_path/svr/
 fi
@@ -80,6 +92,12 @@ then
 
   # resynthesis with predicted mlp targets
   $praat --run $script $resynth $fmin $fmax $smean $shift $order $data_path/corpus/ $data_path/mlp/corpus.target $mmin $mmax $bmin $bmax $lmin $lmax $data_path/mlp/;
+
+  if [ "$(uchardet $data_path/mlp/corpus.measures)" = "UTF-16" ]
+  then
+    iconv -f UTF-16 -t UTF-8 $data_path/mlp/corpus.measures > $data_path/mlp/corpus.measures.tmp
+    mv $data_path/mlp/corpus.measures.tmp $data_path/mlp/corpus.measures
+  fi
 
   # calculate statistics
   $program_path/bin/qtatools -s --in $data_path/mlp/corpus.target --out $data_path/mlp/corpus.stat --dir $data_path/mlp/

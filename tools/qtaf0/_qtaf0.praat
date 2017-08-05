@@ -379,8 +379,8 @@ procedure qtaAnalysis
 		Add point... sampletime fvalue
 	endfor		
 
-	#filedelete 'corpus_directory$'input
-	#filedelete 'corpus_directory$'output
+	filedelete 'corpus_directory$'input
+	filedelete 'corpus_directory$'output
 
 	##### last row is empty
 	select TableOfReal targets
