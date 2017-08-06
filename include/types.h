@@ -75,6 +75,7 @@ struct syl_feat_s
 };
 
 /********** mlatraining types **********/
+typedef dlib::matrix<double> grid_t;
 typedef std::map<std::string, std::string> algorithm_m;
 typedef dlib::matrix<double, NUMFEATSYL, 1> sample_t;
 typedef std::vector<sample_t> sample_v;
@@ -88,21 +89,31 @@ const double FEATUP	= 1;
 
 struct training_s
 {
-	sample_v 			samples;
-	std::vector<double> slopes;
-	std::vector<double> offsets;
-	std::vector<double> strengths;
-	std::vector<double> durations;
+	sample_v 					samples;
+	std::vector<double> 		slopes;
+	std::vector<double> 		offsets;
+	std::vector<double> 		strengths;
+	std::vector<double> 		durations;
+	std::vector<std::string>	labels;
 };
 
 typedef dlib::radial_basis_kernel<sample_t> svr_kernel_t;
 typedef dlib::svr_trainer<svr_kernel_t> svr_trainer_t;
 typedef dlib::decision_function<svr_kernel_t> svr_model_t;
+
+struct svr_model
+{
+	svr_model_t slopePredictor;
+	svr_model_t offsetPredictor;
+	svr_model_t strengthPredictor;
+	svr_model_t durationPredictor;
+};
+
 struct svr_params
 {
 	double C;
 	double gamma;
-	double epsilon;
+	double intensity;
 };
 
 struct mlp_params

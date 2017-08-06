@@ -50,11 +50,13 @@ public:
 	void min_max_scale(sample_v& samples);
 	void min_max_scale(training_s& trainingData);
 	void min_max_rescale(training_s& trainingData);
+	void min_max_rescale(target_v& data);
 
 private:
 	// private member functions
 	scaler_s min_max_scale(std::vector<double>& data) const;
 	void min_max_rescale(std::vector<double>& data, const scaler_s& scale) const;
+	void min_max_rescale(double& data, const scaler_s& scale) const;
 
 	// data members
 	double m_lower;
@@ -78,7 +80,8 @@ protected:
 	virtual void cross_validation()=0;
 	virtual void model_selection()=0;
 
-	// private member functions
+	// protected member functions
+	void get_separated_data(training_s& trainingData, training_s& testData, const double& fraction) const;
 	void write_algorithm_file(const std::string& algFile) const;
 	double get_value(const std::string& param) const;
 	static void randomize_data(target_v& targets, sample_v& samples);
@@ -88,6 +91,20 @@ protected:
 	algorithm_m m_params;
 	target_v	m_targets;
 	DataScaler 	m_scaler;
+};
+
+class LinearRidgeRegression : public MlAlgorithm {
+public:
+	// constructor, destructor
+	LinearRidgeRegression (const sample_v& samples, const target_v& targets, const algorithm_m& params) : MlAlgorithm(samples,targets,params) {};
+	~LinearRidgeRegression() {};
+
+	// public member functions
+	void train 				() override;
+	void predict 			() override;
+	void cross_validation 	() override;
+	void model_selection 	() override;
+
 };
 
 class SupportVectorRegression : public MlAlgorithm {
@@ -103,13 +120,13 @@ public:
 	void model_selection 	() override;
 
 	// helper
-	static svr_trainer_t build_trainer(const svr_params& params);
-	static dlib::matrix<double> get_grid(const la_col_vec& lowerBound, const la_col_vec& upperBound, const unsigned& numPerDim);
+	static svr_trainer_t 		build_trainer(const svr_params& params);
+	static grid_t get_grid(const la_col_vec& lowerBound, const la_col_vec& upperBound, const std::vector<unsigned>& numPerDim);
 
-	static la_col_vec 			model_selection		(const sample_v& samples, const std::vector<double>& targets);
-	static svr_model_t 			train				(const svr_trainer_t& trainer, const sample_v& samples, const std::vector<double>& targets);
-	static la_col_vec 			cross_validation	(const svr_trainer_t& trainer, const sample_v& samples, const std::vector<double>& targets);
-	static std::vector<double> 	predict				(const svr_trainer_t& trainer, const sample_v& samplesTrain, const std::vector<double>& targetsTrain, const sample_v& samplesTest);
+private:
+	svr_model	get_trained_model (const training_s& data) const;
+	svr_params	select_model (const sample_v& samples, const std::vector<double>& targets) const;
+	void 		predict_targets(const svr_model& model, const training_s& data, const std::string targetFile);
 };
 
 class SvrCvError{

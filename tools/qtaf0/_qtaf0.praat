@@ -78,82 +78,91 @@ for current_file from 1 to numberOfFiles
 	fileName$ = Get string... current_file
 	name$ = fileName$ - ".wav" - ".WAV"
 	Read from file... 'corpus_directory$''fileName$'
-	
-	##### print status
-	cnt = cnt + 1
-	printline [praat] ('cnt') Process 'name$' 
 
-	##### load TextGrid file
-	if fileReadable ("'corpus_directory$''name$'.TextGrid")
-		Read from file... 'corpus_directory$''name$'.TextGrid
-	else
-		exit Missing TextGrid File 'name$'
-	endif
-
-	nintervals = Get number of intervals... 1
-	wordStart = Get start time of interval... 1 2
-	wordEnd = Get start time of interval... 1 nintervals
-
-	##### Get F0 PitchTier
-	if fileReadable ("'corpus_directory$''name$'.PitchTier")
-		if fileReadable ("'corpus_directory$''name$'.PitchTier")
-			Read from file... 'corpus_directory$''name$'.PitchTier
-		else
-			exit Missing pulse File 'name$'
-		endif
-		select PitchTier 'name$'
-		Formula... 12*log2(self); semitone
-		Rename... semitoneF0
-	else
-		select Sound 'name$'
-		To Manipulation... 0.01 f0_min f0_max
-		Extract pitch tier
-		Formula... 12*log2(self); semitone
-		Rename... semitoneF0
-		select Manipulation 'name$'
-		Remove
-	endif
-	
-	##### get qta F0 and save targets
-	call qtaAnalysis
-	select TableOfReal targets
-	Write to headerless spreadsheet file... 'corpus_directory$''name$'.target
-	Remove
-	
-	select TableOfReal measures
-	Write to headerless spreadsheet file... 'corpus_directory$''name$'.measures
-	Remove
-
+	##### only process targets from file
+	pos = 1
 	if task = 2
-		##### save result
+		select Table targetsTable
+		pos = Search column... name 'name$'
+	endif
+	
+	if pos > 0		
+		##### print status
+		cnt = cnt + 1
+		printline [praat] ('cnt') Process 'name$' 
+	
+		##### load TextGrid file
+		if fileReadable ("'corpus_directory$''name$'.TextGrid")
+			Read from file... 'corpus_directory$''name$'.TextGrid
+		else
+			exit Missing TextGrid File 'name$'
+		endif
+	
+		nintervals = Get number of intervals... 1
+		wordStart = Get start time of interval... 1 2
+		wordEnd = Get start time of interval... 1 nintervals
+	
+		##### Get F0 PitchTier
+		if fileReadable ("'corpus_directory$''name$'.PitchTier")
+			if fileReadable ("'corpus_directory$''name$'.PitchTier")
+				Read from file... 'corpus_directory$''name$'.PitchTier
+			else
+				exit Missing pulse File 'name$'
+			endif
+			select PitchTier 'name$'
+			Formula... 12*log2(self); semitone
+			Rename... semitoneF0
+		else
+			select Sound 'name$'
+			To Manipulation... 0.01 f0_min f0_max
+			Extract pitch tier
+			Formula... 12*log2(self); semitone
+			Rename... semitoneF0
+			select Manipulation 'name$'
+			Remove
+		endif
+		
+		##### get qta F0 and save targets
+		call qtaAnalysis
+		select TableOfReal targets
+		Write to headerless spreadsheet file... 'corpus_directory$''name$'.target
+		Remove
+		
+		select TableOfReal measures
+		Write to headerless spreadsheet file... 'corpus_directory$''name$'.measures
+		Remove
+	
+		if task = 2
+			##### save result
+			select PitchTier semitoneF0
+			Down to TableOfReal... Hertz
+			Save as headerless spreadsheet file... 'corpus_directory$''name$'.origf0
+			Remove
+			select PitchTier qtaF0
+			Down to TableOfReal... Hertz
+			Save as headerless spreadsheet file... 'corpus_directory$''name$'.qtaf0
+			Remove
+	
+			##### create output directory
+			createDirectory: "'output_directory$'"
+			
+			##### create resynthesized audio file
+			call qtaResynthesis
+			
+			##### create plot
+			call generatePlot
+		endif
+			
+		##### clean up
 		select PitchTier semitoneF0
-		Down to TableOfReal... Hertz
-		Save as headerless spreadsheet file... 'corpus_directory$''name$'.origf0
 		Remove
 		select PitchTier qtaF0
-		Down to TableOfReal... Hertz
-		Save as headerless spreadsheet file... 'corpus_directory$''name$'.qtaf0
 		Remove
-
-		##### create output directory
-		createDirectory: "'output_directory$'"
-		
-		##### create resynthesized audio file
-		call qtaResynthesis
-		
-		##### create plot
-		call generatePlot
+		select TextGrid 'name$'
+		Remove
+		select Sound 'name$'
+		Remove
 	endif
-		
-	##### clean up
-	select PitchTier semitoneF0
-	Remove
-	select PitchTier qtaF0
-	Remove
-	select TextGrid 'name$'
-	Remove
-	select Sound 'name$'
-	Remove
 endfor
 
 ##### create ensemble target file if needed
@@ -403,26 +412,35 @@ procedure assembleTargetFile
 		select Strings list
 		fileName$ = Get string... current_file
 		name$ = fileName$ - ".wav" - ".WAV"
-		
-		Read TableOfReal from headerless spreadsheet file... 'corpus_directory$''name$'.target
-		filedelete 'corpus_directory$''name$'.target
-		select TableOfReal 'name$'
-		nrows = Get number of rows
 
-		##### iterate over rows (syllable targets)
-		for i from 1 to nrows
-			#read targets
+		##### only take test targets from file
+		pos = 1
+		if task = 2
+			select Table targetsTable
+			pos = Search column... name 'name$'
+		endif
+		
+		if pos > 0	
+			Read TableOfReal from headerless spreadsheet file... 'corpus_directory$''name$'.target
+			filedelete 'corpus_directory$''name$'.target
 			select TableOfReal 'name$'
-			m = Get value... i 1
-			b = Get value... i 2
-			l = Get value... i 3
-			d = Get value... i 4
-			
-			#write targets
-			appendFile: "'target_file$'",name$,",",m,",",b,",",l,",",d,newline$
-		endfor
-		select TableOfReal 'name$'
-		Remove
+			nrows = Get number of rows
+	
+			##### iterate over rows (syllable targets)
+			for i from 1 to nrows
+				#read targets
+				select TableOfReal 'name$'
+				m = Get value... i 1
+				b = Get value... i 2
+				l = Get value... i 3
+				d = Get value... i 4
+				
+				#write targets
+				appendFile: "'target_file$'",name$,",",m,",",b,",",l,",",d,newline$
+			endfor
+			select TableOfReal 'name$'
+			Remove
+		endif
 	endfor
 endproc
 
@@ -440,22 +458,32 @@ procedure assembleMeasuresFile
 		select Strings list
 		fileName$ = Get string... current_file
 		name$ = fileName$ - ".wav" - ".WAV"
-		
-		##### get current measures file	
-		Read TableOfReal from headerless spreadsheet file... 'corpus_directory$''name$'.measures
-		filedelete 'corpus_directory$''name$'.measures
 
-		#read measures
-		select TableOfReal 'name$'
-		mae = Get value... 1 1
-		rmse = Get value... 1 2
-		corr = Get value... 1 3
+		##### only take test targets from file
+		pos = 1
+		if task = 2
+			select Table targetsTable
+			pos = Search column... name 'name$'
+		endif
 		
-		#write targets
-		appendFile: "'measures_file$'",name$,",",mae,",",rmse,",",corr,newline$
-
-		select TableOfReal 'name$'
-		Remove
+		if pos > 0
+			
+			##### get current measures file	
+			Read TableOfReal from headerless spreadsheet file... 'corpus_directory$''name$'.measures
+			filedelete 'corpus_directory$''name$'.measures
+	
+			#read measures
+			select TableOfReal 'name$'
+			mae = Get value... 1 1
+			rmse = Get value... 1 2
+			corr = Get value... 1 3
+			
+			#write targets
+			appendFile: "'measures_file$'",name$,",",mae,",",rmse,",",corr,newline$
+	
+			select TableOfReal 'name$'
+			Remove
+		endif
 	endfor
 endproc
 

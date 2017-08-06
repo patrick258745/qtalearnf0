@@ -44,6 +44,11 @@ clean:
 	@echo " Cleaning..."; 
 	@echo " $(RM) -r $(BUILDDIR) $(BINDIR) $(QTAF0)"; $(RM) -r $(BUILDDIR) $(BINDIR) $(QTAF0)/qta*
 
+reset:
+	@echo " Cleaning test data"; 
+	@echo " $(RM) -r test/svr/ "; $(RM) -r test/svr/test* test/svr/training* test/svr/audios/ test/svr/plots;
+	@echo " $(RM) -r test/mlp/ "; $(RM) -r test/mlp/test* test/mlp/training* test/mlp/audios/ test/mlp/plots
+
 test: all
 	@echo " Testing...";
 	bash test/test.sh
@@ -52,4 +57,4 @@ corpus: all
 	@echo " Processing whole corpus...";
 	bash ../training/training.sh
 
-.PHONY: clean test corpus
+.PHONY: clean test corpus reset

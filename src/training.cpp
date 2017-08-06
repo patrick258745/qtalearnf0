@@ -112,6 +112,11 @@ scaler_s DataScaler::min_max_scale(std::vector<double>& data) const
 	return scale;
 }
 
+void DataScaler::min_max_rescale(double& data, const scaler_s& scale) const
+{
+	data = ((data - m_lower)/(m_upper-m_lower))*(scale.max-scale.min) + scale.min;
+}
+
 void DataScaler::min_max_rescale(std::vector<double>& data, const scaler_s& scale) const
 {
 	// min-max rescaling
@@ -169,6 +174,17 @@ void DataScaler::min_max_rescale(training_s& trainingData)
 	min_max_rescale(trainingData.durations, m_durationScale);
 }
 
+void DataScaler::min_max_rescale(target_v& data)
+{
+	for (pitch_target_s& t : data)
+	{
+		min_max_rescale(t.m, m_slopeScale);
+		min_max_rescale(t.b, m_offsetScale);
+		min_max_rescale(t.l, m_strengthScale);
+		min_max_rescale(t.d, m_durationScale);
+	}
+}
+
 // *************** MLALGORITHM ***************
 
 MlAlgorithm::MlAlgorithm (const sample_v& samples, const target_v& targets, const algorithm_m& params) : m_scaler(FEATLOW,FEATUP)
@@ -182,17 +198,66 @@ MlAlgorithm::MlAlgorithm (const sample_v& samples, const target_v& targets, cons
 	randomize_data(m_targets, m_data.samples);
 
 	// save data to training format
-	for (pitch_target_s t : targets)
+	for (pitch_target_s t : m_targets)
 	{
 		m_data.slopes.push_back(t.m);
 		m_data.offsets.push_back(t.b);
 		m_data.strengths.push_back(t.l);
 		m_data.durations.push_back(t.d);
+		m_data.labels.push_back(t.label);
 	}
 
 	// normalize training data
 	//m_scaler.min_max_scale(m_data.samples);
 	m_scaler.min_max_scale(m_data);
+}
+
+void MlAlgorithm::get_separated_data(training_s& trainingData, training_s& testData, const double& fraction) const
+{
+	// clear container
+	trainingData.samples.clear();
+	trainingData.slopes.clear();
+	trainingData.strengths.clear();
+	trainingData.offsets.clear();
+	trainingData.durations.clear();
+	trainingData.labels.clear();
+
+	testData.samples.clear();
+	testData.slopes.clear();
+	testData.strengths.clear();
+	testData.offsets.clear();
+	testData.durations.clear();
+	testData.labels.clear();
+
+	// determine separation
+	unsigned N (m_data.samples.size());
+	unsigned numTrain (fraction * N);
+	std::string label (m_data.labels[numTrain]);
+	while(numTrain+1 < N && m_data.labels[numTrain+1] == label)
+	{
+		numTrain++;
+	}
+
+	// separate data
+	for (unsigned i=0; i<=numTrain; ++i)
+	{
+		trainingData.samples.push_back(m_data.samples[i]);
+		trainingData.slopes.push_back(m_data.slopes[i]);
+		trainingData.offsets.push_back(m_data.offsets[i]);
+		trainingData.strengths.push_back(m_data.strengths[i]);
+		trainingData.durations.push_back(m_data.durations[i]);
+		trainingData.labels.push_back(m_data.labels[i]);
+	}
+
+	for (unsigned i=numTrain+1; i<N; ++i)
+	{
+		testData.samples.push_back(m_data.samples[i]);
+		testData.slopes.push_back(m_data.slopes[i]);
+		testData.offsets.push_back(m_data.offsets[i]);
+		testData.strengths.push_back(m_data.strengths[i]);
+		testData.durations.push_back(m_data.durations[i]);
+		testData.labels.push_back(m_data.labels[i]);
+	}
 }
 
 double MlAlgorithm::get_value(const std::string& param) const
@@ -222,29 +287,29 @@ void MlAlgorithm::randomize_data (target_v& targets, sample_v& samples)
 	unsigned N (samples.size());
 	for (unsigned i=0; i<N; ++i)
 	{
-		unsigned randPos (rand()%(N-1)+1);
+		int randPos (rand()%(N-1)+1);
 		std::string label (targets[randPos].label);
 
 		// get start position of word
-		unsigned start (randPos);
+		int start (randPos);
 		while (targets[start-1].label == label)
 		{
-			if (start-1 < 0)
-				break;
 			--start;
+			if (start-1 <= 0)
+				break;
 		}
 
 		// get end position of word
-		unsigned end (randPos);
+		int end (randPos);
 		while (targets[end+1].label == label)
 		{
+			++end;
 			if (end+1 >= N)
 				break;
-			++end;
 		}
 
 		// shift random word to end
-		for (unsigned pos=start; pos<=end; ++pos)
+		for (int pos=start; pos<=end; ++pos)
 		{
 			targets.push_back(targets[pos]);
 			samples.push_back(samples[pos]);

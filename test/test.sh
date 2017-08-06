@@ -1,9 +1,9 @@
 ##### computing tasks #####
 doQtaSearch="0"
-doSvrModelSelection="0"
-doSvrPrediction="0"
+doSvrModelSelection="1"
+doSvrPrediction="1"
 doMlpModelSelection="0"
-doMlpPrediction="1"
+doMlpPrediction="0"
 
 ##### user data #####
 fmin="100"
@@ -28,6 +28,7 @@ resynth="\"F0 resynthesis with qTA parameters\""
 
 START_TIME=$SECONDS
 
+#################### QTA ####################
 if [ $doQtaSearch = 1 ]
 then
   # search optimal qta parameters
@@ -55,6 +56,7 @@ then
   $program_path/bin/mlasampling --in $data_path/corpus.sampa $data_path/qta/corpus.target --out $data_path/corpus.sample;
 fi
 
+#################### SVR ####################
 if [ $doSvrModelSelection = 1 ]
 then
   # model selection for support vector regression
@@ -66,19 +68,30 @@ then
   # predict targets using support vector regression
   $program_path/bin/mlatraining -p --in $data_path/corpus.sample --alg $data_path/svr/svr.algorithm;
 
-  # resynthesis with predicted svr targets
-  $praat --run $script $resynth $fmin $fmax $smean $shift $order $data_path/corpus/ $data_path/svr/corpus.target $mmin $mmax $bmin $bmax $lmin $lmax $data_path/svr/;
+  # resynthesis with predicted svr targets (test)
+  $praat --run $script $resynth $fmin $fmax $smean $shift $order $data_path/corpus/ $data_path/svr/test.target $mmin $mmax $bmin $bmax $lmin $lmax $data_path/svr/;
 
-  if [ "$(uchardet $data_path/svr/corpus.measures)" = "UTF-16" ]
+  # resynthesis with predicted svr targets (training)
+  $praat --run $script $resynth $fmin $fmax $smean $shift $order $data_path/corpus/ $data_path/svr/training.target $mmin $mmax $bmin $bmax $lmin $lmax $data_path/svr/;
+
+  if [ "$(uchardet $data_path/svr/test.measures)" = "UTF-16" ]
   then
-    iconv -f UTF-16 -t UTF-8 $data_path/svr/corpus.measures > $data_path/svr/corpus.measures.tmp
-    mv $data_path/svr/corpus.measures.tmp $data_path/svr/corpus.measures
+    iconv -f UTF-16 -t UTF-8 $data_path/svr/test.measures > $data_path/svr/test.measures.tmp
+    mv $data_path/svr/test.measures.tmp $data_path/svr/test.measures
+  fi
+
+  if [ "$(uchardet $data_path/svr/training.measures)" = "UTF-16" ]
+  then
+    iconv -f UTF-16 -t UTF-8 $data_path/svr/training.measures > $data_path/svr/training.measures.tmp
+    mv $data_path/svr/training.measures.tmp $data_path/svr/training.measures
   fi
 
   # calculate statistics
-  $program_path/bin/qtatools -s --in $data_path/svr/corpus.target --out $data_path/svr/corpus.stat --dir $data_path/svr/
+  $program_path/bin/qtatools -s --in $data_path/svr/training.target --out $data_path/svr/training.stat --dir $data_path/svr/
+  $program_path/bin/qtatools -s --in $data_path/svr/test.target --out $data_path/svr/test.stat --dir $data_path/svr/
 fi
 
+#################### MLP ####################
 if [ $doMlpModelSelection = 1 ]
 then
   # model selection for multi layer perceptron

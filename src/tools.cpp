@@ -313,8 +313,11 @@ void Statistics::print(const std::string& targetFile, const std::string& outputF
 
 void Statistics::plot (const std::string& targetFile, const std::string& directory)
 {
+	// determine name
+	std::string name (targetFile.substr(0, targetFile.size()-7));
+
 	// plot slope
-	generate_plot_file (targetFile, directory, "hist-slope.png", "2");
+	generate_plot_file (targetFile, directory, name+"-slope.png", "2");
 	std::string command = "cd " + directory + "; gnuplot hist.plot";
 
 	const int dir_err1 = system(command.c_str());
@@ -324,17 +327,17 @@ void Statistics::plot (const std::string& targetFile, const std::string& directo
 	}
 
 	// plot offset
-	generate_plot_file (targetFile, directory, "hist-offset.png", "3");
+	generate_plot_file (targetFile, directory, name+"-offset.png", "3");
 	command = "cd " + directory + "; gnuplot hist.plot";
 	const int dir_err2 = system(command.c_str());
 
 	// plot strength
-	generate_plot_file (targetFile, directory, "hist-strength.png", "4");
+	generate_plot_file (targetFile, directory, name+"-strength.png", "4");
 	command = "cd " + directory + "; gnuplot hist.plot";
 	const int dir_err3 = system(command.c_str());
 
 	// plot duration
-	generate_plot_file (targetFile, directory, "hist-duration.png", "5");
+	generate_plot_file (targetFile, directory, name+"-duration.png", "5");
 	command = "cd " + directory + "; gnuplot hist.plot; rm hist.plot";
 	const int dir_err4 = system(command.c_str());
 }
