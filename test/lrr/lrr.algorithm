@@ -1,0 +1,9 @@
+<algorithm
+	duration_model="/home/patrick/Documents/Diplomarbeit/03_Software/04_Release/qtalearnf0/test/lrr/duration.model"
+	offset_model="/home/patrick/Documents/Diplomarbeit/03_Software/04_Release/qtalearnf0/test/lrr/offset.model"
+	output_test="/home/patrick/Documents/Diplomarbeit/03_Software/04_Release/qtalearnf0/test/lrr/test.target"
+	output_training="/home/patrick/Documents/Diplomarbeit/03_Software/04_Release/qtalearnf0/test/lrr/training.target"
+	slope_model="/home/patrick/Documents/Diplomarbeit/03_Software/04_Release/qtalearnf0/test/lrr/slope.model"
+	strength_model="/home/patrick/Documents/Diplomarbeit/03_Software/04_Release/qtalearnf0/test/lrr/strength.model"
+	type="lrr"
+></algorithm>

@@ -11,7 +11,17 @@ MlaTrainer::MlaTrainer (const std::string& trainingFile, const std::string& algo
 void MlaTrainer::perform_task (const dlib::command_line_parser& parser)
 {
 	std::string& alg (m_algorithmParams.at("type"));
-	if (alg == "svr")
+	if (alg == "lrr")
+	{
+		LinearRidgeRegression lrr(m_samples, m_targets, m_algorithmParams);
+		lrr.perform_task(parser);
+	}
+	else if (alg == "krr")
+	{
+		KernelRidgeRegression krr(m_samples, m_targets, m_algorithmParams);
+		krr.perform_task(parser);
+	}
+	else if (alg == "svr")
 	{
 		SupportVectorRegression svr(m_samples, m_targets, m_algorithmParams);
 		svr.perform_task(parser);

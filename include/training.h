@@ -103,7 +103,29 @@ public:
 	void train 				() override;
 	void predict 			() override;
 	void cross_validation 	() override;
-	void model_selection 	() override;
+	void model_selection 	() override{};
+
+private:
+	lrr_model get_trained_model (const training_s& data) const;
+	void predict_targets(const lrr_model& model, const training_s& data, const std::string& targetFile);
+
+};
+
+class KernelRidgeRegression : public MlAlgorithm {
+public:
+	// constructor, destructor
+	KernelRidgeRegression (const sample_v& samples, const target_v& targets, const algorithm_m& params) : MlAlgorithm(samples,targets,params) {};
+	~KernelRidgeRegression() {};
+
+	// public member functions
+	void train 				() override;
+	void predict 			() override;
+	void cross_validation 	() override;
+	void model_selection 	() override{};
+
+private:
+	krr_model get_trained_model (const training_s& data) const;
+	void predict_targets(const krr_model& model, const training_s& data, const std::string& targetFile);
 
 };
 
@@ -120,13 +142,13 @@ public:
 	void model_selection 	() override;
 
 	// helper
-	static svr_trainer_t 		build_trainer(const svr_params& params);
-	static grid_t get_grid(const la_col_vec& lowerBound, const la_col_vec& upperBound, const std::vector<unsigned>& numPerDim);
+	static svr_trainer_t build_trainer(const svr_params& params);
+	grid_t get_grid(const la_col_vec& lowerBound, const la_col_vec& upperBound, const std::vector<unsigned>& numPerDim) const;
 
 private:
 	svr_model	get_trained_model (const training_s& data) const;
 	svr_params	select_model (const sample_v& samples, const std::vector<double>& targets) const;
-	void 		predict_targets(const svr_model& model, const training_s& data, const std::string targetFile);
+	void 		predict_targets(const svr_model& model, const training_s& data, const std::string& targetFile);
 };
 
 class SvrCvError{
@@ -145,10 +167,6 @@ public:
 	MultiLayerPerceptron (const sample_v& samples, const target_v& targets, const algorithm_m& params) : MlAlgorithm(samples,targets,params) {};
 	~MultiLayerPerceptron() {};
 
-	static la_col_vec cross_validation(mlp_params params, const training_s& trainingData, unsigned folds);
-	static double measure_error(const la_col_vec& mses);
-
-private:
 	// public member functions
 	void train () override;
 	void predict () override;
@@ -156,12 +174,16 @@ private:
 	void model_selection () override;
 
 	// helper
+	static double cross_validate_regression_network(const mlp_params& params, const training_s& trainingData, const unsigned& folds);
+	static double measure_error(const la_col_vec& mses);
 	mlp_params get_default_params() const;
-	static dlib::matrix<double> get_grid(const la_col_vec& lowerBound, const la_col_vec& upperBound, const unsigned& numPerDim);
+	grid_t get_grid(const la_col_vec& lowerBound, const la_col_vec& upperBound, const std::vector<unsigned>& numPerDim) const;
+	void save_to_file (training_s& data, const std::string& targetFile);
 
-	static void train (mlp_kernel_t& network, const training_s& data);
-	static la_col_vec predict (mlp_kernel_t& network, training_s& testData);
-	static la_col_vec model_selection(const training_s& data);
+private:
+	static void train_network (mlp_kernel_t& network, const training_s& data);
+	static double predict_targets (mlp_kernel_t& network, training_s& testData);
+	mlp_params select_model(const training_s& data);
 
 };
 

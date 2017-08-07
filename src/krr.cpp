@@ -1,17 +1,23 @@
 #include "training.h"
 
-// *************** LINEARRIDGEREGRESSION ***************
+// *************** KRRERROR ***************
 
-lrr_model LinearRidgeRegression::get_trained_model (const training_s& data) const
+
+
+// *************** KERNELRIDGEREGRESSION ***************
+
+krr_model KernelRidgeRegression::get_trained_model (const training_s& data) const
 {
+	const double gamma = 1.0/dlib::compute_mean_squared_distance(data.samples);
+
 	// get trainer depending on parameters
-	lrr_trainer_t slopeTrainer;
-	lrr_trainer_t offsetTrainer;
-	lrr_trainer_t strengthTrainer;
-	lrr_trainer_t durationTrainer;
+	krr_trainer_t slopeTrainer; slopeTrainer.set_kernel(krr_kernel_t(gamma));
+	krr_trainer_t offsetTrainer; offsetTrainer.set_kernel(krr_kernel_t(gamma));
+	krr_trainer_t strengthTrainer; strengthTrainer.set_kernel(krr_kernel_t(gamma));
+	krr_trainer_t durationTrainer; durationTrainer.set_kernel(krr_kernel_t(gamma));
 
 	// do the training
-	lrr_model model;
+	krr_model model;
 	model.slopePredictor = slopeTrainer.train(data.samples, m_data.slopes);
 	model.offsetPredictor = offsetTrainer.train(data.samples, m_data.offsets);
 	model.strengthPredictor = strengthTrainer.train(data.samples, m_data.strengths);
@@ -20,7 +26,7 @@ lrr_model LinearRidgeRegression::get_trained_model (const training_s& data) cons
 	return model;
 }
 
-void LinearRidgeRegression::predict_targets(const lrr_model& model, const training_s& data, const std::string& targetFile)
+void KernelRidgeRegression::predict_targets(const krr_model& model, const training_s& data, const std::string& targetFile)
 {
 	// result container
 	unsigned N (data.samples.size());
@@ -54,10 +60,10 @@ void LinearRidgeRegression::predict_targets(const lrr_model& model, const traini
 	fout.close();
 }
 
-void LinearRidgeRegression::train()
+void KernelRidgeRegression::train()
 {
 	// train the model
-	lrr_model model = get_trained_model(m_data);
+	krr_model model = get_trained_model(m_data);
 
 	// store model
 	dlib::serialize(m_params.at("slope_model")) << model.slopePredictor;
@@ -66,7 +72,7 @@ void LinearRidgeRegression::train()
 	dlib::serialize(m_params.at("duration_model")) << model.durationPredictor;
 }
 
-void LinearRidgeRegression::predict()
+void KernelRidgeRegression::predict()
 {
 	// initialize
 	double fraction (0.75);
@@ -74,20 +80,22 @@ void LinearRidgeRegression::predict()
 	get_separated_data(trainingData, testData, fraction);
 
 	// train the model
-	lrr_model model = get_trained_model(m_data);
+	krr_model model = get_trained_model(m_data);
 
 	// predict targets
 	predict_targets(model, trainingData, m_params.at("output_training"));
 	predict_targets(model, testData, m_params.at("output_test"));
 }
 
-void LinearRidgeRegression::cross_validation()
+void KernelRidgeRegression::cross_validation()
 {
+	const double gamma = 1.0/dlib::compute_mean_squared_distance(m_data.samples);
+
 	// get trainer depending on parameters
-	lrr_trainer_t slopeTrainer;
-	lrr_trainer_t offsetTrainer;
-	lrr_trainer_t strengthTrainer;
-	lrr_trainer_t durationTrainer;
+	krr_trainer_t slopeTrainer; slopeTrainer.set_kernel(krr_kernel_t(gamma));
+	krr_trainer_t offsetTrainer; offsetTrainer.set_kernel(krr_kernel_t(gamma));
+	krr_trainer_t strengthTrainer; strengthTrainer.set_kernel(krr_kernel_t(gamma));
+	krr_trainer_t durationTrainer; durationTrainer.set_kernel(krr_kernel_t(gamma));
 
 	// do cross validation and print results
 	std::cout << "slope:    " << dlib::trans(cross_validate_regression_trainer(slopeTrainer, m_data.samples, m_data.slopes,10));

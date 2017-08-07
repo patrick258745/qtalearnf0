@@ -4,25 +4,24 @@
 
 double MlpCvError::operator() (const la_col_vec& arg) const
 {
-	mlp_params params ({(unsigned)arg(0), (unsigned)arg(1), arg(2), 0.8});
-	la_col_vec mse = MultiLayerPerceptron::cross_validation(params, m_data, 10);
-
-	return MultiLayerPerceptron::measure_error(mse);
+	mlp_params params ({(unsigned)arg(0), (unsigned)arg(1), arg(2), arg(3)});
+	double mse = MultiLayerPerceptron::cross_validate_regression_network(params, m_data, 5);
+	return mse;
 }
 
 // *************** MULTILAYERPERCEPTRON ***************
 
 double MultiLayerPerceptron::measure_error(const la_col_vec& mse)
 {
-	std::cout << trans(mse);
 	return sum(squared(mse))/4;
+	//return sum(squared(pow(mse,0.2)))/4;
 }
 
 mlp_params MultiLayerPerceptron::get_default_params() const
 {
 	// get parameters
-	unsigned numFirstLayer = (unsigned)get_value("num1layer");
-	unsigned numSecondLayer = (unsigned)get_value("num2layer");
+	unsigned numFirstLayer = (unsigned)get_value("L1_number");
+	unsigned numSecondLayer = (unsigned)get_value("L2_number");
 	double alpha = get_value("alpha");
 	double momentum = get_value("momentum");
 
@@ -36,19 +35,21 @@ mlp_params MultiLayerPerceptron::get_default_params() const
 	return params;
 }
 
-dlib::matrix<double> MultiLayerPerceptron::get_grid(const la_col_vec& lowerBound, const la_col_vec& upperBound, const unsigned& numPerDim)
+grid_t MultiLayerPerceptron::get_grid(const la_col_vec& lowerBound, const la_col_vec& upperBound, const std::vector<unsigned>& numPerDim) const
 {
 	// get one dimension
-	dlib::matrix<double> num1Space 	= dlib::linspace(upperBound(0), lowerBound(0), numPerDim);
-	dlib::matrix<double> num2Space 	= dlib::linspace(upperBound(1), lowerBound(1), numPerDim);
-	dlib::matrix<double> alphaSpace = dlib::logspace(log10(upperBound(2)), log10(lowerBound(2)), numPerDim);
+	dlib::matrix<double> num1Space 	= dlib::linspace(upperBound(0), lowerBound(0), numPerDim[0]);
+	dlib::matrix<double> num2Space 	= dlib::linspace(upperBound(1), lowerBound(1), numPerDim[1]);
+	dlib::matrix<double> alphaSpace = dlib::logspace(log10(upperBound(2)), log10(lowerBound(2)), numPerDim[2]);
+	dlib::matrix<double> momentumSpace = dlib::logspace(log10(upperBound(3)), log10(lowerBound(3)), numPerDim[3]);
 
 	// create grid points and return
 	dlib::matrix<double> tmpGrid = dlib::cartesian_product(num1Space, num2Space);
-	return dlib::cartesian_product(tmpGrid, alphaSpace);
+	tmpGrid = dlib::cartesian_product(tmpGrid, alphaSpace);
+	return dlib::cartesian_product(tmpGrid, momentumSpace);
 }
 
-void MultiLayerPerceptron::train (mlp_kernel_t& network, const training_s& data)
+void MultiLayerPerceptron::train_network (mlp_kernel_t& network, const training_s& data)
 {
 	// iterate over all samples for training
 	for (unsigned i=0; i<data.samples.size(); ++i)
@@ -60,18 +61,19 @@ void MultiLayerPerceptron::train (mlp_kernel_t& network, const training_s& data)
 
 		// train the network
 		network.train(input, output);
+		//std::cout << "average change: " << network.get_average_change() << std::endl;
 	}
 }
 
-la_col_vec MultiLayerPerceptron::predict (mlp_kernel_t& network, training_s& testData)
+double MultiLayerPerceptron::predict_targets (mlp_kernel_t& network, training_s& testData)
 {
-	// result container
-	std::vector<la_col_vec> predictedTargets;
+	// initialize
 	la_col_vec sse(4);	// sum of squared errors
 	sse = 0,0,0,0;
+	unsigned N (testData.samples.size());
 
 	// evaluate predictions
-	for (unsigned i=0; i<testData.samples.size(); ++i)
+	for (unsigned i=0; i<N; ++i)
 	{
 		// prediction
 		dlib::matrix<double> preTargets = network(testData.samples[i]);
@@ -89,14 +91,32 @@ la_col_vec MultiLayerPerceptron::predict (mlp_kernel_t& network, training_s& tes
 		testData.durations[i] = preTargets(3);
 	}
 
-	return sse;
+	la_col_vec mse = sse/N;
+	return measure_error(mse);
 }
 
-la_col_vec MultiLayerPerceptron::cross_validation(mlp_params params, const training_s& data, unsigned folds)
+void MultiLayerPerceptron::save_to_file (training_s& data, const std::string& targetFile)
 {
-	// results
-	la_col_vec sse(4);
-	sse = 0,0,0,0;
+	// rescale predicted target values
+	unsigned N (data.samples.size());
+	m_scaler.min_max_rescale(data);
+
+	// create output file and write results to it
+	std::ofstream fout;
+	fout.open (targetFile);
+	fout << std::fixed << std::setprecision(6);
+	fout << "name,slope,offset,strength,duration" << std::endl;
+	for (unsigned i=0; i<N; ++i)
+	{
+		fout << data.labels[i] << "," << data.slopes[i] << "," << data.offsets[i] << "," << data.strengths[i] << "," << data.durations[i] << std::endl;
+	}
+	fout.close();
+}
+
+double MultiLayerPerceptron::cross_validate_regression_network(const mlp_params& params, const training_s& data, const unsigned& folds)
+{
+	// mean mse
+	double mse (0.0);
 
 	// fold borders
 	dlib::matrix<double> borders = dlib::linspace(0, data.samples.size(), folds+1);
@@ -106,7 +126,7 @@ la_col_vec MultiLayerPerceptron::cross_validation(mlp_params params, const train
 		// data for training
 		training_s dataTraining (data), dataTest;
 
-		// determine borders
+		// determine fold borders
 		unsigned start = (unsigned)borders(i);
 		unsigned end = (unsigned)borders(i+1);
 
@@ -129,63 +149,59 @@ la_col_vec MultiLayerPerceptron::cross_validation(mlp_params params, const train
 
 		// train the network
 		mlp_kernel_t net(NUMFEATSYL, params.num1layer, params.num2layer, 4, params.alpha, params.momentum);
-		train(net, dataTraining);
-		sse += predict(net, dataTest);
+		train_network(net, dataTraining);
+
+		// measure predictive error
+		mse += predict_targets(net, dataTest);
 	}
 
-	la_col_vec mse = sse/data.samples.size();
-
-	return mse;
+	return mse/folds;
 }
 
-la_col_vec MultiLayerPerceptron::model_selection(const training_s& data)
+mlp_params MultiLayerPerceptron::select_model(const training_s& data)
 {
 	// define parameter search space {num1layer, num2layer, alpha}
-	la_col_vec lowerBound(3), upperBound(3);
-	lowerBound = 2, 0, 1e-2;
-	upperBound = 64, 8, 1e0;
+	la_col_vec lowerBound(4), upperBound(4);
+	std::vector<unsigned> dimensions;
+	lowerBound = 0, 0, 1e-3, 01e-3;
+	upperBound = 64, 64, 1e1, 1e1;
+	dimensions = {6,6,6,6};
 
 	// store optimal parameters
-	mlp_params bestParams;
-	double bestResult (1e6);
+	mlp_params optParams;
+	double minMSE (1e6);
 
 	// create grid for grid search
-	dlib::matrix<double> grid = get_grid(lowerBound, upperBound, 10);
+	grid_t grid = get_grid(lowerBound, upperBound, dimensions);
 
 	// loop over grid
 	dlib::mutex mu;
 	dlib::parallel_for(0, grid.nc(), [&](long col) //for(long col = 0; col < grid.nc(); ++col)
 	{
         // do cross validation and then check if the results are the best
-		mlp_params params ({(unsigned)grid(0, col),(unsigned)grid(1, col),grid(2, col),0.8});
-    	la_col_vec mseAll = cross_validation(params, data, 10);
-        double result = measure_error(mseAll);
+		mlp_params params ({(unsigned)grid(0, col),(unsigned)grid(1, col),grid(2, col),grid(3, col)});
+    	double tmpMSE = cross_validate_regression_network(params, data, 5);
 
-        // save the best results
-        dlib::auto_mutex lock(mu);
-        if (result < bestResult)
-        {
-        	bestParams = params;
-            bestResult = result;
-        }
+    	// save the best results
+		dlib::auto_mutex lock(mu);
+		if (tmpMSE < minMSE)
+		{
+			optParams = params;
+			minMSE = tmpMSE;
+		}
 
 		// DEBUG message
 		#ifdef DEBUG_MSG
-        std::cout << "\t[model_selection] " << col << ": mse(" << params.num1layer << "," << params.num2layer << "," << params.alpha << ")\t\t= " << result << std::endl;
+		std::cout << "\t[select_model] STATUS: (" << col << "/" << grid.nc() << ") MSE=" << tmpMSE << "[" << minMSE << "] {" << params.num1layer << "," << params.num2layer << "," << params.alpha << "," << params.momentum << "}" << std::endl;
 		#endif
     });
 
     // optimization with BOBYQA
-	la_col_vec arg(3);
-	arg = bestParams.num1layer,bestParams.num2layer,bestParams.alpha;
+	la_col_vec arg(4);
+	arg = optParams.num1layer,optParams.num2layer,optParams.alpha,optParams.momentum;
 
     try
     {
-		// DEBUG message
-		#ifdef DEBUG_MSG
-		std::cout << "\t[model_selection] Grid search completed. Initialize BOBYQA ... start(" << dlib::trans(arg) << ") mse = " << bestResult  << std::endl;
-		#endif
-
     	// optimization
     	dlib::find_min_bobyqa(MlpCvError (data), arg, arg.size()*2+1, lowerBound, upperBound, min(upperBound-lowerBound)/10, 1e-2, 100);
     }
@@ -193,11 +209,17 @@ la_col_vec MultiLayerPerceptron::model_selection(const training_s& data)
 	{
 		// DEBUG message
 		#ifdef DEBUG_MSG
-		std::cout << "\t[model_selection] WARNING: no convergence during optimization" << std::endl << err.info << std::endl;
+		std::cout << "\t[model_selection] WARNING: no convergence during optimization -> " << err.info << std::endl;
 		#endif
 	}
 
-    return arg;
+	// store results
+	optParams.num1layer = arg(0);
+	optParams.num2layer = arg(1);
+	optParams.alpha = arg(2);
+	optParams.momentum = arg(3);
+
+    return optParams;
 }
 
 void MultiLayerPerceptron::train()
@@ -207,7 +229,7 @@ void MultiLayerPerceptron::train()
 	mlp_kernel_t net(NUMFEATSYL, params.num1layer, params.num2layer, 4, params.alpha, params.momentum);
 
 	// train the network
-	train(net, m_data);
+	train_network(net, m_data);
 
 	// save the trained model to file
 	dlib::serialize(m_params.at("model")) << net;
@@ -217,88 +239,41 @@ void MultiLayerPerceptron::predict()
 {
 	// initialize
 	unsigned N (m_data.samples.size());
+	double fraction (0.75);
+	training_s trainingData, testData;
+	get_separated_data(trainingData, testData, fraction);
 
-	// result container
-	target_v predictedTargets(N);
+	// get network parameters and create network
+	mlp_params params = get_default_params();
+	mlp_kernel_t net(NUMFEATSYL, params.num1layer, params.num2layer, 4, params.alpha, params.momentum);
 
-	// do prediction
-	dlib::parallel_for(0,N, [&](long n)// for (unsigned n=0; n<N; ++n)
-	{
-		// prepare
-		training_s dataTraining (m_data), dataTest;
-		std::string label (m_targets[n].label);
+	// train the network
+	train_network(net, trainingData);
 
-		// add to test samples
-		dataTest.samples.push_back(m_data.samples[n]);
-		dataTest.slopes.push_back(m_data.slopes[n]);
-		dataTest.offsets.push_back(m_data.offsets[n]);
-		dataTest.strengths.push_back(m_data.strengths[n]);
-		dataTest.durations.push_back(m_data.durations[n]);
-
-		// delete from training data
-		dataTraining.samples.erase(dataTraining.samples.begin()+n);
-		dataTraining.slopes.erase(dataTraining.slopes.begin()+n);
-		dataTraining.offsets.erase(dataTraining.offsets.begin()+n);
-		dataTraining.strengths.erase(dataTraining.strengths.begin()+n);
-		dataTraining.durations.erase(dataTraining.durations.begin()+n);
-
-		// get network parameters and create network
-		mlp_params params = get_default_params();
-		mlp_kernel_t net(NUMFEATSYL, params.num1layer, params.num2layer, 4, params.alpha, params.momentum);
-
-		// train the network
-		train(net, dataTraining);
-
-		// prediction
-		la_col_vec sse = predict(net, dataTest);
-
-		// rescale predicted target values
-		m_scaler.min_max_rescale(dataTest);
-
-		// store result
-		pitch_target_s t;
-		t.label = label;
-		t.m = dataTest.slopes[0];
-		t.b = dataTest.offsets[0];
-		t.l = dataTest.strengths[0];
-		t.d = dataTest.durations[0];
-		predictedTargets[n] = t;
-
-		// DEBUG message
-		#ifdef DEBUG_MSG
-		std::cout << "\t[predict] (" << n << ") predicted: " << label << " " << t.m << " " << t.b << " " << t.l << "\tmse: " << dlib::trans(sse)/1;
-		#endif
-	});
-
-	// create output file and write results to it
-	std::ofstream fout;
-	fout.open (m_params.at("output"));
-	fout << std::fixed << std::setprecision(6);
-	fout << "name,slope,offset,strength,duration" << std::endl;
-
-	for (pitch_target_s t : predictedTargets)
-	{
-		fout << t.label << "," << t.m << "," << t.b << "," << t.l << "," << t.d << std::endl;
-	}
-	fout.close();
+	// predict targets
+	predict_targets(net, trainingData);
+	save_to_file(trainingData, m_params.at("output_training"));
+	predict_targets(net, testData);
+	save_to_file(testData, m_params.at("output_test"));
 }
 
 void MultiLayerPerceptron::cross_validation()
 {
 	mlp_params params = get_default_params();
-	std::cout << trans(cross_validation(params, m_data, 10));
+	std::cout << "Cross-Validation-Error: " << cross_validate_regression_network(params, m_data, 5);
 }
 
 void MultiLayerPerceptron::model_selection()
 {
 	// perform model selection
-	la_col_vec optParams = model_selection(m_data);
+	mlp_params optParams = select_model(m_data);
 
 	// print out results
-	std::cout << "L1=" << optParams(0) << "\t\tL2=" << optParams(1) << "\t\talpha=" << optParams(2) << std::endl;
+	std::cout << "L1=" << optParams.num1layer << "\t\tL2=" << optParams.num2layer << "\t\talpha=" << optParams.alpha << "\t\tmomentum=" << optParams.momentum << std::endl;
 
 	// store results
-	m_params.at("num1layer") = std::to_string((unsigned)optParams(0));
-	m_params.at("num2layer") = std::to_string((unsigned)optParams(1));
-	m_params.at("alpha") = std::to_string(optParams(2));
+	m_params.at("L1_number") = std::to_string((unsigned)optParams.num1layer);
+	m_params.at("L2_number") = std::to_string((unsigned)optParams.num2layer);
+	m_params.at("alpha") = std::to_string(optParams.alpha);
+	m_params.at("momentum") = std::to_string(optParams.momentum);
 }

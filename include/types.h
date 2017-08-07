@@ -96,6 +96,29 @@ struct training_s
 	std::vector<double> 		durations;
 	std::vector<std::string>	labels;
 };
+typedef dlib::linear_kernel<sample_t> lrr_kernel_t;
+typedef dlib::rr_trainer<lrr_kernel_t> lrr_trainer_t;
+typedef dlib::decision_function<lrr_kernel_t> lrr_model_t;
+
+struct lrr_model
+{
+	lrr_model_t slopePredictor;
+	lrr_model_t offsetPredictor;
+	lrr_model_t strengthPredictor;
+	lrr_model_t durationPredictor;
+};
+
+typedef dlib::radial_basis_kernel<sample_t> krr_kernel_t;
+typedef dlib::krr_trainer<krr_kernel_t> krr_trainer_t;
+typedef dlib::decision_function<krr_kernel_t> krr_model_t;
+
+struct krr_model
+{
+	krr_model_t slopePredictor;
+	krr_model_t offsetPredictor;
+	krr_model_t strengthPredictor;
+	krr_model_t durationPredictor;
+};
 
 typedef dlib::radial_basis_kernel<sample_t> svr_kernel_t;
 typedef dlib::svr_trainer<svr_kernel_t> svr_trainer_t;

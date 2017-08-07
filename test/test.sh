@@ -1,8 +1,11 @@
 ##### computing tasks #####
 doQtaSearch="0"
 doSvrModelSelection="1"
-doSvrPrediction="1"
 doMlpModelSelection="0"
+
+doLrrPrediction="0"
+doKrrPrediction="0"
+doSvrPrediction="0"
 doMlpPrediction="0"
 
 ##### user data #####
@@ -56,6 +59,66 @@ then
   $program_path/bin/mlasampling --in $data_path/corpus.sampa $data_path/qta/corpus.target --out $data_path/corpus.sample;
 fi
 
+#################### LRR ####################
+
+if [ $doLrrPrediction = 1 ]
+then
+  # predict targets using linear ridge regression
+  $program_path/bin/mlatraining -p --in $data_path/corpus.sample --alg $data_path/lrr/lrr.algorithm;
+
+  # resynthesis with predicted lrr targets (test)
+  $praat --run $script $resynth $fmin $fmax $smean $shift $order $data_path/corpus/ $data_path/lrr/test.target $mmin $mmax $bmin $bmax $lmin $lmax $data_path/lrr/test/;
+
+  # resynthesis with predicted lrr targets (training)
+  $praat --run $script $resynth $fmin $fmax $smean $shift $order $data_path/corpus/ $data_path/lrr/training.target $mmin $mmax $bmin $bmax $lmin $lmax $data_path/lrr/training/;
+
+  if [ "$(uchardet $data_path/lrr/test.measures)" = "UTF-16" ]
+  then
+    iconv -f UTF-16 -t UTF-8 $data_path/lrr/test.measures > $data_path/lrr/test.measures.tmp
+    mv $data_path/lrr/test.measures.tmp $data_path/lrr/test.measures
+  fi
+
+  if [ "$(uchardet $data_path/lrr/training.measures)" = "UTF-16" ]
+  then
+    iconv -f UTF-16 -t UTF-8 $data_path/lrr/training.measures > $data_path/lrr/training.measures.tmp
+    mv $data_path/lrr/training.measures.tmp $data_path/lrr/training.measures
+  fi
+
+  # calculate statistics
+  $program_path/bin/qtatools -s --in $data_path/lrr/training.target --out $data_path/lrr/training.stat --dir $data_path/lrr/training/
+  $program_path/bin/qtatools -s --in $data_path/lrr/test.target --out $data_path/lrr/test.stat --dir $data_path/lrr/test/
+fi
+
+#################### KRR ####################
+
+if [ $doKrrPrediction = 1 ]
+then
+  # predict targets using linear ridge regression
+  $program_path/bin/mlatraining -p --in $data_path/corpus.sample --alg $data_path/krr/krr.algorithm;
+
+  # resynthesis with predicted krr targets (test)
+  $praat --run $script $resynth $fmin $fmax $smean $shift $order $data_path/corpus/ $data_path/krr/test.target $mmin $mmax $bmin $bmax $lmin $lmax $data_path/krr/test/;
+
+  # resynthesis with predicted krr targets (training)
+  $praat --run $script $resynth $fmin $fmax $smean $shift $order $data_path/corpus/ $data_path/krr/training.target $mmin $mmax $bmin $bmax $lmin $lmax $data_path/krr/training/;
+
+  if [ "$(uchardet $data_path/krr/test.measures)" = "UTF-16" ]
+  then
+    iconv -f UTF-16 -t UTF-8 $data_path/krr/test.measures > $data_path/krr/test.measures.tmp
+    mv $data_path/krr/test.measures.tmp $data_path/krr/test.measures
+  fi
+
+  if [ "$(uchardet $data_path/krr/training.measures)" = "UTF-16" ]
+  then
+    iconv -f UTF-16 -t UTF-8 $data_path/krr/training.measures > $data_path/krr/training.measures.tmp
+    mv $data_path/krr/training.measures.tmp $data_path/krr/training.measures
+  fi
+
+  # calculate statistics
+  $program_path/bin/qtatools -s --in $data_path/krr/training.target --out $data_path/krr/training.stat --dir $data_path/krr/training/
+  $program_path/bin/qtatools -s --in $data_path/krr/test.target --out $data_path/krr/test.stat --dir $data_path/krr/test/
+fi
+
 #################### SVR ####################
 if [ $doSvrModelSelection = 1 ]
 then
@@ -69,10 +132,10 @@ then
   $program_path/bin/mlatraining -p --in $data_path/corpus.sample --alg $data_path/svr/svr.algorithm;
 
   # resynthesis with predicted svr targets (test)
-  $praat --run $script $resynth $fmin $fmax $smean $shift $order $data_path/corpus/ $data_path/svr/test.target $mmin $mmax $bmin $bmax $lmin $lmax $data_path/svr/;
+  $praat --run $script $resynth $fmin $fmax $smean $shift $order $data_path/corpus/ $data_path/svr/test.target $mmin $mmax $bmin $bmax $lmin $lmax $data_path/svr/test/;
 
   # resynthesis with predicted svr targets (training)
-  $praat --run $script $resynth $fmin $fmax $smean $shift $order $data_path/corpus/ $data_path/svr/training.target $mmin $mmax $bmin $bmax $lmin $lmax $data_path/svr/;
+  $praat --run $script $resynth $fmin $fmax $smean $shift $order $data_path/corpus/ $data_path/svr/training.target $mmin $mmax $bmin $bmax $lmin $lmax $data_path/svr/training/;
 
   if [ "$(uchardet $data_path/svr/test.measures)" = "UTF-16" ]
   then
@@ -87,8 +150,8 @@ then
   fi
 
   # calculate statistics
-  $program_path/bin/qtatools -s --in $data_path/svr/training.target --out $data_path/svr/training.stat --dir $data_path/svr/
-  $program_path/bin/qtatools -s --in $data_path/svr/test.target --out $data_path/svr/test.stat --dir $data_path/svr/
+  $program_path/bin/qtatools -s --in $data_path/svr/training.target --out $data_path/svr/training.stat --dir $data_path/svr/training/
+  $program_path/bin/qtatools -s --in $data_path/svr/test.target --out $data_path/svr/test.stat --dir $data_path/svr/test/
 fi
 
 #################### MLP ####################
@@ -104,16 +167,26 @@ then
   $program_path/bin/mlatraining -p --in $data_path/corpus.sample --alg $data_path/mlp/mlp.algorithm;
 
   # resynthesis with predicted mlp targets
-  $praat --run $script $resynth $fmin $fmax $smean $shift $order $data_path/corpus/ $data_path/mlp/corpus.target $mmin $mmax $bmin $bmax $lmin $lmax $data_path/mlp/;
+  $praat --run $script $resynth $fmin $fmax $smean $shift $order $data_path/corpus/ $data_path/mlp/test.target $mmin $mmax $bmin $bmax $lmin $lmax $data_path/mlp/test/;
 
-  if [ "$(uchardet $data_path/mlp/corpus.measures)" = "UTF-16" ]
+  # resynthesis with predicted mlp targets
+  $praat --run $script $resynth $fmin $fmax $smean $shift $order $data_path/corpus/ $data_path/mlp/training.target $mmin $mmax $bmin $bmax $lmin $lmax $data_path/mlp/training/;
+
+  if [ "$(uchardet $data_path/mlp/test.measures)" = "UTF-16" ]
   then
-    iconv -f UTF-16 -t UTF-8 $data_path/mlp/corpus.measures > $data_path/mlp/corpus.measures.tmp
-    mv $data_path/mlp/corpus.measures.tmp $data_path/mlp/corpus.measures
+    iconv -f UTF-16 -t UTF-8 $data_path/mlp/test.measures > $data_path/mlp/test.measures.tmp
+    mv $data_path/mlp/test.measures.tmp $data_path/mlp/test.measures
+  fi
+
+  if [ "$(uchardet $data_path/mlp/training.measures)" = "UTF-16" ]
+  then
+    iconv -f UTF-16 -t UTF-8 $data_path/mlp/training.measures > $data_path/mlp/training.measures.tmp
+    mv $data_path/mlp/training.measures.tmp $data_path/mlp/training.measures
   fi
 
   # calculate statistics
-  $program_path/bin/qtatools -s --in $data_path/mlp/corpus.target --out $data_path/mlp/corpus.stat --dir $data_path/mlp/
+  $program_path/bin/qtatools -s --in $data_path/mlp/training.target --out $data_path/mlp/training.stat --dir $data_path/mlp/training/
+  $program_path/bin/qtatools -s --in $data_path/mlp/test.target --out $data_path/mlp/test.stat --dir $data_path/mlp/test/
 fi
 
 ELAPSED_TIME=$(($SECONDS - $START_TIME))

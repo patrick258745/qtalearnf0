@@ -23,7 +23,7 @@ $(BINDIR)/mlasampling: $(BUILDDIR)/mlasampling.o $(BUILDDIR)/sampling.o
 	@echo " Linking" $@ "... "
 	@echo " $(CC) $^ -o $@ $(LIB)"; $(CC) $^ -o $@ $(LIB)
 
-$(BINDIR)/mlatraining: $(BUILDDIR)/mlatraining.o $(BUILDDIR)/training.o $(BUILDDIR)/svr.o $(BUILDDIR)/mlp.o $(BUILDDIR)/source.o
+$(BINDIR)/mlatraining: $(BUILDDIR)/mlatraining.o $(BUILDDIR)/training.o $(BUILDDIR)/lrr.o $(BUILDDIR)/krr.o $(BUILDDIR)/svr.o $(BUILDDIR)/mlp.o $(BUILDDIR)/source.o
 	@echo " Linking" $@ "... "
 	@echo " $(CC) $^ -o $@ $(LIB)"; $(CC) $^ -o $@ $(LIB)
 
@@ -45,9 +45,11 @@ clean:
 	@echo " $(RM) -r $(BUILDDIR) $(BINDIR) $(QTAF0)"; $(RM) -r $(BUILDDIR) $(BINDIR) $(QTAF0)/qta*
 
 reset:
-	@echo " Cleaning test data"; 
-	@echo " $(RM) -r test/svr/ "; $(RM) -r test/svr/test* test/svr/training* test/svr/audios/ test/svr/plots;
-	@echo " $(RM) -r test/mlp/ "; $(RM) -r test/mlp/test* test/mlp/training* test/mlp/audios/ test/mlp/plots
+	@echo " Cleaning test data";
+	@echo " $(RM) -r test/lrr/ "; $(RM) -r test/lrr/test* test/lrr/training*;
+	@echo " $(RM) -r test/krr/ "; $(RM) -r test/krr/test* test/krr/training*;
+	@echo " $(RM) -r test/svr/ "; $(RM) -r test/svr/test* test/svr/training*;
+	@echo " $(RM) -r test/mlp/ "; $(RM) -r test/mlp/test* test/mlp/training*;
 
 test: all
 	@echo " Testing...";

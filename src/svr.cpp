@@ -6,14 +6,14 @@ double SvrCvError::operator() (const la_col_vec& logArg) const
 {
 	la_col_vec arg = exp(logArg);
 	svr_params params ({arg(0), arg(1), arg(2)});
-	dlib::matrix<double,1,2> tmp = dlib::cross_validate_regression_trainer(SupportVectorRegression::build_trainer(params), m_samples, m_targets, 10);
+	dlib::matrix<double,1,2> tmp = dlib::cross_validate_regression_trainer(SupportVectorRegression::build_trainer(params), m_samples, m_targets, 5);
 
 	return tmp(0);
 }
 
 // *************** SUPPORTVECTORREGRESSION ***************
 
-grid_t SupportVectorRegression::get_grid(const la_col_vec& lowerBound, const la_col_vec& upperBound, const std::vector<unsigned>& numPerDim)
+grid_t SupportVectorRegression::get_grid(const la_col_vec& lowerBound, const la_col_vec& upperBound, const std::vector<unsigned>& numPerDim) const
 {
 	// get one dimension
 	dlib::matrix<double> cSpace 		= dlib::logspace(log10(upperBound(0)), log10(lowerBound(0)), numPerDim[0]);
@@ -64,7 +64,7 @@ svr_model SupportVectorRegression::get_trained_model (const training_s& data) co
 	return model;
 }
 
-void SupportVectorRegression::predict_targets(const svr_model& model, const training_s& data, const std::string targetFile)
+void SupportVectorRegression::predict_targets(const svr_model& model, const training_s& data, const std::string& targetFile)
 {
 	// result container
 	unsigned N (data.samples.size());
@@ -118,7 +118,7 @@ svr_params SupportVectorRegression::select_model(const sample_v& samples, const 
 	{
         // do cross validation and then check if the results are the best
 		svr_params params ({grid(0, col),grid(1, col),grid(2, col)});
-    	dlib::matrix<double,1,2> tmp = dlib::cross_validate_regression_trainer(build_trainer(params), samples, targets, 10);
+    	dlib::matrix<double,1,2> tmp = dlib::cross_validate_regression_trainer(build_trainer(params), samples, targets, 5);
         double tmpMSE = tmp(0);
 
         // save the best results
@@ -181,12 +181,9 @@ void SupportVectorRegression::train()
 void SupportVectorRegression::predict()
 {
 	// initialize
-	unsigned N (m_data.samples.size());
 	double fraction (0.75);
 	training_s trainingData, testData;
 	get_separated_data(trainingData, testData, fraction);
-	unsigned M (trainingData.samples.size());
-	unsigned K (testData.samples.size());
 
 	// train the model
 	svr_model model = get_trained_model(m_data);
@@ -205,10 +202,10 @@ void SupportVectorRegression::cross_validation()
 	svr_trainer_t durationTrainer = build_trainer({get_value("duration_regularization"), get_value("duration_gamma"), get_value("duration_intensity")});
 
 	// do cross validation and print results
-	std::cout << "slope:    " << dlib::trans(cross_validate_regression_trainer(slopeTrainer, m_data.samples, m_data.slopes,10));
-	std::cout << "offset:   " << dlib::trans(cross_validate_regression_trainer(offsetTrainer, m_data.samples, m_data.offsets,10));
-	std::cout << "strength: " << dlib::trans(cross_validate_regression_trainer(strengthTrainer, m_data.samples, m_data.strengths,10));
-	std::cout << "duration: " << dlib::trans(cross_validate_regression_trainer(durationTrainer, m_data.samples, m_data.durations,10));
+	std::cout << "slope:    " << dlib::trans(cross_validate_regression_trainer(slopeTrainer, m_data.samples, m_data.slopes,5));
+	std::cout << "offset:   " << dlib::trans(cross_validate_regression_trainer(offsetTrainer, m_data.samples, m_data.offsets,5));
+	std::cout << "strength: " << dlib::trans(cross_validate_regression_trainer(strengthTrainer, m_data.samples, m_data.strengths,5));
+	std::cout << "duration: " << dlib::trans(cross_validate_regression_trainer(durationTrainer, m_data.samples, m_data.durations,5));
 }
 
 void SupportVectorRegression::model_selection()
