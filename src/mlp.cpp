@@ -233,6 +233,8 @@ void MultiLayerPerceptron::train()
 
 	// save the trained model to file
 	dlib::serialize(m_params.at("model")) << net;
+
+	std::cout << "[train] training finished successfully" << std::endl;
 }
 
 void MultiLayerPerceptron::predict()
@@ -255,12 +257,16 @@ void MultiLayerPerceptron::predict()
 	save_to_file(trainingData, m_params.at("output_training"));
 	predict_targets(net, testData);
 	save_to_file(testData, m_params.at("output_test"));
+
+	std::cout << "[predict] prediction finished successfully" << std::endl;
 }
 
 void MultiLayerPerceptron::cross_validation()
 {
 	mlp_params params = get_default_params();
-	std::cout << "Cross-Validation-Error: " << cross_validate_regression_network(params, m_data, 5);
+
+	std::cout << "[cross_validation] cross-validation finished successfully" << std::endl;
+	std::cout << "\tCV-error: " << cross_validate_regression_network(params, m_data, 5);
 }
 
 void MultiLayerPerceptron::model_selection()
@@ -268,8 +274,10 @@ void MultiLayerPerceptron::model_selection()
 	// perform model selection
 	mlp_params optParams = select_model(m_data);
 
+	std::cout << "[model_selection] model-selection finished successfully" << std::endl;
+
 	// print out results
-	std::cout << "L1=" << optParams.num1layer << "\t\tL2=" << optParams.num2layer << "\t\talpha=" << optParams.alpha << "\t\tmomentum=" << optParams.momentum << std::endl;
+	std::cout << "\tL1=" << optParams.num1layer << "\t\tL2=" << optParams.num2layer << "\t\talpha=" << optParams.alpha << "\t\tmomentum=" << optParams.momentum << std::endl;
 
 	// store results
 	m_params.at("L1_number") = std::to_string((unsigned)optParams.num1layer);

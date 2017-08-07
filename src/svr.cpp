@@ -176,6 +176,8 @@ void SupportVectorRegression::train()
 	dlib::serialize(m_params.at("offset_model")) << model.offsetPredictor;
 	dlib::serialize(m_params.at("strength_model")) << model.strengthPredictor;
 	dlib::serialize(m_params.at("duration_model")) << model.durationPredictor;
+
+	std::cout << "[train] training finished successfully" << std::endl;
 }
 
 void SupportVectorRegression::predict()
@@ -191,6 +193,8 @@ void SupportVectorRegression::predict()
 	// predict targets
 	predict_targets(model, trainingData, m_params.at("output_training"));
 	predict_targets(model, testData, m_params.at("output_test"));
+
+	std::cout << "[predict] prediction finished successfully" << std::endl;
 }
 
 void SupportVectorRegression::cross_validation()
@@ -201,11 +205,13 @@ void SupportVectorRegression::cross_validation()
 	svr_trainer_t strengthTrainer = build_trainer({get_value("strength_regularization"), get_value("strength_gamma"), get_value("strength_intensity")});
 	svr_trainer_t durationTrainer = build_trainer({get_value("duration_regularization"), get_value("duration_gamma"), get_value("duration_intensity")});
 
+	std::cout << "[cross_validation] cross-validation finished successfully" << std::endl;
+
 	// do cross validation and print results
-	std::cout << "slope:    " << dlib::trans(cross_validate_regression_trainer(slopeTrainer, m_data.samples, m_data.slopes,5));
-	std::cout << "offset:   " << dlib::trans(cross_validate_regression_trainer(offsetTrainer, m_data.samples, m_data.offsets,5));
-	std::cout << "strength: " << dlib::trans(cross_validate_regression_trainer(strengthTrainer, m_data.samples, m_data.strengths,5));
-	std::cout << "duration: " << dlib::trans(cross_validate_regression_trainer(durationTrainer, m_data.samples, m_data.durations,5));
+	std::cout << "\tCV-error (slope):    " << dlib::trans(cross_validate_regression_trainer(slopeTrainer, m_data.samples, m_data.slopes,5));
+	std::cout << "\tCV-error (offset):   " << dlib::trans(cross_validate_regression_trainer(offsetTrainer, m_data.samples, m_data.offsets,5));
+	std::cout << "\tCV-error (strength): " << dlib::trans(cross_validate_regression_trainer(strengthTrainer, m_data.samples, m_data.strengths,5));
+	std::cout << "\tCV-error (duration): " << dlib::trans(cross_validate_regression_trainer(durationTrainer, m_data.samples, m_data.durations,5));
 }
 
 void SupportVectorRegression::model_selection()
@@ -216,11 +222,13 @@ void SupportVectorRegression::model_selection()
 	svr_params optStrength = select_model(m_data.samples, m_data.strengths);
 	svr_params optDuration = select_model(m_data.samples, m_data.durations);
 
+	std::cout << "[model_selection] model-selection finished successfully" << std::endl;
+
 	// print out results
-	std::cout << "slope:\t\tC=" << optSlope.C << "\t\tgamma=" << optSlope.gamma << "\t\tintensity=" << optSlope.intensity << std::endl;
-	std::cout << "offset:\t\tC=" << optOffset.C << "\t\tgamma=" << optOffset.gamma << "\t\tintensity=" << optOffset.intensity << std::endl;
-	std::cout << "strength:\tC=" << optStrength.C << "\t\tgamma=" << optStrength.gamma << "\t\tintensity=" << optStrength.intensity << std::endl;
-	std::cout << "duration:\tC=" << optDuration.C << "\t\tgamma=" << optDuration.gamma << "\t\tintensity=" << optDuration.intensity << std::endl;
+	std::cout << "\tslope:\t\tC=" << optSlope.C << "\t\tgamma=" << optSlope.gamma << "\t\tintensity=" << optSlope.intensity << std::endl;
+	std::cout << "\toffset:\t\tC=" << optOffset.C << "\t\tgamma=" << optOffset.gamma << "\t\tintensity=" << optOffset.intensity << std::endl;
+	std::cout << "\tstrength:\tC=" << optStrength.C << "\t\tgamma=" << optStrength.gamma << "\t\tintensity=" << optStrength.intensity << std::endl;
+	std::cout << "\tduration:\tC=" << optDuration.C << "\t\tgamma=" << optDuration.gamma << "\t\tintensity=" << optDuration.intensity << std::endl;
 
 	// store results
 	m_params.at("slope_regularization") = std::to_string(optSlope.C);

@@ -70,6 +70,8 @@ void KernelRidgeRegression::train()
 	dlib::serialize(m_params.at("offset_model")) << model.offsetPredictor;
 	dlib::serialize(m_params.at("strength_model")) << model.strengthPredictor;
 	dlib::serialize(m_params.at("duration_model")) << model.durationPredictor;
+
+	std::cout << "[train] training finished successfully" << std::endl;
 }
 
 void KernelRidgeRegression::predict()
@@ -85,6 +87,8 @@ void KernelRidgeRegression::predict()
 	// predict targets
 	predict_targets(model, trainingData, m_params.at("output_training"));
 	predict_targets(model, testData, m_params.at("output_test"));
+
+	std::cout << "[predict] prediction finished successfully" << std::endl;
 }
 
 void KernelRidgeRegression::cross_validation()
@@ -97,9 +101,11 @@ void KernelRidgeRegression::cross_validation()
 	krr_trainer_t strengthTrainer; strengthTrainer.set_kernel(krr_kernel_t(gamma));
 	krr_trainer_t durationTrainer; durationTrainer.set_kernel(krr_kernel_t(gamma));
 
+	std::cout << "[cross_validation] cross-validation finished successfully" << std::endl;
+
 	// do cross validation and print results
-	std::cout << "slope:    " << dlib::trans(cross_validate_regression_trainer(slopeTrainer, m_data.samples, m_data.slopes,10));
-	std::cout << "offset:   " << dlib::trans(cross_validate_regression_trainer(offsetTrainer, m_data.samples, m_data.offsets,10));
-	std::cout << "strength: " << dlib::trans(cross_validate_regression_trainer(strengthTrainer, m_data.samples, m_data.strengths,10));
-	std::cout << "duration: " << dlib::trans(cross_validate_regression_trainer(durationTrainer, m_data.samples, m_data.durations,10));
+	std::cout << "\tCV-error (slope):    " << dlib::trans(cross_validate_regression_trainer(slopeTrainer, m_data.samples, m_data.slopes,5));
+	std::cout << "\tCV-error (offset):   " << dlib::trans(cross_validate_regression_trainer(offsetTrainer, m_data.samples, m_data.offsets,5));
+	std::cout << "\tCV-error (strength): " << dlib::trans(cross_validate_regression_trainer(strengthTrainer, m_data.samples, m_data.strengths,5));
+	std::cout << "\tCV-error (duration): " << dlib::trans(cross_validate_regression_trainer(durationTrainer, m_data.samples, m_data.durations,5));
 }
