@@ -34,10 +34,10 @@ START_TIME=$SECONDS
 if [ $doQtaSearch = 1 ]
 then
   # search optimal qta parameters
-  echo "[praat] search for optimal qta parameters"
+  echo "[bash] search for optimal qta parameters"
   $praat --run $script $search $fmin $fmax $smean $shift $order $data_path/corpus/ $data_path/qta/corpus.target $mmin $mmax $bmin $bmax $lmin $lmax $data_path/qta/;
 
-  echo "[praat] resynthesize f0 with given qta parameters"
+  echo "[bash] resynthesize f0 with given qta parameters"
   # resynthesis with optimal qta parameters
   $praat --run $script $resynth $fmin $fmax $smean $shift $order $data_path/corpus/ $data_path/qta/corpus.target $mmin $mmax $bmin $bmax $lmin $lmax $data_path/qta/;
 
@@ -58,19 +58,19 @@ then
   # predict targets using linear ridge regression
   bin/mlatraining -p --in $data_path/corpus.sample --alg $data_path/lrr/lrr.algorithm;
 
-  echo "[praat] resynthesize f0 with given qta parameters"
+  echo "[bash] resynthesize f0 with given qta parameters"
   # resynthesis with predicted lrr targets (test)
   $praat --run $script $resynth $fmin $fmax $smean $shift $order $data_path/corpus/ $data_path/lrr/test.target $mmin $mmax $bmin $bmax $lmin $lmax $data_path/lrr/test/;
 
   # calculate statistics
-  bin/qtatools -s --in $data_path/lrr/training.target --out $data_path/lrr/training.stat --dir $data_path/lrr/training/
+  bin/qtatools -s --in $data_path/lrr/test.target --out $data_path/lrr/test.stat --dir $data_path/lrr/test/
 
-  echo "[praat] resynthesize f0 with given qta parameters"
+  echo "[bash] resynthesize f0 with given qta parameters"
   # resynthesis with predicted lrr targets (training)
   $praat --run $script $resynth $fmin $fmax $smean $shift $order $data_path/corpus/ $data_path/lrr/training.target $mmin $mmax $bmin $bmax $lmin $lmax $data_path/lrr/training/;
 
   # calculate statistics
-  bin/qtatools -s --in $data_path/lrr/test.target --out $data_path/lrr/test.stat --dir $data_path/lrr/test/
+  bin/qtatools -s --in $data_path/lrr/training.target --out $data_path/lrr/training.stat --dir $data_path/lrr/training/
 
   ELAPSED_TIME=$(($SECONDS - $START_TIME))
   echo ">>> $(($ELAPSED_TIME/60)) min $(($ELAPSED_TIME%60)) sec <<<"
@@ -83,14 +83,14 @@ then
   # predict targets using linear ridge regression
   bin/mlatraining -p --in $data_path/corpus.sample --alg $data_path/krr/krr.algorithm;
 
-  echo "[praat] resynthesize f0 with given qta parameters"
+  echo "[bash] resynthesize f0 with given qta parameters"
   # resynthesis with predicted krr targets (test)
   $praat --run $script $resynth $fmin $fmax $smean $shift $order $data_path/corpus/ $data_path/krr/test.target $mmin $mmax $bmin $bmax $lmin $lmax $data_path/krr/test/;
 
   # calculate statistics
   bin/qtatools -s --in $data_path/krr/test.target --out $data_path/krr/test.stat --dir $data_path/krr/test/
 
-  echo "[praat] resynthesize f0 with given qta parameters"
+  echo "[bash] resynthesize f0 with given qta parameters"
   # resynthesis with predicted krr targets (training)
   $praat --run $script $resynth $fmin $fmax $smean $shift $order $data_path/corpus/ $data_path/krr/training.target $mmin $mmax $bmin $bmax $lmin $lmax $data_path/krr/training/;
 
@@ -113,14 +113,14 @@ then
   # predict targets using support vector regression
   bin/mlatraining -p --in $data_path/corpus.sample --alg $data_path/svr/svr.algorithm;
 
-  echo "[praat] resynthesize f0 with given qta parameters"
+  echo "[bash] resynthesize f0 with given qta parameters"
   # resynthesis with predicted svr targets (test)
   $praat --run $script $resynth $fmin $fmax $smean $shift $order $data_path/corpus/ $data_path/svr/test.target $mmin $mmax $bmin $bmax $lmin $lmax $data_path/svr/test/;
 
   # calculate statistics
   bin/qtatools -s --in $data_path/svr/test.target --out $data_path/svr/test.stat --dir $data_path/svr/test/
 
-  echo "[praat] resynthesize f0 with given qta parameters"
+  echo "[bash] resynthesize f0 with given qta parameters"
   # resynthesis with predicted svr targets (training)
   $praat --run $script $resynth $fmin $fmax $smean $shift $order $data_path/corpus/ $data_path/svr/training.target $mmin $mmax $bmin $bmax $lmin $lmax $data_path/svr/training/;
 
@@ -143,14 +143,14 @@ then
   # predict targets using multi layer perceptron
   bin/mlatraining -p --in $data_path/corpus.sample --alg $data_path/mlp/mlp.algorithm;
 
-  echo "[praat] resynthesize f0 with given qta parameters"
+  echo "[bash] resynthesize f0 with given qta parameters"
   # resynthesis with predicted mlp targets
   $praat --run $script $resynth $fmin $fmax $smean $shift $order $data_path/corpus/ $data_path/mlp/test.target $mmin $mmax $bmin $bmax $lmin $lmax $data_path/mlp/test/;
 
   # calculate statistics
   bin/qtatools -s --in $data_path/mlp/test.target --out $data_path/mlp/test.stat --dir $data_path/mlp/test/
 
-  echo "[praat] resynthesize f0 with given qta parameters"
+  echo "[bash] resynthesize f0 with given qta parameters"
   # resynthesis with predicted mlp targets
   $praat --run $script $resynth $fmin $fmax $smean $shift $order $data_path/corpus/ $data_path/mlp/training.target $mmin $mmax $bmin $bmax $lmin $lmax $data_path/mlp/training/;
 
