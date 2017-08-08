@@ -165,7 +165,7 @@ void PlotFile::generate_plot_file (const std::string& outputFile)
 	// write f0 curve information
 	m_file << std::endl << "###### plot curves from data points #####" << std::endl;
 	m_file << "plot '" << m_data.label <<".origf0' using 2:3 title 'Original F0' with points lt 7 lc '#0000FF' lw 1,\\" << std::endl;
-	m_file << " '" 	 << m_data.label <<".qtaf0' using 2:3 title 'Resynthesized F0' with linespoints lt -1 lc black lw 2" << std::endl;
+	m_file << " '" 	 << m_data.label <<".qtaf0' using 2:3 title 'Resynthesized F0' with linespoints lt -1 lc '#000000' lw 2" << std::endl;
 
 	m_file.close();
 }
