@@ -36,7 +36,7 @@ bin/*
 
 # Tools
 tools/qtaf0/qta*
-
+tools/qtaf0/praat
 
 # Data
 *_qta.wav
