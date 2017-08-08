@@ -2,6 +2,7 @@
 
 #Submit this script with: sbatch thefilename
 
+#SBATCH -p broadwell
 #SBATCH --time=8:00:00   # walltime
 #SBATCH --nodes=1   # number of nodes
 #SBATCH --tasks-per-node=1
