@@ -2,10 +2,6 @@
 
 #Submit this script with: sbatch thefilename
 
-# load modules
-#module load gcc/6.2.0
-#module load gnuplot/4.6.1
-
 #SBATCH -p broadwell
 #SBATCH --time=8:00:00   # walltime
 #SBATCH --nodes=1   # number of nodes
