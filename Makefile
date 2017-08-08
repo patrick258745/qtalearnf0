@@ -55,9 +55,6 @@ reset:
 	@echo " $(RM) -r learn/svr/ "; $(RM) -r learn/svr/test* learn/svr/training*;
 	@echo " $(RM) -r learn/mlp/ "; $(RM) -r learn/mlp/test* learn/mlp/training*;
 
-data:
-	tar -czf results.tar.gz learn/
-
 test: all
 	@echo " Testing...";
 	bash test/test.sh
