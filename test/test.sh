@@ -1,7 +1,7 @@
 ##### computing tasks #####
-doQtaSearch="1"
-doSvrModelSelection="1"
-doMlpModelSelection="1"
+doQtaSearch="0"
+doSvrModelSelection="0"
+doMlpModelSelection="0"
 
 doLrrPrediction="1"
 doKrrPrediction="1"
