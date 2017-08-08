@@ -65,6 +65,6 @@ learn: all
 
 job: all
 	@echo " Starting new computing job...";
-	bash sbatch job.sh
+	sbatch job.sh
 
 .PHONY: clean test learn reset praat job
