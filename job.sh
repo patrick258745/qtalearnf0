@@ -2,11 +2,15 @@
 
 #Submit this script with: sbatch thefilename
 
+# load modules
+module load gcc/6.2.0
+module load gnuplot/4.6.1
+
 #SBATCH -p broadwell
 #SBATCH --time=8:00:00   # walltime
 #SBATCH --nodes=1   # number of nodes
 #SBATCH --tasks-per-node=1
-#SBATCH --cpus-per-task=24
+#SBATCH --cpus-per-task=28
 #SBATCH --mem-per-cpu=300M   # memory per CPU core
 #SBATCH --mail-user=patrick.schmager@tu-dresden.de   # email address
 #SBATCH --mail-type=BEGIN,END,FAIL,REQUEUE,TIME_LIMIT,TIME_LIMIT_90
