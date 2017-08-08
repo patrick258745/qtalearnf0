@@ -1,7 +1,7 @@
 ##### computing tasks #####
 doQtaSearch="1"
-doModelSelection="1"
-doPrediction="1"
+doModelSelection="0"
+doPrediction="0"
 
 ##### user data #####
 fmin="100"
@@ -146,6 +146,29 @@ function mlpPredict {
 #################################################################################################################################
 
 START_TIME_ALL=$SECONDS
+
+##### print parameters
+echo "[bash] used parameters:"
+echo "    f0 analysis [$fmin,$fmax] Hz"
+echo "    speaker onset mean: $smean Hz"
+echo "    slope [$mmin,$mmax] st/s"
+echo "    offset [$bmin,$bmax] st"
+echo "    strength [$lmin,$lmax] 1/s"
+echo "    timeshift: $shift s"
+echo "    order: $order"
+echo ""
+
+fmin="100"
+fmax="500"
+smean="232.86"
+mmin="-50"
+mmax="50"
+bmin="80"
+bmax="110"
+lmin="10"
+lmax="80"
+order="5"
+shift="0"
 
 ##### qta search
 if [ $doQtaSearch = 1 ]

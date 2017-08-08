@@ -68,6 +68,6 @@ job: all
 	module load gcc/6.2.0
 	module load gnuplot/4.6.1
 	@echo " Starting new computing job...";
-	sbatch job.sh
+	sbatch job.batch
 
 .PHONY: clean test learn reset praat job
