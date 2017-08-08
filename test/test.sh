@@ -1,12 +1,12 @@
 ##### computing tasks #####
-doQtaSearch="0"
-doSvrModelSelection="0"
-doMlpModelSelection="0"
+doQtaSearch="1"
+doSvrModelSelection="1"
+doMlpModelSelection="1"
 
 doLrrPrediction="1"
-doKrrPrediction="0"
-doSvrPrediction="0"
-doMlpPrediction="0"
+doKrrPrediction="1"
+doSvrPrediction="1"
+doMlpPrediction="1"
 
 ##### user data #####
 fmin="100"
