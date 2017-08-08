@@ -17,6 +17,8 @@ lrr_model LinearRidgeRegression::get_trained_model (const training_s& data) cons
 	model.strengthPredictor = strengthTrainer.train(data.samples, m_data.strengths);
 	model.durationPredictor = durationTrainer.train(data.samples, m_data.durations);
 
+	std::cout << "[train] trained LRR successfully" << std::endl;
+
 	return model;
 }
 
@@ -83,6 +85,8 @@ void LinearRidgeRegression::predict()
 	predict_targets(model, testData, m_params.at("output_test"));
 
 	std::cout << "[predict] prediction finished successfully" << std::endl;
+	std::cout << "\tpredicted training targets: " << trainingData.samples.size() << std::endl;
+	std::cout << "\tpredicted test targets: " << testData.samples.size() << std::endl;
 }
 
 void LinearRidgeRegression::cross_validation()

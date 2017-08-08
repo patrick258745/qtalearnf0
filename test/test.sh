@@ -56,11 +56,13 @@ then
   # resynthesis with predicted lrr targets (test)
   $praat --run $script $resynth $fmin $fmax $smean $shift $order $data_path/corpus/ $data_path/lrr/test.target $mmin $mmax $bmin $bmax $lmin $lmax $data_path/lrr/test/;
 
+  # calculate statistics
+  bin/qtatools -s --in $data_path/lrr/training.target --out $data_path/lrr/training.stat --dir $data_path/lrr/training/
+
   # resynthesis with predicted lrr targets (training)
   $praat --run $script $resynth $fmin $fmax $smean $shift $order $data_path/corpus/ $data_path/lrr/training.target $mmin $mmax $bmin $bmax $lmin $lmax $data_path/lrr/training/;
 
   # calculate statistics
-  bin/qtatools -s --in $data_path/lrr/training.target --out $data_path/lrr/training.stat --dir $data_path/lrr/training/
   bin/qtatools -s --in $data_path/lrr/test.target --out $data_path/lrr/test.stat --dir $data_path/lrr/test/
 fi
 
@@ -74,12 +76,14 @@ then
   # resynthesis with predicted krr targets (test)
   $praat --run $script $resynth $fmin $fmax $smean $shift $order $data_path/corpus/ $data_path/krr/test.target $mmin $mmax $bmin $bmax $lmin $lmax $data_path/krr/test/;
 
+  # calculate statistics
+  bin/qtatools -s --in $data_path/krr/test.target --out $data_path/krr/test.stat --dir $data_path/krr/test/
+
   # resynthesis with predicted krr targets (training)
   $praat --run $script $resynth $fmin $fmax $smean $shift $order $data_path/corpus/ $data_path/krr/training.target $mmin $mmax $bmin $bmax $lmin $lmax $data_path/krr/training/;
 
   # calculate statistics
   bin/qtatools -s --in $data_path/krr/training.target --out $data_path/krr/training.stat --dir $data_path/krr/training/
-  bin/qtatools -s --in $data_path/krr/test.target --out $data_path/krr/test.stat --dir $data_path/krr/test/
 fi
 
 #################### SVR ####################
@@ -97,12 +101,14 @@ then
   # resynthesis with predicted svr targets (test)
   $praat --run $script $resynth $fmin $fmax $smean $shift $order $data_path/corpus/ $data_path/svr/test.target $mmin $mmax $bmin $bmax $lmin $lmax $data_path/svr/test/;
 
+  # calculate statistics
+  bin/qtatools -s --in $data_path/svr/test.target --out $data_path/svr/test.stat --dir $data_path/svr/test/
+
   # resynthesis with predicted svr targets (training)
   $praat --run $script $resynth $fmin $fmax $smean $shift $order $data_path/corpus/ $data_path/svr/training.target $mmin $mmax $bmin $bmax $lmin $lmax $data_path/svr/training/;
 
   # calculate statistics
   bin/qtatools -s --in $data_path/svr/training.target --out $data_path/svr/training.stat --dir $data_path/svr/training/
-  bin/qtatools -s --in $data_path/svr/test.target --out $data_path/svr/test.stat --dir $data_path/svr/test/
 fi
 
 #################### MLP ####################
@@ -120,12 +126,14 @@ then
   # resynthesis with predicted mlp targets
   $praat --run $script $resynth $fmin $fmax $smean $shift $order $data_path/corpus/ $data_path/mlp/test.target $mmin $mmax $bmin $bmax $lmin $lmax $data_path/mlp/test/;
 
+  # calculate statistics
+  bin/qtatools -s --in $data_path/mlp/test.target --out $data_path/mlp/test.stat --dir $data_path/mlp/test/
+
   # resynthesis with predicted mlp targets
   $praat --run $script $resynth $fmin $fmax $smean $shift $order $data_path/corpus/ $data_path/mlp/training.target $mmin $mmax $bmin $bmax $lmin $lmax $data_path/mlp/training/;
 
   # calculate statistics
   bin/qtatools -s --in $data_path/mlp/training.target --out $data_path/mlp/training.stat --dir $data_path/mlp/training/
-  bin/qtatools -s --in $data_path/mlp/test.target --out $data_path/mlp/test.stat --dir $data_path/mlp/test/
 fi
 
 ELAPSED_TIME=$(($SECONDS - $START_TIME))

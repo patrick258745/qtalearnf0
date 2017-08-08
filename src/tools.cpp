@@ -309,6 +309,9 @@ void Statistics::print(const std::string& targetFile, const std::string& outputF
 		 ;
 
 	fout.close();
+
+	std::cout << "[Statistics] " << outputFile << std::endl
+			  << "\tRMSE=" << rmse.mean() << "\tCORR=" << corr.mean() << std::endl;
 }
 
 void Statistics::plot (const std::string& targetFile, const std::string& directory)

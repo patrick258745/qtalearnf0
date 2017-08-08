@@ -8,7 +8,7 @@ EXECUTABLES := $(BINDIR)/qtamodel $(BINDIR)/mlasampling $(BINDIR)/mlatraining $(
 SRCEXT := cpp
 SOURCES := $(shell find $(SRCDIR) -type f -name *.$(SRCEXT))
 OBJECTS := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(SRCEXT)=.o))
-CFLAGS := -g -std=c++11 -O3 -DDLIB_NO_GUI_SUPPORT -DDEBUG_MSG
+CFLAGS := -g -std=c++11 -O3 -DDLIB_NO_GUI_SUPPORT
 LIB := -L -lm -lpthread
 INC := -I include/ -I lib/
 
@@ -42,7 +42,7 @@ $(BUILDDIR)/source.o: lib/dlib/all/source.cpp
 
 praat:
 	@echo " Building praat server...";
-	tools/praat/build-praat.sh
+	bash tools/praat/build-praat.sh
 
 clean:
 	@echo " Cleaning..."; 
@@ -63,4 +63,4 @@ learn: all
 	@echo " Processing whole corpus...";
 	bash learn/learn.sh
 
-.PHONY: clean test learn reset
+.PHONY: clean test learn reset praat

@@ -1,4 +1,5 @@
-tar -xfs praat-6.0.29.tar.gz
+cd tools/praat/
+tar -zxvf praat-6.0.29.tar.gz
 cd praat-6.0.29/
 cp makefiles/makefile.defs.linux.barren ./makefile.defs
 make

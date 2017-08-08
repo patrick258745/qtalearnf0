@@ -1,7 +1,7 @@
 <algorithm
-	L1_number="1"
-	L2_number="0"
-	alpha="0.125566"
+	L1_number="0"
+	L2_number="11"
+	alpha="1.002494"
 	model="test/mlp/qtaparam.model"
 	momentum="0.001000"
 	output_test="test/mlp/test.target"

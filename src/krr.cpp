@@ -23,6 +23,8 @@ krr_model KernelRidgeRegression::get_trained_model (const training_s& data) cons
 	model.strengthPredictor = strengthTrainer.train(data.samples, m_data.strengths);
 	model.durationPredictor = durationTrainer.train(data.samples, m_data.durations);
 
+	std::cout << "[train] trained KRR successfully" << std::endl;
+
 	return model;
 }
 
@@ -89,6 +91,8 @@ void KernelRidgeRegression::predict()
 	predict_targets(model, testData, m_params.at("output_test"));
 
 	std::cout << "[predict] prediction finished successfully" << std::endl;
+	std::cout << "\tpredicted training targets: " << trainingData.samples.size() << std::endl;
+	std::cout << "\tpredicted test targets: " << testData.samples.size() << std::endl;
 }
 
 void KernelRidgeRegression::cross_validation()

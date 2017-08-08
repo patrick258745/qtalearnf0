@@ -56,10 +56,11 @@ svr_model SupportVectorRegression::get_trained_model (const training_s& data) co
 
 	// print results
 	unsigned N (data.samples.size());
-	std::cout << "\t[train] Number of support vectors (slope-model): " << model.slopePredictor.basis_vectors.size() << "/" << N << std::endl;
-	std::cout << "\t[train] Number of support vectors (offset-model): " << model.offsetPredictor.basis_vectors.size() << "/" << N << std::endl;
-	std::cout << "\t[train] Number of support vectors (strength-model): " << model.strengthPredictor.basis_vectors.size() << "/" << N << std::endl;
-	std::cout << "\t[train] Number of support vectors (duration-model): " << model.durationPredictor.basis_vectors.size() << "/" << N << std::endl;
+	std::cout << "[train] trained SVR successfully" << std::endl;
+	std::cout << "\tsupport vectors (slope): " << model.slopePredictor.basis_vectors.size() << "/" << N << std::endl;
+	std::cout << "\tsupport vectors (offset): " << model.offsetPredictor.basis_vectors.size() << "/" << N << std::endl;
+	std::cout << "\tsupport vectors (strength): " << model.strengthPredictor.basis_vectors.size() << "/" << N << std::endl;
+	std::cout << "\tsupport vectors (duration): " << model.durationPredictor.basis_vectors.size() << "/" << N << std::endl;
 
 	return model;
 }
@@ -107,6 +108,8 @@ svr_params SupportVectorRegression::select_model(const sample_v& samples, const 
 	upperBound = 1e3, 1e1, 1e0;
 	dimensions = {12,12,7};
 	grid_t grid = get_grid(lowerBound, upperBound, dimensions);
+
+	std::cout << "\tgrid size: " << grid.size() << std::endl;
 
 	// store optimal parameters
 	svr_params optParams;
@@ -195,6 +198,8 @@ void SupportVectorRegression::predict()
 	predict_targets(model, testData, m_params.at("output_test"));
 
 	std::cout << "[predict] prediction finished successfully" << std::endl;
+	std::cout << "\tpredicted training targets: " << trainingData.samples.size() << std::endl;
+	std::cout << "\tpredicted test targets: " << testData.samples.size() << std::endl;
 }
 
 void SupportVectorRegression::cross_validation()
@@ -216,6 +221,8 @@ void SupportVectorRegression::cross_validation()
 
 void SupportVectorRegression::model_selection()
 {
+	std::cout << "[model_selection] start model-selection..." << std::endl;
+
 	// perform model selection
 	svr_params optSlope = select_model(m_data.samples, m_data.slopes);
 	svr_params optOffset = select_model(m_data.samples, m_data.offsets);

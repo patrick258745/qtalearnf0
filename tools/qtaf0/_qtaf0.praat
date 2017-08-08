@@ -8,7 +8,7 @@ form quantitativeTargetApproximation
 		option F0 resynthesis with qTA parameters
 	comment General options options:
 		integer f0_range_min_(Hz) 100
-		integer f0_range_max_(Hz) 600
+		integer f0_range_max_(Hz) 500
 		integer speaker_mean_(Hz) 232.86
 		real syllable_shift 0
 		integer filter_order 5
@@ -55,6 +55,13 @@ assert b_min < b_max
 assert l_min < l_max
 assert n > 0
 
+##### print message
+if task = 1
+	writeInfoLine: "[praat] search for optimal qta parameters"
+else
+	writeInfoLine: "[praat] resynthesize f0 with given qta parameters"
+endif
+
 ##### find audio files
 Create Strings as file list... list 'corpus_directory$'*.wav
 numberOfFiles = Get number of strings
@@ -68,6 +75,7 @@ endif
 if task = 2
 	Read Table from comma-separated file... 'target_file$'
 	Rename... targetsTable
+	wCnt = 0
 endif
 
 ##### iterate over all aufio files
@@ -89,7 +97,7 @@ for current_file from 1 to numberOfFiles
 	if pos > 0		
 		##### print status
 		cnt = cnt + 1
-		printline [praat] ('cnt') Process 'name$' 
+		# printline [praat] ('cnt') Process 'name$' 
 	
 		##### load TextGrid file
 		if fileReadable ("'corpus_directory$''name$'.TextGrid")
@@ -151,6 +159,8 @@ for current_file from 1 to numberOfFiles
 			
 			##### create plot
 			call generatePlot
+			
+			wCnt = wCnt+1
 		endif
 			
 		##### clean up
@@ -178,6 +188,13 @@ if task = 2
 endif
 select Strings list
 Remove
+
+##### print message
+if task = 1
+	writeInfoLine: "'tab$'processed 'numberOfFiles' utterances successfully"
+else
+	writeInfoLine: "'tab$'processed 'wCnt' utterances successfully"
+endif
 
 #########################################################################
 ############################## Procedures ###############################

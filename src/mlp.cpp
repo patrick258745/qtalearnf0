@@ -63,6 +63,8 @@ void MultiLayerPerceptron::train_network (mlp_kernel_t& network, const training_
 		network.train(input, output);
 		//std::cout << "average change: " << network.get_average_change() << std::endl;
 	}
+
+	//std::cout << "[train] trained MLP successfully" << std::endl << std::endl;
 }
 
 double MultiLayerPerceptron::predict_targets (mlp_kernel_t& network, training_s& testData)
@@ -174,6 +176,8 @@ mlp_params MultiLayerPerceptron::select_model(const training_s& data)
 	// create grid for grid search
 	grid_t grid = get_grid(lowerBound, upperBound, dimensions);
 
+	std::cout << "\tgrid size: " << grid.size() << std::endl;
+
 	// loop over grid
 	dlib::mutex mu;
 	dlib::parallel_for(0, grid.nc(), [&](long col) //for(long col = 0; col < grid.nc(); ++col)
@@ -252,6 +256,8 @@ void MultiLayerPerceptron::predict()
 	// train the network
 	train_network(net, trainingData);
 
+	std::cout << "[train] trained MLP successfully" << std::endl;
+
 	// predict targets
 	predict_targets(net, trainingData);
 	save_to_file(trainingData, m_params.at("output_training"));
@@ -259,6 +265,8 @@ void MultiLayerPerceptron::predict()
 	save_to_file(testData, m_params.at("output_test"));
 
 	std::cout << "[predict] prediction finished successfully" << std::endl;
+	std::cout << "\tpredicted training targets: " << trainingData.samples.size() << std::endl;
+	std::cout << "\tpredicted test targets: " << testData.samples.size() << std::endl;
 }
 
 void MultiLayerPerceptron::cross_validation()
@@ -271,6 +279,8 @@ void MultiLayerPerceptron::cross_validation()
 
 void MultiLayerPerceptron::model_selection()
 {
+	std::cout << "[model_selection] start model-selection..." << std::endl;
+
 	// perform model selection
 	mlp_params optParams = select_model(m_data);
 
