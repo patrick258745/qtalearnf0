@@ -63,4 +63,8 @@ learn: all
 	@echo " Processing whole corpus...";
 	bash learn/learn.sh
 
-.PHONY: clean test learn reset praat
+job: all
+	@echo " Starting new computing job...";
+	bash sbatch job.sh
+
+.PHONY: clean test learn reset praat job
