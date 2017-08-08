@@ -532,7 +532,7 @@ procedure generatePlot
 	endif
 	
 	##### clean
-	#filedelete 'corpus_directory$''name$'.plot
+	filedelete 'corpus_directory$''name$'.plot
 	filedelete 'corpus_directory$''name$'.origf0
 	filedelete 'corpus_directory$''name$'.qtaf0
 	filedelete 'corpus_directory$''name$'.target
