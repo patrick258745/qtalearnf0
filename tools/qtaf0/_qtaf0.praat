@@ -48,7 +48,7 @@ else
 	flag$ = "-r"
 endif
 
-##### check validity
+###### check validity
 assert f0_min < f0_max
 assert m_min < m_max
 assert b_min < b_max
