@@ -1,0 +1,46 @@
+>>>> STATISTICS <<<<<
+number words:		121
+number syllables:	236
+syllables/words:	1.95041
+
+slope
+	min:		-42.9497
+	max:		25.0458
+	mean:		2.59853
+	variance:	135.362
+
+offset
+	min:		81.8277
+	max:		97.4526
+	mean:		90.1989
+	variance:	13.4912
+
+strength
+	min:		20.4753
+	max:		84.5803
+	mean:		53.5459
+	variance:	162.155
+
+duration
+	min:		-0.003686
+	max:		0.681706
+	mean:		0.355506
+	variance:	0.0200573
+
+MAE
+	min:		0.569318
+	max:		6.36303
+	mean:		1.98868
+	variance:	0.912605
+
+RMSE
+	min:		0.723171
+	max:		7.92755
+	mean:		2.34228
+	variance:	1.20773
+
+CORR
+	min:		-0.938994
+	max:		0.987977
+	mean:		0.565198
+	variance:	0.224977

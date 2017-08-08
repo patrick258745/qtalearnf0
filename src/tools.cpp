@@ -129,7 +129,7 @@ void PlotFile::generate_plot_file (const std::string& outputFile)
 
 	// write image file information to plot file
 	m_file << "##### output file options #####" << std::endl;
-	m_file << "set terminal pngcairo size 1536,512 enhanced font 'Verdana,14'" << std::endl;
+	m_file << "set terminal png size 1536,512 enhanced font 'Verdana,14'" << std::endl;
 	m_file << "set output '" << outputFile <<"'" << std::endl;
 
 	// write general plot settings to plot file
@@ -350,7 +350,7 @@ void Statistics::generate_plot_file (const std::string& targetFile, const std::s
 
 	// write image file information to plot file
 	m_file << "##### output file options #####" << std::endl;
-	m_file << "set terminal pngcairo size 1536,512 enhanced font 'Verdana,14'" << std::endl;
+	m_file << "set terminal png size 1536,512 enhanced font 'Verdana,14'" << std::endl;
 	m_file << "set output '" << fileName <<"'" << std::endl;
 	m_file << "set datafile separator ','" << std::endl;
 	m_file << "set style fill solid 0.5" << std::endl;

@@ -1,0 +1,10 @@
+<algorithm
+	L1_number="1"
+	L2_number="0"
+	alpha="0.125566"
+	model="learn/mlp/qtaparam.model"
+	momentum="0.001000"
+	output_test="learn/mlp/test.target"
+	output_training="learn/mlp/training.target"
+	type="mlp"
+></algorithm>

@@ -1,0 +1,48 @@
+File type = "ooTextFile"
+Object class = "TextGrid"
+
+xmin = 0 
+xmax = 1.9107937220502507 
+tiers? <exists> 
+size = 2 
+item []: 
+    item [1]:
+        class = "IntervalTier" 
+        name = "Position" 
+        xmin = 0 
+        xmax = 1.9107937220502507 
+        intervals: size = 6 
+        intervals [1]:
+            xmin = 0 
+            xmax = 0.33038901199329906 
+            text = "" 
+        intervals [2]:
+            xmin = 0.33038901199329906 
+            xmax = 0.6809145998277728 
+            text = "1" 
+        intervals [3]:
+            xmin = 0.6809145998277728 
+            xmax = 0.8941019921969957 
+            text = "2" 
+        intervals [4]:
+            xmin = 0.8941019921969957 
+            xmax = 1.1666838794562082 
+            text = "3" 
+        intervals [5]:
+            xmin = 1.1666838794562082 
+            xmax = 1.5070506804782955 
+            text = "4" 
+        intervals [6]:
+            xmin = 1.5070506804782955 
+            xmax = 1.9107937220502507 
+            text = "" 
+    item [2]:
+        class = "IntervalTier" 
+        name = "ORT" 
+        xmin = 0 
+        xmax = 1.9107937220502507 
+        intervals: size = 1 
+        intervals [1]:
+            xmin = 0 
+            xmax = 1.9107937220502507 
+            text = "heiß_servieren" 

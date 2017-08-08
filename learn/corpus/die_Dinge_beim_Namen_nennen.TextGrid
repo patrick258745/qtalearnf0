@@ -1,0 +1,64 @@
+File type = "ooTextFile"
+Object class = "TextGrid"
+
+xmin = 0 
+xmax = 1.9660222230467577 
+tiers? <exists> 
+size = 2 
+item []: 
+    item [1]:
+        class = "IntervalTier" 
+        name = "Position" 
+        xmin = 0 
+        xmax = 1.9660222230467577 
+        intervals: size = 10 
+        intervals [1]:
+            xmin = 0 
+            xmax = 0.30857052972409527 
+            text = "" 
+        intervals [2]:
+            xmin = 0.30857052972409527 
+            xmax = 0.4109608490731613 
+            text = "1" 
+        intervals [3]:
+            xmin = 0.4109608490731613 
+            xmax = 0.5591823715477151 
+            text = "2" 
+        intervals [4]:
+            xmin = 0.5591823715477151 
+            xmax = 0.6795499476554934 
+            text = "3" 
+        intervals [5]:
+            xmin = 0.6795499476554934 
+            xmax = 0.9199446104750404 
+            text = "4" 
+        intervals [6]:
+            xmin = 0.9199446104750404 
+            xmax = 1.1276930845166238 
+            text = "5" 
+        intervals [7]:
+            xmin = 1.1276930845166238 
+            xmax = 1.3027953697802444 
+            text = "6" 
+        intervals [8]:
+            xmin = 1.3027953697802444 
+            xmax = 1.434864042563822 
+            text = "7" 
+        intervals [9]:
+            xmin = 1.434864042563822 
+            xmax = 1.7772445795581229 
+            text = "8" 
+        intervals [10]:
+            xmin = 1.7772445795581229 
+            xmax = 1.9660222230467577 
+            text = "" 
+    item [2]:
+        class = "IntervalTier" 
+        name = "ORT" 
+        xmin = 0 
+        xmax = 1.9660222230467577 
+        intervals: size = 1 
+        intervals [1]:
+            xmin = 0 
+            xmax = 1.9660222230467577 
+            text = "die_Dinge_beim_Namen_nennen" 

@@ -1,0 +1,52 @@
+File type = "ooTextFile"
+Object class = "TextGrid"
+
+xmin = 0 
+xmax = 2.1371062048715146 
+tiers? <exists> 
+size = 2 
+item []: 
+    item [1]:
+        class = "IntervalTier" 
+        name = "Position" 
+        xmin = 0 
+        xmax = 2.1371062048715146 
+        intervals: size = 7 
+        intervals [1]:
+            xmin = 0 
+            xmax = 0.39602282666630373 
+            text = "" 
+        intervals [2]:
+            xmin = 0.39602282666630373 
+            xmax = 0.6650781473296874 
+            text = "1" 
+        intervals [3]:
+            xmin = 0.6650781473296874 
+            xmax = 0.8950781473296843 
+            text = "2" 
+        intervals [4]:
+            xmin = 0.8950781473296843 
+            xmax = 1.055078147329688 
+            text = "3" 
+        intervals [5]:
+            xmin = 1.055078147329688 
+            xmax = 1.3663753139131671 
+            text = "4" 
+        intervals [6]:
+            xmin = 1.3663753139131671 
+            xmax = 1.825078147329691 
+            text = "5" 
+        intervals [7]:
+            xmin = 1.825078147329691 
+            xmax = 2.1371062048715146 
+            text = "" 
+    item [2]:
+        class = "IntervalTier" 
+        name = "ORT" 
+        xmin = 0 
+        xmax = 2.1371062048715146 
+        intervals: size = 1 
+        intervals [1]:
+            xmin = 0 
+            xmax = 2.1371062048715146 
+            text = "cum_grano_salis" 

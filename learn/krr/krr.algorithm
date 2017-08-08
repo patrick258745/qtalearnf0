@@ -1,0 +1,9 @@
+<algorithm
+	duration_model="learn/krr/duration.model"
+	offset_model="learn/krr/offset.model"
+	output_test="learn/krr/test.target"
+	output_training="learn/krr/training.target"
+	slope_model="learn/krr/slope.model"
+	strength_model="learn/krr/strength.model"
+	type="krr"
+></algorithm>

@@ -1,0 +1,64 @@
+File type = "ooTextFile"
+Object class = "TextGrid"
+
+xmin = 0 
+xmax = 2.155716105547384 
+tiers? <exists> 
+size = 2 
+item []: 
+    item [1]:
+        class = "IntervalTier" 
+        name = "Position" 
+        xmin = 0 
+        xmax = 2.155716105547384 
+        intervals: size = 10 
+        intervals [1]:
+            xmin = 0 
+            xmax = 0.26753810963479907 
+            text = "" 
+        intervals [2]:
+            xmin = 0.26753810963479907 
+            xmax = 0.43608675073988934 
+            text = "1" 
+        intervals [3]:
+            xmin = 0.43608675073988934 
+            xmax = 0.5960867507398859 
+            text = "2" 
+        intervals [4]:
+            xmin = 0.5960867507398859 
+            xmax = 0.7203901790677492 
+            text = "3" 
+        intervals [5]:
+            xmin = 0.7203901790677492 
+            xmax = 0.9182900991742855 
+            text = "4" 
+        intervals [6]:
+            xmin = 0.9182900991742855 
+            xmax = 1.0769666116921286 
+            text = "5" 
+        intervals [7]:
+            xmin = 1.0769666116921286 
+            xmax = 1.2623863566568048 
+            text = "6" 
+        intervals [8]:
+            xmin = 1.2623863566568048 
+            xmax = 1.4192799870115351 
+            text = "7" 
+        intervals [9]:
+            xmin = 1.4192799870115351 
+            xmax = 1.7727867306678462 
+            text = "8" 
+        intervals [10]:
+            xmin = 1.7727867306678462 
+            xmax = 2.155716105547384 
+            text = "" 
+    item [2]:
+        class = "IntervalTier" 
+        name = "ORT" 
+        xmin = 0 
+        xmax = 2.155716105547384 
+        intervals: size = 1 
+        intervals [1]:
+            xmin = 0 
+            xmax = 2.155716105547384 
+            text = "Regenwassersammelbecken_var" 

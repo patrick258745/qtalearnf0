@@ -1,0 +1,48 @@
+File type = "ooTextFile"
+Object class = "TextGrid"
+
+xmin = 0 
+xmax = 1.6912961360465086 
+tiers? <exists> 
+size = 2 
+item []: 
+    item [1]:
+        class = "IntervalTier" 
+        name = "Position" 
+        xmin = 0 
+        xmax = 1.6912961360465086 
+        intervals: size = 6 
+        intervals [1]:
+            xmin = 0 
+            xmax = 0.37280265300450566 
+            text = "" 
+        intervals [2]:
+            xmin = 0.37280265300450566 
+            xmax = 0.4612109885264939 
+            text = "1" 
+        intervals [3]:
+            xmin = 0.4612109885264939 
+            xmax = 0.7650141778656856 
+            text = "2" 
+        intervals [4]:
+            xmin = 0.7650141778656856 
+            xmax = 0.9514753946029675 
+            text = "3" 
+        intervals [5]:
+            xmin = 0.9514753946029675 
+            xmax = 1.2633157053532482 
+            text = "4" 
+        intervals [6]:
+            xmin = 1.2633157053532482 
+            xmax = 1.6912961360465086 
+            text = "" 
+    item [2]:
+        class = "IntervalTier" 
+        name = "ORT" 
+        xmin = 0 
+        xmax = 1.6912961360465086 
+        intervals: size = 1 
+        intervals [1]:
+            xmin = 0 
+            xmax = 1.6912961360465086 
+            text = "Akkordeon2" 

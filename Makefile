@@ -40,23 +40,27 @@ $(BUILDDIR)/%.o: $(SRCDIR)/%.$(SRCEXT)
 $(BUILDDIR)/source.o: lib/dlib/all/source.cpp
 	@echo " $(CC) $(CFLAGS) lib/dlib/all/source.cpp -c -o build/source.o"; $(CC) $(CFLAGS) lib/dlib/all/source.cpp -c -o build/source.o
 
+praat:
+	@echo " Building praat server...";
+	tools/praat/build-praat.sh
+
 clean:
 	@echo " Cleaning..."; 
 	@echo " $(RM) -r $(BUILDDIR) $(BINDIR) $(QTAF0)"; $(RM) -r $(BUILDDIR) $(BINDIR) $(QTAF0)/qta*
 
 reset:
-	@echo " Cleaning test data";
-	@echo " $(RM) -r test/lrr/ "; $(RM) -r test/lrr/test* test/lrr/training*;
-	@echo " $(RM) -r test/krr/ "; $(RM) -r test/krr/test* test/krr/training*;
-	@echo " $(RM) -r test/svr/ "; $(RM) -r test/svr/test* test/svr/training*;
-	@echo " $(RM) -r test/mlp/ "; $(RM) -r test/mlp/test* test/mlp/training*;
+	@echo " Cleaning data...";
+	@echo " $(RM) -r learn/lrr/ "; $(RM) -r learn/lrr/test* learn/lrr/training*;
+	@echo " $(RM) -r learn/krr/ "; $(RM) -r learn/krr/test* learn/krr/training*;
+	@echo " $(RM) -r learn/svr/ "; $(RM) -r learn/svr/test* learn/svr/training*;
+	@echo " $(RM) -r learn/mlp/ "; $(RM) -r learn/mlp/test* learn/mlp/training*;
 
 test: all
 	@echo " Testing...";
 	bash test/test.sh
 
-corpus: all
+learn: all
 	@echo " Processing whole corpus...";
-	bash ../training/training.sh
+	bash learn/learn.sh
 
-.PHONY: clean test corpus reset
+.PHONY: clean test learn reset

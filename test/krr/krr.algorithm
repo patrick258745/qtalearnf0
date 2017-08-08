@@ -1,9 +1,9 @@
 <algorithm
-	duration_model="/home/patrick/Documents/Diplomarbeit/03_Software/04_Release/qtalearnf0/test/krr/duration.model"
-	offset_model="/home/patrick/Documents/Diplomarbeit/03_Software/04_Release/qtalearnf0/test/krr/offset.model"
-	output_test="/home/patrick/Documents/Diplomarbeit/03_Software/04_Release/qtalearnf0/test/krr/test.target"
-	output_training="/home/patrick/Documents/Diplomarbeit/03_Software/04_Release/qtalearnf0/test/krr/training.target"
-	slope_model="/home/patrick/Documents/Diplomarbeit/03_Software/04_Release/qtalearnf0/test/krr/slope.model"
-	strength_model="/home/patrick/Documents/Diplomarbeit/03_Software/04_Release/qtalearnf0/test/krr/strength.model"
+	duration_model="test/krr/duration.model"
+	offset_model="test/krr/offset.model"
+	output_test="test/krr/test.target"
+	output_training="test/krr/training.target"
+	slope_model="test/krr/slope.model"
+	strength_model="test/krr/strength.model"
 	type="krr"
 ></algorithm>

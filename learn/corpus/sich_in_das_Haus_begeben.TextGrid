@@ -1,0 +1,60 @@
+File type = "ooTextFile"
+Object class = "TextGrid"
+
+xmin = 0 
+xmax = 2.060639078968393 
+tiers? <exists> 
+size = 2 
+item []: 
+    item [1]:
+        class = "IntervalTier" 
+        name = "Position" 
+        xmin = 0 
+        xmax = 2.060639078968393 
+        intervals: size = 9 
+        intervals [1]:
+            xmin = 0 
+            xmax = 0.23165617403154215 
+            text = "" 
+        intervals [2]:
+            xmin = 0.23165617403154215 
+            xmax = 0.4945074082311436 
+            text = "1" 
+        intervals [3]:
+            xmin = 0.4945074082311436 
+            xmax = 0.6251553589575849 
+            text = "2" 
+        intervals [4]:
+            xmin = 0.6251553589575849 
+            xmax = 0.8102399558200233 
+            text = "3" 
+        intervals [5]:
+            xmin = 0.8102399558200233 
+            xmax = 1.101087179461004 
+            text = "4" 
+        intervals [6]:
+            xmin = 1.101087179461004 
+            xmax = 1.23795646117442 
+            text = "5" 
+        intervals [7]:
+            xmin = 1.23795646117442 
+            xmax = 1.4992523626272742 
+            text = "6" 
+        intervals [8]:
+            xmin = 1.4992523626272742 
+            xmax = 1.7807675897878 
+            text = "7" 
+        intervals [9]:
+            xmin = 1.7807675897878 
+            xmax = 2.060639078968393 
+            text = "" 
+    item [2]:
+        class = "IntervalTier" 
+        name = "ORT" 
+        xmin = 0 
+        xmax = 2.060639078968393 
+        intervals: size = 1 
+        intervals [1]:
+            xmin = 0 
+            xmax = 2.060639078968393 
+            text = "sich_in_das_Haus_begeben" 

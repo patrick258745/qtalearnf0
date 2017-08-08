@@ -1,0 +1,64 @@
+File type = "ooTextFile"
+Object class = "TextGrid"
+
+xmin = 0 
+xmax = 2.2862265674612487 
+tiers? <exists> 
+size = 2 
+item []: 
+    item [1]:
+        class = "IntervalTier" 
+        name = "Position" 
+        xmin = 0 
+        xmax = 2.2862265674612487 
+        intervals: size = 10 
+        intervals [1]:
+            xmin = 0 
+            xmax = 0.2898030633178128 
+            text = "" 
+        intervals [2]:
+            xmin = 0.2898030633178128 
+            xmax = 0.4692656779243496 
+            text = "1" 
+        intervals [3]:
+            xmin = 0.4692656779243496 
+            xmax = 0.7022219565001429 
+            text = "2" 
+        intervals [4]:
+            xmin = 0.7022219565001429 
+            xmax = 0.8815301013688082 
+            text = "3" 
+        intervals [5]:
+            xmin = 0.8815301013688082 
+            xmax = 1.000751113489863 
+            text = "4" 
+        intervals [6]:
+            xmin = 1.000751113489863 
+            xmax = 1.1318968703177168 
+            text = "5" 
+        intervals [7]:
+            xmin = 1.1318968703177168 
+            xmax = 1.3096338828607292 
+            text = "6" 
+        intervals [8]:
+            xmin = 1.3096338828607292 
+            xmax = 1.3855603736558022 
+            text = "7" 
+        intervals [9]:
+            xmin = 1.3855603736558022 
+            xmax = 1.9266501036733716 
+            text = "8" 
+        intervals [10]:
+            xmin = 1.9266501036733716 
+            xmax = 2.2862265674612487 
+            text = "" 
+    item [2]:
+        class = "IntervalTier" 
+        name = "ORT" 
+        xmin = 0 
+        xmax = 2.2862265674612487 
+        intervals: size = 1 
+        intervals [1]:
+            xmin = 0 
+            xmax = 2.2862265674612487 
+            text = "ein_Buch_aus_der_Bibliothek" 

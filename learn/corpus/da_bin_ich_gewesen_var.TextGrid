@@ -1,0 +1,56 @@
+File type = "ooTextFile"
+Object class = "TextGrid"
+
+xmin = 0 
+xmax = 2.0347606849531417 
+tiers? <exists> 
+size = 2 
+item []: 
+    item [1]:
+        class = "IntervalTier" 
+        name = "Position" 
+        xmin = 0 
+        xmax = 2.0347606849531417 
+        intervals: size = 8 
+        intervals [1]:
+            xmin = 0 
+            xmax = 0.3362529504436367 
+            text = "" 
+        intervals [2]:
+            xmin = 0.3362529504436367 
+            xmax = 0.44529476517720923 
+            text = "1" 
+        intervals [3]:
+            xmin = 0.44529476517720923 
+            xmax = 0.6572654441562094 
+            text = "2" 
+        intervals [4]:
+            xmin = 0.6572654441562094 
+            xmax = 0.9613236349022714 
+            text = "3" 
+        intervals [5]:
+            xmin = 0.9613236349022714 
+            xmax = 1.1179752560688172 
+            text = "4" 
+        intervals [6]:
+            xmin = 1.1179752560688172 
+            xmax = 1.3572654441562122 
+            text = "5" 
+        intervals [7]:
+            xmin = 1.3572654441562122 
+            xmax = 1.7229770097851258 
+            text = "6" 
+        intervals [8]:
+            xmin = 1.7229770097851258 
+            xmax = 2.0347606849531417 
+            text = "" 
+    item [2]:
+        class = "IntervalTier" 
+        name = "ORT" 
+        xmin = 0 
+        xmax = 2.0347606849531417 
+        intervals: size = 1 
+        intervals [1]:
+            xmin = 0 
+            xmax = 2.0347606849531417 
+            text = "da_bin_ich_gewesen_var" 

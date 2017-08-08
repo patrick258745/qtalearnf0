@@ -37,10 +37,11 @@ bin/*
 # Tools
 tools/qtaf0/qta*
 
-# Test
-test/qta
-test/svr
-test/mlp
+# Data
+*_qta.wav
+*.png
+*.measures
 *.target
 *.sample
+.stat
 

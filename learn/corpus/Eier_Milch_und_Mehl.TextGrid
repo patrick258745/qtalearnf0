@@ -1,0 +1,52 @@
+File type = "ooTextFile"
+Object class = "TextGrid"
+
+xmin = 0 
+xmax = 2.105103515655763 
+tiers? <exists> 
+size = 2 
+item []: 
+    item [1]:
+        class = "IntervalTier" 
+        name = "Position" 
+        xmin = 0 
+        xmax = 2.105103515655763 
+        intervals: size = 7 
+        intervals [1]:
+            xmin = 0 
+            xmax = 0.2112325481394528 
+            text = "" 
+        intervals [2]:
+            xmin = 0.2112325481394528 
+            xmax = 0.4289109838850891 
+            text = "1" 
+        intervals [3]:
+            xmin = 0.4289109838850891 
+            xmax = 0.5592002665941536 
+            text = "2" 
+        intervals [4]:
+            xmin = 0.5592002665941536 
+            xmax = 1.0111857899430632 
+            text = "3" 
+        intervals [5]:
+            xmin = 1.0111857899430632 
+            xmax = 1.259902384578286 
+            text = "4" 
+        intervals [6]:
+            xmin = 1.259902384578286 
+            xmax = 1.7904741104415258 
+            text = "5" 
+        intervals [7]:
+            xmin = 1.7904741104415258 
+            xmax = 2.105103515655763 
+            text = "" 
+    item [2]:
+        class = "IntervalTier" 
+        name = "ORT" 
+        xmin = 0 
+        xmax = 2.105103515655763 
+        intervals: size = 1 
+        intervals [1]:
+            xmin = 0 
+            xmax = 2.105103515655763 
+            text = "Eier_Milch_und_Mehl" 

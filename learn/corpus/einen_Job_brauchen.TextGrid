@@ -1,0 +1,52 @@
+File type = "ooTextFile"
+Object class = "TextGrid"
+
+xmin = 0 
+xmax = 1.997322566204069 
+tiers? <exists> 
+size = 2 
+item []: 
+    item [1]:
+        class = "IntervalTier" 
+        name = "Position" 
+        xmin = 0 
+        xmax = 1.997322566204069 
+        intervals: size = 7 
+        intervals [1]:
+            xmin = 0 
+            xmax = 0.4094290004761234 
+            text = "" 
+        intervals [2]:
+            xmin = 0.4094290004761234 
+            xmax = 0.5036834062835922 
+            text = "1" 
+        intervals [3]:
+            xmin = 0.5036834062835922 
+            xmax = 0.7088610087534022 
+            text = "2" 
+        intervals [4]:
+            xmin = 0.7088610087534022 
+            xmax = 1.0379243095164554 
+            text = "3" 
+        intervals [5]:
+            xmin = 1.0379243095164554 
+            xmax = 1.3036834062835894 
+            text = "4" 
+        intervals [6]:
+            xmin = 1.3036834062835894 
+            xmax = 1.711990771032056 
+            text = "5" 
+        intervals [7]:
+            xmin = 1.711990771032056 
+            xmax = 1.997322566204069 
+            text = "" 
+    item [2]:
+        class = "IntervalTier" 
+        name = "ORT" 
+        xmin = 0 
+        xmax = 1.997322566204069 
+        intervals: size = 1 
+        intervals [1]:
+            xmin = 0 
+            xmax = 1.997322566204069 
+            text = "einen_Job_brauchen" 

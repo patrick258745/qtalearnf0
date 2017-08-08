@@ -1,0 +1,80 @@
+File type = "ooTextFile"
+Object class = "TextGrid"
+
+xmin = 0 
+xmax = 2.590849983656158 
+tiers? <exists> 
+size = 2 
+item []: 
+    item [1]:
+        class = "IntervalTier" 
+        name = "Position" 
+        xmin = 0 
+        xmax = 2.590849983656158 
+        intervals: size = 14 
+        intervals [1]:
+            xmin = 0 
+            xmax = 0.17784173696304073 
+            text = "" 
+        intervals [2]:
+            xmin = 0.17784173696304073 
+            xmax = 0.2990843647874186 
+            text = "1" 
+        intervals [3]:
+            xmin = 0.2990843647874186 
+            xmax = 0.44574883392981235 
+            text = "2" 
+        intervals [4]:
+            xmin = 0.44574883392981235 
+            xmax = 0.5370678021051258 
+            text = "3" 
+        intervals [5]:
+            xmin = 0.5370678021051258 
+            xmax = 0.7670678021051263 
+            text = "4" 
+        intervals [6]:
+            xmin = 0.7670678021051263 
+            xmax = 0.8935643463779197 
+            text = "5" 
+        intervals [7]:
+            xmin = 0.8935643463779197 
+            xmax = 1.0636951305830973 
+            text = "6" 
+        intervals [8]:
+            xmin = 1.0636951305830973 
+            xmax = 1.2181817047464172 
+            text = "7" 
+        intervals [9]:
+            xmin = 1.2181817047464172 
+            xmax = 1.4704445916713347 
+            text = "8" 
+        intervals [10]:
+            xmin = 1.4704445916713347 
+            xmax = 1.6347087971108145 
+            text = "9" 
+        intervals [11]:
+            xmin = 1.6347087971108145 
+            xmax = 1.7637735299561204 
+            text = "10" 
+        intervals [12]:
+            xmin = 1.7637735299561204 
+            xmax = 2.002347733094414 
+            text = "11" 
+        intervals [13]:
+            xmin = 2.002347733094414 
+            xmax = 2.3436411648019924 
+            text = "12" 
+        intervals [14]:
+            xmin = 2.3436411648019924 
+            xmax = 2.590849983656158 
+            text = "" 
+    item [2]:
+        class = "IntervalTier" 
+        name = "ORT" 
+        xmin = 0 
+        xmax = 2.590849983656158 
+        intervals: size = 1 
+        intervals [1]:
+            xmin = 0 
+            xmax = 2.590849983656158 
+            text = "ich_werde_morgen_meinen_Vater_besuchen" 

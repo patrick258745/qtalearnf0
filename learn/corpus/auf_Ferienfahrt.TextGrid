@@ -1,0 +1,52 @@
+File type = "ooTextFile"
+Object class = "TextGrid"
+
+xmin = 0 
+xmax = 2.08416267777816 
+tiers? <exists> 
+size = 2 
+item []: 
+    item [1]:
+        class = "IntervalTier" 
+        name = "Position" 
+        xmin = 0 
+        xmax = 2.08416267777816 
+        intervals: size = 7 
+        intervals [1]:
+            xmin = 0 
+            xmax = 0.28463950080976597 
+            text = "" 
+        intervals [2]:
+            xmin = 0.28463950080976597 
+            xmax = 0.5300412178198863 
+            text = "1" 
+        intervals [3]:
+            xmin = 0.5300412178198863 
+            xmax = 0.7847393684105661 
+            text = "2" 
+        intervals [4]:
+            xmin = 0.7847393684105661 
+            xmax = 0.9437633432920762 
+            text = "3" 
+        intervals [5]:
+            xmin = 0.9437633432920762 
+            xmax = 1.0837681690222087 
+            text = "4" 
+        intervals [6]:
+            xmin = 1.0837681690222087 
+            xmax = 1.7019917253361667 
+            text = "5" 
+        intervals [7]:
+            xmin = 1.7019917253361667 
+            xmax = 2.08416267777816 
+            text = "" 
+    item [2]:
+        class = "IntervalTier" 
+        name = "ORT" 
+        xmin = 0 
+        xmax = 2.08416267777816 
+        intervals: size = 1 
+        intervals [1]:
+            xmin = 0 
+            xmax = 2.08416267777816 
+            text = "auf_Ferienfahrt" 

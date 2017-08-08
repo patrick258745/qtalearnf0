@@ -1,0 +1,56 @@
+File type = "ooTextFile"
+Object class = "TextGrid"
+
+xmin = 0 
+xmax = 1.823388491917406 
+tiers? <exists> 
+size = 2 
+item []: 
+    item [1]:
+        class = "IntervalTier" 
+        name = "Position" 
+        xmin = 0 
+        xmax = 1.823388491917406 
+        intervals: size = 8 
+        intervals [1]:
+            xmin = 0 
+            xmax = 0.2428824759974475 
+            text = "" 
+        intervals [2]:
+            xmin = 0.2428824759974475 
+            xmax = 0.3258241836589377 
+            text = "1" 
+        intervals [3]:
+            xmin = 0.3258241836589377 
+            xmax = 0.624916814970625 
+            text = "2" 
+        intervals [4]:
+            xmin = 0.624916814970625 
+            xmax = 0.894916814970621 
+            text = "3" 
+        intervals [5]:
+            xmin = 0.894916814970621 
+            xmax = 0.9984060312411671 
+            text = "4" 
+        intervals [6]:
+            xmin = 0.9984060312411671 
+            xmax = 1.2249168149706264 
+            text = "5" 
+        intervals [7]:
+            xmin = 1.2249168149706264 
+            xmax = 1.5230914845342696 
+            text = "6" 
+        intervals [8]:
+            xmin = 1.5230914845342696 
+            xmax = 1.823388491917406 
+            text = "" 
+    item [2]:
+        class = "IntervalTier" 
+        name = "ORT" 
+        xmin = 0 
+        xmax = 1.823388491917406 
+        intervals: size = 1 
+        intervals [1]:
+            xmin = 0 
+            xmax = 1.823388491917406 
+            text = "die_Antwort_bekommen" 

@@ -1,0 +1,52 @@
+File type = "ooTextFile"
+Object class = "TextGrid"
+
+xmin = 0 
+xmax = 1.812488422908885 
+tiers? <exists> 
+size = 2 
+item []: 
+    item [1]:
+        class = "IntervalTier" 
+        name = "Position" 
+        xmin = 0 
+        xmax = 1.812488422908885 
+        intervals: size = 7 
+        intervals [1]:
+            xmin = 0 
+            xmax = 0.269911851242739 
+            text = "" 
+        intervals [2]:
+            xmin = 0.269911851242739 
+            xmax = 0.47977411373894086 
+            text = "1" 
+        intervals [3]:
+            xmin = 0.47977411373894086 
+            xmax = 0.7076245701633894 
+            text = "2" 
+        intervals [4]:
+            xmin = 0.7076245701633894 
+            xmax = 0.9600873380593811 
+            text = "3" 
+        intervals [5]:
+            xmin = 0.9600873380593811 
+            xmax = 1.2967379213134507 
+            text = "4" 
+        intervals [6]:
+            xmin = 1.2967379213134507 
+            xmax = 1.6108604347148656 
+            text = "5" 
+        intervals [7]:
+            xmin = 1.6108604347148656 
+            xmax = 1.812488422908885 
+            text = "" 
+    item [2]:
+        class = "IntervalTier" 
+        name = "ORT" 
+        xmin = 0 
+        xmax = 1.812488422908885 
+        intervals: size = 1 
+        intervals [1]:
+            xmin = 0 
+            xmax = 1.812488422908885 
+            text = "ein_Buch_aufschlagen" 
