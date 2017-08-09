@@ -80,7 +80,7 @@ void KernelRidgeRegression::train()
 void KernelRidgeRegression::predict()
 {
 	// initialize
-	double fraction (0.75);
+	double fraction (0.90);
 	training_s trainingData, testData;
 	get_separated_data(trainingData, testData, fraction);
 

@@ -177,10 +177,12 @@ for current_file from 1 to numberOfFiles
 		select PitchTier qtaF0
 		Remove
 		select TextGrid 'name$'
-		Remove
-		select Sound 'name$'
-		Remove
+	Remove
 	endif
+	
+	##### clean up
+	select Sound 'name$'
+	Remove
 endfor
 
 ##### create ensemble target file if needed

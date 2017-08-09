@@ -247,7 +247,7 @@ void MultiLayerPerceptron::predict()
 {
 	// initialize
 	unsigned N (m_data.samples.size());
-	double fraction (0.75);
+	double fraction (0.90);
 	training_s trainingData, testData;
 	get_separated_data(trainingData, testData, fraction);
 
