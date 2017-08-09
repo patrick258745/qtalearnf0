@@ -61,6 +61,12 @@ svr_model SupportVectorRegression::get_trained_model (const training_s& data) co
 	std::cout << "\tsupport vectors (offset): " << model.offsetPredictor.basis_vectors.size() << "/" << N << std::endl;
 	std::cout << "\tsupport vectors (strength): " << model.strengthPredictor.basis_vectors.size() << "/" << N << std::endl;
 	std::cout << "\tsupport vectors (duration): " << model.durationPredictor.basis_vectors.size() << "/" << N << std::endl;
+	std::cout << "\tFollowing parameters used:" << std::endl;
+	std::cout << "\tslope:\t\tC=" << get_value("slope_regularization") << "\t\tgamma=" << get_value("slope_gamma") << "\t\tintensity=" << get_value("slope_intensity") << std::endl;
+	std::cout << "\toffset:\t\tC=" << get_value("offset_regularization") << "\t\tgamma=" << get_value("offset_gamma") << "\t\tintensity=" << get_value("offset_intensity") << std::endl;
+	std::cout << "\tstrength:\tC=" << get_value("strength_regularization") << "\t\tgamma=" << get_value("strength_gamma") << "\t\tintensity=" << get_value("strength_intensity") << std::endl;
+	std::cout << "\tduration:\tC=" << get_value("duration_regularization") << "\t\tgamma=" << get_value("duration_gamma") << "\t\tintensity=" << get_value("duration_intensity") << std::endl;
+
 
 	return model;
 }
@@ -180,12 +186,7 @@ void SupportVectorRegression::train()
 	dlib::serialize(m_params.at("strength_model")) << model.strengthPredictor;
 	dlib::serialize(m_params.at("duration_model")) << model.durationPredictor;
 
-	std::cout << "[train] training finished successfully. Following parameters used:" << std::endl;
-	std::cout << "\tslope:\t\tC=" << get_value("slope_regularization") << "\t\tgamma=" << get_value("slope_gamma") << "\t\tintensity=" << get_value("slope_intensity") << std::endl;
-	std::cout << "\toffset:\t\tC=" << get_value("offset_regularization") << "\t\tgamma=" << get_value("offset_gamma") << "\t\tintensity=" << get_value("offset_intensity") << std::endl;
-	std::cout << "\tstrength:\tC=" << get_value("strength_regularization") << "\t\tgamma=" << get_value("strength_gamma") << "\t\tintensity=" << get_value("strength_intensity") << std::endl;
-	std::cout << "\tduration:\tC=" << get_value("duration_regularization") << "\t\tgamma=" << get_value("duration_gamma") << "\t\tintensity=" << get_value("duration_intensity") << std::endl;
-
+	std::cout << "[train] training finished successfully" << std::endl;
 }
 
 void SupportVectorRegression::predict()
@@ -196,7 +197,7 @@ void SupportVectorRegression::predict()
 	get_separated_data(trainingData, testData, fraction);
 
 	// train the model
-	svr_model model = get_trained_model(m_data);
+	svr_model model = get_trained_model(trainingData);
 
 	// predict targets
 	predict_targets(model, trainingData, m_params.at("output_training"));

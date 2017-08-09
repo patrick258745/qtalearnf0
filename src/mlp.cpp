@@ -259,6 +259,7 @@ void MultiLayerPerceptron::predict()
 	train_network(net, trainingData);
 
 	std::cout << "[train] trained MLP successfully" << std::endl;
+	std::cout << "\tL1=" << params.num1layer << "\t\tL2=" << params.num2layer << "\t\talpha=" << params.alpha << "\t\tmomentum=" << params.momentum << std::endl;
 
 	// predict targets
 	predict_targets(net, trainingData);

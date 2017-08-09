@@ -78,7 +78,7 @@ void LinearRidgeRegression::predict()
 	get_separated_data(trainingData, testData, fraction);
 
 	// train the model
-	lrr_model model = get_trained_model(m_data);
+	lrr_model model = get_trained_model(trainingData);
 
 	// predict targets
 	predict_targets(model, trainingData, m_params.at("output_training"));

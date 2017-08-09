@@ -85,7 +85,10 @@ void KernelRidgeRegression::predict()
 	get_separated_data(trainingData, testData, fraction);
 
 	// train the model
-	krr_model model = get_trained_model(m_data);
+	krr_model model = get_trained_model(trainingData);
+
+	std::cout << "[train] training finished successfully. Following parameter used:" << std::endl;
+	std::cout << "\tgamma=" << 1.0/dlib::compute_mean_squared_distance(m_data.samples) << std::endl;
 
 	// predict targets
 	predict_targets(model, trainingData, m_params.at("output_training"));
