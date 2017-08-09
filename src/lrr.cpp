@@ -70,10 +70,9 @@ void LinearRidgeRegression::train()
 	std::cout << "[train] training finished successfully" << std::endl;
 }
 
-void LinearRidgeRegression::predict()
+void LinearRidgeRegression::predict(double fraction = 0.8)
 {
 	// initialize
-	double fraction (0.90);
 	training_s trainingData, testData;
 	get_separated_data(trainingData, testData, fraction);
 

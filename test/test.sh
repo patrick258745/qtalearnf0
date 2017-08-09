@@ -1,5 +1,5 @@
 ##### computing tasks #####
-doQtaSearch="1"
+doQtaSearch="0"
 doModelSelection="0"
 doPrediction="1"
 
@@ -16,6 +16,7 @@ lmax="80"
 order="5"
 shift="0"
 store="1"
+fraction="0.8"
 
 ##### parameters #####
 data_path="$( cd "$( dirname "$0" )" && pwd )"
@@ -50,7 +51,7 @@ function lrrPredict {
   START_TIME=$SECONDS
 
   # predict targets using linear ridge regression
-  bin/mlatraining -p --in $data_path/corpus.sample --alg $data_path/lrr/lrr.algorithm;
+  bin/mlatraining -p --in $data_path/corpus.sample --frac $fraction --alg $data_path/lrr/lrr.algorithm;
 
   # resynthesis with predicted lrr targets (training and test)
   $praat --run $script $resynth $fmin $fmax $smean $shift $order $data_path/lrr/corpus/ $data_path/lrr/training.target $mmin $mmax $bmin $bmax $lmin $lmax $store $data_path/lrr/training/;
@@ -70,7 +71,7 @@ function krrPredict {
   START_TIME=$SECONDS
 
   # predict targets using kernel ridge regression
-  bin/mlatraining -p --in $data_path/corpus.sample --alg $data_path/krr/krr.algorithm;
+  bin/mlatraining -p --in $data_path/corpus.sample --frac $fraction --alg $data_path/krr/krr.algorithm;
 
   # resynthesis with predicted krr targets (training and test)
   $praat --run $script $resynth $fmin $fmax $smean $shift $order $data_path/krr/corpus/ $data_path/krr/training.target $mmin $mmax $bmin $bmax $lmin $lmax $store $data_path/krr/training/;
@@ -89,7 +90,7 @@ function svrModelSelection {
   START_TIME=$SECONDS
 
   # model selection for support vector regression
-  bin/mlatraining -m --in $data_path/corpus.sample --alg $data_path/svr/svr.algorithm;
+  bin/mlatraining -m --in $data_path/corpus.sample --frac $fraction --alg $data_path/svr/svr.algorithm;
 
   ELAPSED_TIME=$(($SECONDS - $START_TIME))
   echo ">>> $(($ELAPSED_TIME/60)) min $(($ELAPSED_TIME%60)) sec <<<"
@@ -99,7 +100,7 @@ function svrPredict {
   START_TIME=$SECONDS
 
   # predict targets using support vector regression
-  bin/mlatraining -p --in $data_path/corpus.sample --alg $data_path/svr/svr.algorithm;
+  bin/mlatraining -p --in $data_path/corpus.sample --frac $fraction --alg $data_path/svr/svr.algorithm;
 
   # resynthesis with predicted svr targets (training and test)
   $praat --run $script $resynth $fmin $fmax $smean $shift $order $data_path/svr/corpus/ $data_path/svr/training.target $mmin $mmax $bmin $bmax $lmin $lmax $store $data_path/svr/training/;
@@ -118,7 +119,7 @@ function mlpModelSelection {
   START_TIME=$SECONDS
 
   # model selection for multi layer perceptron
-  bin/mlatraining -m --in $data_path/corpus.sample --alg $data_path/mlp/mlp.algorithm;
+  bin/mlatraining -m --in $data_path/corpus.sample --frac $fraction --alg $data_path/mlp/mlp.algorithm;
 
   ELAPSED_TIME=$(($SECONDS - $START_TIME))
   echo ">>> $(($ELAPSED_TIME/60)) min $(($ELAPSED_TIME%60)) sec <<<"
@@ -128,7 +129,7 @@ function mlpPredict {
   START_TIME=$SECONDS
 
   # predict targets using multi layer perceptron
-  bin/mlatraining -p --in $data_path/corpus.sample --alg $data_path/mlp/mlp.algorithm;
+  bin/mlatraining -p --in $data_path/corpus.sample --frac $fraction --alg $data_path/mlp/mlp.algorithm;
 
   # resynthesis with predicted mlp targets (training and test)
   $praat --run $script $resynth $fmin $fmax $smean $shift $order $data_path/mlp/corpus/ $data_path/mlp/training.target $mmin $mmax $bmin $bmax $lmin $lmax $store $data_path/mlp/training/;
@@ -157,19 +158,8 @@ echo "    offset [$bmin,$bmax] st"
 echo "    strength [$lmin,$lmax] 1/s"
 echo "    timeshift: $shift s"
 echo "    order: $order"
+echo "    fraction: $fraction"
 echo ""
-
-fmin="100"
-fmax="500"
-smean="232.86"
-mmin="-50"
-mmax="50"
-bmin="80"
-bmax="110"
-lmin="10"
-lmax="80"
-order="5"
-shift="0"
 
 ##### qta search
 if [ $doQtaSearch = 1 ]

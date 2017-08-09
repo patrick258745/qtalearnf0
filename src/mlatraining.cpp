@@ -23,6 +23,7 @@ int main(int argc, char* argv[])
 		parser.set_group_name("File Options");
 		parser.add_option("in","Specify sample input files.",1);
 		parser.add_option("alg","Specify algorithm file (xml).",1);
+		parser.add_option("frac","Specify fraction of training data.",1);
 
 		// parse command line
 		parser.parse(argc,argv);
@@ -35,6 +36,7 @@ int main(int argc, char* argv[])
 		const char* t_ops[] = {"t", "c", "m", "p"};
 		const char* t_sub_ops[] = {"in", "alg"};
 		parser.check_sub_options(t_ops, t_sub_ops);
+		parser.check_option_arg_range("frac", 0.0, 1.0);
 
 		// process command line options
 		if (parser.option("h"))

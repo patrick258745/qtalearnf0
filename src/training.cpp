@@ -345,7 +345,8 @@ void MlAlgorithm::perform_task(const dlib::command_line_parser& parser)
 	}
 	else if (parser.option("p"))
 	{
-		predict();
+		double fraction = get_option(parser,"frac",0.8);
+		predict(fraction);
 	}
 	else if (parser.option("c"))
 	{

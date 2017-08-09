@@ -77,10 +77,9 @@ void KernelRidgeRegression::train()
 	std::cout << "\tgamma=" << 1.0/dlib::compute_mean_squared_distance(m_data.samples) << std::endl;
 }
 
-void KernelRidgeRegression::predict()
+void KernelRidgeRegression::predict(double fraction = 0.8)
 {
 	// initialize
-	double fraction (0.90);
 	training_s trainingData, testData;
 	get_separated_data(trainingData, testData, fraction);
 

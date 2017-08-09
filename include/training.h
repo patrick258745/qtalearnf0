@@ -76,7 +76,7 @@ public:
 
 protected:
 	virtual void train()=0;
-	virtual void predict()=0;
+	virtual void predict(double fraction)=0;
 	virtual void cross_validation()=0;
 	virtual void model_selection()=0;
 
@@ -101,7 +101,7 @@ public:
 
 	// public member functions
 	void train 				() override;
-	void predict 			() override;
+	void predict 			(double fraction) override;
 	void cross_validation 	() override;
 	void model_selection 	() override{};
 
@@ -119,7 +119,7 @@ public:
 
 	// public member functions
 	void train 				() override;
-	void predict 			() override;
+	void predict 			(double fraction) override;
 	void cross_validation 	() override;
 	void model_selection 	() override{};
 
@@ -137,7 +137,7 @@ public:
 
 	// public member functions
 	void train 				() override;
-	void predict 			() override;
+	void predict 			(double fraction) override;
 	void cross_validation 	() override;
 	void model_selection 	() override;
 
@@ -169,7 +169,7 @@ public:
 
 	// public member functions
 	void train () override;
-	void predict () override;
+	void predict (double fraction) override;
 	void cross_validation () override;
 	void model_selection () override;
 
