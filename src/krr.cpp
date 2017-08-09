@@ -73,7 +73,8 @@ void KernelRidgeRegression::train()
 	dlib::serialize(m_params.at("strength_model")) << model.strengthPredictor;
 	dlib::serialize(m_params.at("duration_model")) << model.durationPredictor;
 
-	std::cout << "[train] training finished successfully" << std::endl;
+	std::cout << "[train] training finished successfully. Following parameter used:" << std::endl;
+	std::cout << "\tgamma=" << 1.0/dlib::compute_mean_squared_distance(m_data.samples) << std::endl;
 }
 
 void KernelRidgeRegression::predict()

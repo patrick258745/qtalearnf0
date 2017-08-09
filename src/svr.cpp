@@ -180,7 +180,12 @@ void SupportVectorRegression::train()
 	dlib::serialize(m_params.at("strength_model")) << model.strengthPredictor;
 	dlib::serialize(m_params.at("duration_model")) << model.durationPredictor;
 
-	std::cout << "[train] training finished successfully" << std::endl;
+	std::cout << "[train] training finished successfully. Following parameters used:" << std::endl;
+	std::cout << "\tslope:\t\tC=" << get_value("slope_regularization") << "\t\tgamma=" << get_value("slope_gamma") << "\t\tintensity=" << get_value("slope_intensity") << std::endl;
+	std::cout << "\toffset:\t\tC=" << get_value("offset_regularization") << "\t\tgamma=" << get_value("offset_gamma") << "\t\tintensity=" << get_value("offset_intensity") << std::endl;
+	std::cout << "\tstrength:\tC=" << get_value("strength_regularization") << "\t\tgamma=" << get_value("strength_gamma") << "\t\tintensity=" << get_value("strength_intensity") << std::endl;
+	std::cout << "\tduration:\tC=" << get_value("duration_regularization") << "\t\tgamma=" << get_value("duration_gamma") << "\t\tintensity=" << get_value("duration_intensity") << std::endl;
+
 }
 
 void SupportVectorRegression::predict()

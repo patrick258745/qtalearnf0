@@ -1,6 +1,6 @@
 ##### computing tasks #####
-doQtaSearch="0"
-doModelSelection="1"
+doQtaSearch="1"
+doModelSelection="0"
 doPrediction="1"
 
 ##### user data #####
@@ -15,7 +15,7 @@ lmin="10"
 lmax="80"
 order="5"
 shift="0"
-store="0"
+store="1"
 
 ##### parameters #####
 data_path="$( cd "$( dirname "$0" )" && pwd )"

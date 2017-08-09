@@ -238,7 +238,9 @@ void MultiLayerPerceptron::train()
 	// save the trained model to file
 	dlib::serialize(m_params.at("model")) << net;
 
-	std::cout << "[train] training finished successfully" << std::endl;
+	std::cout << "[train] training finished successfully. Following Parameters used:" << std::endl;
+	std::cout << "\tL1=" << params.num1layer << "\t\tL2=" << params.num2layer << "\t\talpha=" << params.alpha << "\t\tmomentum=" << params.momentum << std::endl;
+
 }
 
 void MultiLayerPerceptron::predict()

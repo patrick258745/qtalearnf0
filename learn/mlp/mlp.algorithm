@@ -1,9 +1,9 @@
 <algorithm
-	L1_number="25"
+	L1_number="11"
 	L2_number="0"
 	alpha="1.58489"
 	model="learn/mlp/qtaparam.model"
-	momentum="0.107685"
+	momentum="0.001"
 	output_test="learn/mlp/test.target"
 	output_training="learn/mlp/training.target"
 	type="mlp"
