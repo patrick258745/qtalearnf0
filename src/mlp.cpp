@@ -167,7 +167,7 @@ mlp_params MultiLayerPerceptron::select_model(const training_s& data)
 	std::vector<unsigned> dimensions;
 	lowerBound = 0, 0, 1e-3, 01e-3;
 	upperBound = 64, 64, 1e1, 1e1;
-	dimensions = {10,10,10,10};
+	dimensions = {10 ,10,10,10};
 
 	// store optimal parameters
 	mlp_params optParams;
