@@ -5,7 +5,7 @@
 double MlpCvError::operator() (const la_col_vec& arg) const
 {
 	mlp_params params ({(unsigned)arg(0), (unsigned)arg(1), arg(2), arg(3)});
-	double mse = MultiLayerPerceptron::cross_validate_regression_network(params, m_data, 5);
+	double mse = MultiLayerPerceptron::cross_validate_regression_network(params, m_data, 10);
 	return mse;
 }
 
@@ -167,7 +167,7 @@ mlp_params MultiLayerPerceptron::select_model(const training_s& data)
 	std::vector<unsigned> dimensions;
 	lowerBound = 0, 0, 1e-3, 01e-3;
 	upperBound = 64, 64, 1e1, 1e1;
-	dimensions = {15,10,10,10};
+	dimensions = {10,10,10,10};
 
 	// store optimal parameters
 	mlp_params optParams;
@@ -184,7 +184,7 @@ mlp_params MultiLayerPerceptron::select_model(const training_s& data)
 	{
         // do cross validation and then check if the results are the best
 		mlp_params params ({(unsigned)grid(0, col),(unsigned)grid(1, col),grid(2, col),grid(3, col)});
-    	double tmpMSE = cross_validate_regression_network(params, data, 5);
+    	double tmpMSE = cross_validate_regression_network(params, data, 10);
 
     	// save the best results
 		dlib::auto_mutex lock(mu);
@@ -243,7 +243,7 @@ void MultiLayerPerceptron::train()
 
 }
 
-void MultiLayerPerceptron::predict(double fraction = 0.8)
+void MultiLayerPerceptron::predict(double fraction)
 {
 	// initialize
 	unsigned N (m_data.samples.size());
@@ -276,7 +276,7 @@ void MultiLayerPerceptron::cross_validation()
 	mlp_params params = get_default_params();
 
 	std::cout << "[cross_validation] cross-validation finished successfully" << std::endl;
-	std::cout << "\tCV-error: " << cross_validate_regression_network(params, m_data, 5);
+	std::cout << "\tCV-error: " << cross_validate_regression_network(params, m_data, 10);
 }
 
 void MultiLayerPerceptron::model_selection()

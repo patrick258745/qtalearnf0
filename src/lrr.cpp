@@ -70,7 +70,7 @@ void LinearRidgeRegression::train()
 	std::cout << "[train] training finished successfully" << std::endl;
 }
 
-void LinearRidgeRegression::predict(double fraction = 0.8)
+void LinearRidgeRegression::predict(double fraction)
 {
 	// initialize
 	training_s trainingData, testData;
@@ -99,8 +99,8 @@ void LinearRidgeRegression::cross_validation()
 	std::cout << "[cross_validation] cross-validation finished successfully" << std::endl;
 
 	// do cross validation and print results
-	std::cout << "\tCV-error (slope):    " << dlib::trans(cross_validate_regression_trainer(slopeTrainer, m_data.samples, m_data.slopes,5));
-	std::cout << "\tCV-error (offset):   " << dlib::trans(cross_validate_regression_trainer(offsetTrainer, m_data.samples, m_data.offsets,5));
-	std::cout << "\tCV-error (strength): " << dlib::trans(cross_validate_regression_trainer(strengthTrainer, m_data.samples, m_data.strengths,5));
-	std::cout << "\tCV-error (duration): " << dlib::trans(cross_validate_regression_trainer(durationTrainer, m_data.samples, m_data.durations,5));
+	std::cout << "\tCV-error (slope):    " << dlib::trans(cross_validate_regression_trainer(slopeTrainer, m_data.samples, m_data.slopes,10));
+	std::cout << "\tCV-error (offset):   " << dlib::trans(cross_validate_regression_trainer(offsetTrainer, m_data.samples, m_data.offsets,10));
+	std::cout << "\tCV-error (strength): " << dlib::trans(cross_validate_regression_trainer(strengthTrainer, m_data.samples, m_data.strengths,10));
+	std::cout << "\tCV-error (duration): " << dlib::trans(cross_validate_regression_trainer(durationTrainer, m_data.samples, m_data.durations,10));
 }

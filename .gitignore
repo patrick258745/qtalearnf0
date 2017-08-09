@@ -46,6 +46,7 @@ tools/qtaf0/praat
 *.sample
 *.stat
 *.algorithm
+*.sh
 
 # HPC
 .out

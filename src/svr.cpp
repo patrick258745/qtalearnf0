@@ -6,7 +6,7 @@ double SvrCvError::operator() (const la_col_vec& logArg) const
 {
 	la_col_vec arg = exp(logArg);
 	svr_params params ({arg(0), arg(1), arg(2)});
-	dlib::matrix<double,1,2> tmp = dlib::cross_validate_regression_trainer(SupportVectorRegression::build_trainer(params), m_samples, m_targets, 5);
+	dlib::matrix<double,1,2> tmp = dlib::cross_validate_regression_trainer(SupportVectorRegression::build_trainer(params), m_samples, m_targets, 10);
 
 	return tmp(0);
 }
@@ -127,7 +127,7 @@ svr_params SupportVectorRegression::select_model(const sample_v& samples, const 
 	{
         // do cross validation and then check if the results are the best
 		svr_params params ({grid(0, col),grid(1, col),grid(2, col)});
-    	dlib::matrix<double,1,2> tmp = dlib::cross_validate_regression_trainer(build_trainer(params), samples, targets, 5);
+    	dlib::matrix<double,1,2> tmp = dlib::cross_validate_regression_trainer(build_trainer(params), samples, targets, 10);
         double tmpMSE = tmp(0);
 
         // save the best results
@@ -189,7 +189,7 @@ void SupportVectorRegression::train()
 	std::cout << "[train] training finished successfully" << std::endl;
 }
 
-void SupportVectorRegression::predict(double fraction = 0.8)
+void SupportVectorRegression::predict(double fraction)
 {
 	// initialize
 	training_s trainingData, testData;
@@ -218,10 +218,10 @@ void SupportVectorRegression::cross_validation()
 	std::cout << "[cross_validation] cross-validation finished successfully" << std::endl;
 
 	// do cross validation and print results
-	std::cout << "\tCV-error (slope):    " << dlib::trans(cross_validate_regression_trainer(slopeTrainer, m_data.samples, m_data.slopes,5));
-	std::cout << "\tCV-error (offset):   " << dlib::trans(cross_validate_regression_trainer(offsetTrainer, m_data.samples, m_data.offsets,5));
-	std::cout << "\tCV-error (strength): " << dlib::trans(cross_validate_regression_trainer(strengthTrainer, m_data.samples, m_data.strengths,5));
-	std::cout << "\tCV-error (duration): " << dlib::trans(cross_validate_regression_trainer(durationTrainer, m_data.samples, m_data.durations,5));
+	std::cout << "\tCV-error (slope):    " << dlib::trans(cross_validate_regression_trainer(slopeTrainer, m_data.samples, m_data.slopes,10));
+	std::cout << "\tCV-error (offset):   " << dlib::trans(cross_validate_regression_trainer(offsetTrainer, m_data.samples, m_data.offsets,10));
+	std::cout << "\tCV-error (strength): " << dlib::trans(cross_validate_regression_trainer(strengthTrainer, m_data.samples, m_data.strengths,10));
+	std::cout << "\tCV-error (duration): " << dlib::trans(cross_validate_regression_trainer(durationTrainer, m_data.samples, m_data.durations,10));
 }
 
 void SupportVectorRegression::model_selection()
