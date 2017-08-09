@@ -22,6 +22,7 @@ form quantitativeTargetApproximation
 		real strength_range_min_(1/st) 1
 		real strength_range_max_(1/st) 80
 	comment F0 resynthesis options:
+		boolean store 1
 		word output_directory ../../test/qta/
 endform
 
@@ -153,12 +154,19 @@ for current_file from 1 to numberOfFiles
 	
 			##### create output directory
 			createDirectory: "'output_directory$'"
-			
-			##### create resynthesized audio file
-			call qtaResynthesis
-			
-			##### create plot
-			call generatePlot
+	
+			if store				
+				##### create resynthesized audio file
+				call qtaResynthesis
+				
+				##### create plot
+				call generatePlot
+			endif
+				
+			##### clean files
+			filedelete 'corpus_directory$''name$'.origf0
+			filedelete 'corpus_directory$''name$'.qtaf0
+			filedelete 'corpus_directory$''name$'.target
 			
 			wCnt = wCnt+1
 		endif
@@ -533,7 +541,4 @@ procedure generatePlot
 	
 	##### clean
 	filedelete 'corpus_directory$''name$'.plot
-	filedelete 'corpus_directory$''name$'.origf0
-	filedelete 'corpus_directory$''name$'.qtaf0
-	filedelete 'corpus_directory$''name$'.target
 endproc

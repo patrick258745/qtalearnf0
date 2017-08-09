@@ -1,7 +1,7 @@
 ##### computing tasks #####
-doQtaSearch="1"
-doModelSelection="0"
-doPrediction="0"
+doQtaSearch="0"
+doModelSelection="1"
+doPrediction="1"
 
 ##### user data #####
 fmin="100"
@@ -15,6 +15,7 @@ lmin="10"
 lmax="80"
 order="5"
 shift="0"
+store="0"
 
 ##### parameters #####
 data_path="$( cd "$( dirname "$0" )" && pwd )"
@@ -28,10 +29,10 @@ function qtaSearch {
   START_TIME=$SECONDS
 
   # search optimal qta parameters
-  $praat --run $script $search $fmin $fmax $smean $shift $order $data_path/corpus/ $data_path/qta/corpus.target $mmin $mmax $bmin $bmax $lmin $lmax $data_path/qta/;
+  $praat --run $script $search $fmin $fmax $smean $shift $order $data_path/qta/corpus/ $data_path/qta/corpus.target $mmin $mmax $bmin $bmax $lmin $lmax $store $data_path/qta/;
 
   # resynthesis with optimal qta parameters
-  $praat --run $script $resynth $fmin $fmax $smean $shift $order $data_path/corpus/ $data_path/qta/corpus.target $mmin $mmax $bmin $bmax $lmin $lmax $data_path/qta/;
+  $praat --run $script $resynth $fmin $fmax $smean $shift $order $data_path/qta/corpus/ $data_path/qta/corpus.target $mmin $mmax $bmin $bmax $lmin $lmax $store $data_path/qta/;
 
   # calculate statistics
   bin/qtatools -s --in $data_path/qta/corpus.target --out $data_path/qta/corpus.stat --dir $data_path/qta/
@@ -52,8 +53,8 @@ function lrrPredict {
   bin/mlatraining -p --in $data_path/corpus.sample --alg $data_path/lrr/lrr.algorithm;
 
   # resynthesis with predicted lrr targets (training and test)
-  $praat --run $script $resynth $fmin $fmax $smean $shift $order $data_path/corpus/ $data_path/lrr/training.target $mmin $mmax $bmin $bmax $lmin $lmax $data_path/lrr/training/;
-  $praat --run $script $resynth $fmin $fmax $smean $shift $order $data_path/corpus/ $data_path/lrr/test.target $mmin $mmax $bmin $bmax $lmin $lmax $data_path/lrr/test/;
+  $praat --run $script $resynth $fmin $fmax $smean $shift $order $data_path/lrr/corpus/ $data_path/lrr/training.target $mmin $mmax $bmin $bmax $lmin $lmax $store $data_path/lrr/training/;
+  $praat --run $script $resynth $fmin $fmax $smean $shift $order $data_path/lrr/corpus/ $data_path/lrr/test.target $mmin $mmax $bmin $bmax $lmin $lmax $store $data_path/lrr/test/;
 
   # calculate statistics (training and test)
   bin/qtatools -s --in $data_path/lrr/training.target --out $data_path/lrr/training.stat --dir $data_path/lrr/training/;
@@ -72,8 +73,8 @@ function krrPredict {
   bin/mlatraining -p --in $data_path/corpus.sample --alg $data_path/krr/krr.algorithm;
 
   # resynthesis with predicted krr targets (training and test)
-  $praat --run $script $resynth $fmin $fmax $smean $shift $order $data_path/corpus/ $data_path/krr/training.target $mmin $mmax $bmin $bmax $lmin $lmax $data_path/krr/training/;
-  $praat --run $script $resynth $fmin $fmax $smean $shift $order $data_path/corpus/ $data_path/krr/test.target $mmin $mmax $bmin $bmax $lmin $lmax $data_path/krr/test/;
+  $praat --run $script $resynth $fmin $fmax $smean $shift $order $data_path/krr/corpus/ $data_path/krr/training.target $mmin $mmax $bmin $bmax $lmin $lmax $store $data_path/krr/training/;
+  $praat --run $script $resynth $fmin $fmax $smean $shift $order $data_path/krr/corpus/ $data_path/krr/test.target $mmin $mmax $bmin $bmax $lmin $lmax $store $data_path/krr/test/;
 
   # calculate statistics (training and test)
   bin/qtatools -s --in $data_path/krr/training.target --out $data_path/krr/training.stat --dir $data_path/krr/training/;
@@ -101,8 +102,8 @@ function svrPredict {
   bin/mlatraining -p --in $data_path/corpus.sample --alg $data_path/svr/svr.algorithm;
 
   # resynthesis with predicted svr targets (training and test)
-  $praat --run $script $resynth $fmin $fmax $smean $shift $order $data_path/corpus/ $data_path/svr/training.target $mmin $mmax $bmin $bmax $lmin $lmax $data_path/svr/training/;
-  $praat --run $script $resynth $fmin $fmax $smean $shift $order $data_path/corpus/ $data_path/svr/test.target $mmin $mmax $bmin $bmax $lmin $lmax $data_path/svr/test/;
+  $praat --run $script $resynth $fmin $fmax $smean $shift $order $data_path/svr/corpus/ $data_path/svr/training.target $mmin $mmax $bmin $bmax $lmin $lmax $store $data_path/svr/training/;
+  $praat --run $script $resynth $fmin $fmax $smean $shift $order $data_path/svr/corpus/ $data_path/svr/test.target $mmin $mmax $bmin $bmax $lmin $lmax $store $data_path/svr/test/;
 
   # calculate statistics (training and test)
   bin/qtatools -s --in $data_path/svr/training.target --out $data_path/svr/training.stat --dir $data_path/svr/training/;
@@ -130,8 +131,8 @@ function mlpPredict {
   bin/mlatraining -p --in $data_path/corpus.sample --alg $data_path/mlp/mlp.algorithm;
 
   # resynthesis with predicted mlp targets (training and test)
-  $praat --run $script $resynth $fmin $fmax $smean $shift $order $data_path/corpus/ $data_path/mlp/training.target $mmin $mmax $bmin $bmax $lmin $lmax $data_path/mlp/training/;
-  $praat --run $script $resynth $fmin $fmax $smean $shift $order $data_path/corpus/ $data_path/mlp/test.target $mmin $mmax $bmin $bmax $lmin $lmax $data_path/mlp/test/;
+  $praat --run $script $resynth $fmin $fmax $smean $shift $order $data_path/mlp/corpus/ $data_path/mlp/training.target $mmin $mmax $bmin $bmax $lmin $lmax $store $data_path/mlp/training/;
+  $praat --run $script $resynth $fmin $fmax $smean $shift $order $data_path/mlp/corpus/ $data_path/mlp/test.target $mmin $mmax $bmin $bmax $lmin $lmax $store $data_path/mlp/test/;
 
   # calculate statistics (training and test)
   bin/qtatools -s --in $data_path/mlp/training.target --out $data_path/mlp/training.stat --dir $data_path/mlp/training/;
@@ -189,16 +190,14 @@ fi
 ##### prediction
 if [ $doPrediction = 1 ]
 then
-  lrrPredict;
-  echo "";
-  krrPredict;
-  echo "";
-  svrPredict;
-  echo "";
+  lrrPredict &
+  krrPredict &
+  svrPredict &
   mlpPredict;
+  wait;
   echo "";
 fi
 
 ELAPSED_TIME_ALL=$(($SECONDS - $START_TIME_ALL))
-echo ">>> $(($ELAPSED_TIME_ALL/60)) min $(($ELAPSED_TIME_ALL%60)) sec <<<"
+echo ">>>>>> $(($ELAPSED_TIME_ALL/60)) min $(($ELAPSED_TIME_ALL%60)) sec <<<<<<"
 

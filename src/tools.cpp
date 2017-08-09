@@ -129,7 +129,7 @@ void PlotFile::generate_plot_file (const std::string& outputFile)
 
 	// write image file information to plot file
 	m_file << "##### output file options #####" << std::endl;
-	m_file << "set terminal png large size 1536,512" << std::endl;
+	m_file << "set terminal pngcairo size 1536,512 enhanced font 'Verdana,14'" << std::endl;
 	m_file << "set output '" << outputFile <<"'" << std::endl;
 
 	// write general plot settings to plot file
@@ -147,7 +147,7 @@ void PlotFile::generate_plot_file (const std::string& outputFile)
 	m_file << std::endl << "##### plot syllable bounds #####" << std::endl;
 	for (unsigned int i=0; i<m_data.bound.size(); ++i)
 	{
-		m_file << "set arrow from " << std::to_string(m_data.bound[i]) << ",STATS_min_y-2 to " << std::to_string(m_data.bound[i]) << ",STATS_max_y+2 nohead lt -1" << std::endl;
+		m_file << "set arrow from " << std::to_string(m_data.bound[i]) << ",STATS_min_y-2 to " << std::to_string(m_data.bound[i]) << ",STATS_max_y+2 nohead dt 3 lt -1" << std::endl;
 	}
 
 	// write target information
@@ -159,7 +159,7 @@ void PlotFile::generate_plot_file (const std::string& outputFile)
 
 		double f1 = m_data.offset[i];
 		double f2 = m_data.offset[i] + m_data.slope[i]*(m_data.bound[i+1] - m_data.bound[i]);
-		m_file << "set arrow from " << std::to_string(t1) << "," << std::to_string(f1) << " to " << std::to_string(t2) << "," << std::to_string(f2) << " nohead" << std::endl;
+		m_file << "set arrow from " << std::to_string(t1) << "," << std::to_string(f1) << " to " << std::to_string(t2) << "," << std::to_string(f2) << " nohead dt 4" << std::endl;
 	}
 
 	// write f0 curve information

@@ -50,6 +50,15 @@ clean:
 
 reset:
 	@echo " Cleaning data...";
+	@echo " $(RM) -r test/qta/ "; $(RM) -r test/qta/audios/ test/qta/plots/ test/qta/corpus-* test/qta/corpus.*;
+	@echo " $(RM) -r test/lrr/ "; $(RM) -r test/lrr/test* test/lrr/training*;
+	@echo " $(RM) -r test/krr/ "; $(RM) -r test/krr/test* test/krr/training*;
+	@echo " $(RM) -r test/svr/ "; $(RM) -r test/svr/test* test/svr/training*;
+	@echo " $(RM) -r test/mlp/ "; $(RM) -r test/mlp/test* test/mlp/training*;
+
+reset2:
+	@echo " Cleaning data...";
+	@echo " $(RM) -r learn/qta/ "; $(RM) -r learn/qta/audios/ learn/qta/plots/ learn/qta/corpus-* learn/qta/corpus.*;
 	@echo " $(RM) -r learn/lrr/ "; $(RM) -r learn/lrr/test* learn/lrr/training*;
 	@echo " $(RM) -r learn/krr/ "; $(RM) -r learn/krr/test* learn/krr/training*;
 	@echo " $(RM) -r learn/svr/ "; $(RM) -r learn/svr/test* learn/svr/training*;
@@ -70,4 +79,4 @@ job: all
 	@echo " Starting new computing job...";
 	sbatch job.batch
 
-.PHONY: clean test learn reset praat job
+.PHONY: clean test learn reset reset2 praat job
