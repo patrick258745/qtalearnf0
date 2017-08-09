@@ -73,9 +73,6 @@ learn: all
 	bash learn/learn.sh
 
 job: all
-	@echo " Loading required modules...";
-	module load gcc/6.2.0
-	module load gnuplot/4.6.1
 	@echo " Starting new computing job...";
 	sbatch job.batch
 
