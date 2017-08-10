@@ -44,15 +44,11 @@ svr_model SupportVectorRegression::get_trained_model (const training_s& data) co
 	#ifdef DEBUG_MSG
 	unsigned N (data.samples.size());
 	std::cout << "[get_trained_model] trained SVR successfully" << std::endl;
-	std::cout << "\tsupport vectors (slope): " << model.slopePredictor.basis_vectors.size() << "/" << N << std::endl;
-	std::cout << "\tsupport vectors (offset): " << model.offsetPredictor.basis_vectors.size() << "/" << N << std::endl;
-	std::cout << "\tsupport vectors (strength): " << model.strengthPredictor.basis_vectors.size() << "/" << N << std::endl;
-	std::cout << "\tsupport vectors (duration): " << model.durationPredictor.basis_vectors.size() << "/" << N << std::endl;
 	std::cout << "\tFollowing parameters used:" << std::endl;
-	std::cout << "\tslope:\t\tC=" << get_value("slope_regularization") << "\t\tgamma=" << get_value("slope_gamma") << "\t\tintensity=" << get_value("slope_intensity") << std::endl;
-	std::cout << "\toffset:\t\tC=" << get_value("offset_regularization") << "\t\tgamma=" << get_value("offset_gamma") << "\t\tintensity=" << get_value("offset_intensity") << std::endl;
-	std::cout << "\tstrength:\tC=" << get_value("strength_regularization") << "\t\tgamma=" << get_value("strength_gamma") << "\t\tintensity=" << get_value("strength_intensity") << std::endl;
-	std::cout << "\tduration:\tC=" << get_value("duration_regularization") << "\t\tgamma=" << get_value("duration_gamma") << "\t\tintensity=" << get_value("duration_intensity") << std::endl;
+	std::cout << "\tslope:\t\tC=" << get_value("slope_regularization") << "\t\tgamma=" << get_value("slope_gamma") << "\t\tintensity=" << get_value("slope_intensity") << "\t\t#SVs=" << model.slopePredictor.basis_vectors.size() << "/" << N << std::endl;
+	std::cout << "\toffset:\t\tC=" << get_value("offset_regularization") << "\t\tgamma=" << get_value("offset_gamma") << "\t\tintensity=" << get_value("offset_intensity") << "\t\t#SVs=" << model.offsetPredictor.basis_vectors.size() << "/" << N << std::endl;
+	std::cout << "\tstrength:\tC=" << get_value("strength_regularization") << "\t\tgamma=" << get_value("strength_gamma") << "\t\tintensity=" << get_value("strength_intensity") << "\t\t#SVs=" << model.strengthPredictor.basis_vectors.size() << "/" << N << std::endl;
+	std::cout << "\tduration:\tC=" << get_value("duration_regularization") << "\t\tgamma=" << get_value("duration_gamma") << "\t\tintensity=" << get_value("duration_intensity") << "\t\t#SVs=" << model.durationPredictor.basis_vectors.size() << "/" << N << std::endl;
 	#endif
 
 	return model;

@@ -286,7 +286,7 @@ void MlAlgorithm::randomize_data (target_v& targets, sample_v& samples)
 	srand (time(NULL));
 
 	unsigned N (samples.size());
-	for (unsigned i=0; i<N; ++i)
+	for (unsigned i=0; i<10*N; ++i)
 	{
 		int randPos (rand()%(N-1)+1);
 		std::string label (targets[randPos].label);
