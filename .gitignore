@@ -45,7 +45,7 @@ tools/qtaf0/praat
 *.target
 *.sample
 *.stat
-#*.algorithm
+*.algorithm
 *.sh
 
 
