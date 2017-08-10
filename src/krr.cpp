@@ -24,7 +24,7 @@ krr_model KernelRidgeRegression::get_trained_model (const training_s& data) cons
 	model.durationPredictor = durationTrainer.train(data.samples, m_data.durations);
 
 	#ifdef DEBUG_MSG
-	std::cout << "[get_trained_model] trained SVR successfully" << std::endl;
+	std::cout << "[get_trained_model] trained KRR successfully" << std::endl;
 	std::cout << "\tFollowing parameters used:" << std::endl;
 	std::cout << "\tall models:\t\tgamma=" << gamma << std::endl;
 	#endif
