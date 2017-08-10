@@ -15,7 +15,7 @@ lmin="10"
 lmax="80"
 order="5"
 shift="0"
-store="1"
+store="0"
 folds="5"
 
 ##### parameters #####
