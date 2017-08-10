@@ -139,6 +139,16 @@ struct svr_params
 	double intensity;
 };
 
+typedef dlib::mlp::kernel_1a_c mlp_model_t;
+
+struct mlp_model
+{
+	mlp_model_t& slopePredictor;
+	mlp_model_t& offsetPredictor;
+	mlp_model_t& strengthPredictor;
+	mlp_model_t& durationPredictor;
+};
+
 struct mlp_params
 {
 	unsigned num1layer;
@@ -146,8 +156,6 @@ struct mlp_params
 	double alpha;
 	double momentum;
 };
-
-typedef dlib::mlp::kernel_1a_c mlp_kernel_t;
 
 /********** qtatools types **********/
 struct plot_data_s

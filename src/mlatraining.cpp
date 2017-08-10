@@ -18,25 +18,24 @@ int main(int argc, char* argv[])
 		parser.set_group_name("Task Options");
 		parser.add_option("t","Perform training on a set of samples.");
 		parser.add_option("p","Perform test/prediction on a set of samples.");
-		parser.add_option("c","Perform cross-validation on a set of samples.");
 		parser.add_option("m","Perform model-selection on a set of samples.");
 		parser.set_group_name("File Options");
 		parser.add_option("in","Specify sample input files.",1);
 		parser.add_option("alg","Specify algorithm file (xml).",1);
-		parser.add_option("frac","Specify fraction of training data.",1);
+		parser.add_option("K","Specify number of cross-validation folds.",1);
 
 		// parse command line
 		parser.parse(argc,argv);
 
 		// check command line options
-		const char* one_time_opts[] = {"h", "t", "p", "c", "m", "in", "alg"};
+		const char* one_time_opts[] = {"h", "t", "p", "K", "m", "in", "alg"};
 		parser.check_one_time_options(one_time_opts);
-		const char* incompatible[] = {"t", "p", "c", "m"};
+		const char* incompatible[] = {"t", "p", "m"};
 		parser.check_incompatible_options(incompatible);
-		const char* t_ops[] = {"t", "c", "m", "p"};
+		const char* t_ops[] = {"t", "m", "p"};
 		const char* t_sub_ops[] = {"in", "alg"};
 		parser.check_sub_options(t_ops, t_sub_ops);
-		parser.check_option_arg_range("frac", 0.0, 1.0);
+		parser.check_option_arg_range("K", 0, 10000);
 
 		// process command line options
 		if (parser.option("h"))

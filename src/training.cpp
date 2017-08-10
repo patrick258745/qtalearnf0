@@ -122,20 +122,6 @@ scaler_s DataScaler::min_max_scale(std::vector<double>& data) const
 	return scale;
 }
 
-void DataScaler::min_max_rescale(double& data, const scaler_s& scale) const
-{
-	data = ((data - m_lower)/(m_upper-m_lower))*(scale.max-scale.min) + scale.min;
-}
-
-void DataScaler::min_max_rescale(std::vector<double>& data, const scaler_s& scale) const
-{
-	// min-max rescaling
-	for (double& d : data)
-	{
-		d = ((d - m_lower)/(m_upper-m_lower))*(scale.max-scale.min) + scale.min;
-	}
-}
-
 void DataScaler::min_max_scale(sample_v& samples)
 {
 	std::vector<dlib::running_stats<double>> stats (NUMFEATSYL);
@@ -176,12 +162,9 @@ void DataScaler::min_max_scale(training_s& trainingData)
 	m_durationScale = min_max_scale(trainingData.durations);
 }
 
-void DataScaler::min_max_rescale(training_s& trainingData)
+void DataScaler::min_max_rescale(double& data, const scaler_s& scale) const
 {
-	min_max_rescale(trainingData.slopes, m_slopeScale);
-	min_max_rescale(trainingData.offsets, m_offsetScale);
-	min_max_rescale(trainingData.strengths, m_strengthScale);
-	min_max_rescale(trainingData.durations, m_durationScale);
+	data = ((data - m_lower)/(m_upper-m_lower))*(scale.max-scale.min) + scale.min;
 }
 
 void DataScaler::min_max_rescale(target_v& data)
@@ -210,64 +193,72 @@ MlAlgorithm::MlAlgorithm (const sample_v& samples, const target_v& targets, cons
 	// save data to training format
 	for (pitch_target_s t : m_targets)
 	{
+		m_data.labels.push_back(t.label);
 		m_data.slopes.push_back(t.m);
 		m_data.offsets.push_back(t.b);
 		m_data.strengths.push_back(t.l);
 		m_data.durations.push_back(t.d);
-		m_data.labels.push_back(t.label);
 	}
 
 	// normalize training data
-	//m_scaler.min_max_scale(m_data.samples);
 	m_scaler.min_max_scale(m_data);
 }
 
-void MlAlgorithm::get_separated_data(training_s& trainingData, training_s& testData, const double& fraction) const
+void MlAlgorithm::push_back_targets(target_v& targetsPredicted, training_s& dataTest)
 {
-	// clear container
-	trainingData.samples.clear();
-	trainingData.slopes.clear();
-	trainingData.strengths.clear();
-	trainingData.offsets.clear();
-	trainingData.durations.clear();
-	trainingData.labels.clear();
-
-	testData.samples.clear();
-	testData.slopes.clear();
-	testData.strengths.clear();
-	testData.offsets.clear();
-	testData.durations.clear();
-	testData.labels.clear();
-
-	// determine separation
-	unsigned N (m_data.samples.size());
-	unsigned numTrain (fraction * N);
-	std::string label (m_data.labels[numTrain]);
-	while(numTrain+1 < N && m_data.labels[numTrain+1] == label)
+	// convert training_s into target_v
+	for (unsigned n=0; n<dataTest.labels.size(); ++n)
 	{
-		numTrain++;
+		pitch_target_s t;
+		t.label = dataTest.labels[n];
+		t.m = dataTest.slopes[n];
+		t.b = dataTest.offsets[n];
+		t.l = dataTest.strengths[n];
+		t.d = dataTest.durations[n];
+		targetsPredicted.push_back(t);
 	}
+}
 
-	// separate data
-	for (unsigned i=0; i<=numTrain; ++i)
+void MlAlgorithm::save_target_file(const target_v& targetsPredicted, const std::string& targetFile)
+{
+	// create output file and write results to it
+	std::ofstream fout;
+	fout.open (targetFile);
+	fout << std::fixed << std::setprecision(6);
+	fout << "name,slope,offset,strength,duration" << std::endl;
+	for (pitch_target_s t : targetsPredicted)
 	{
-		trainingData.samples.push_back(m_data.samples[i]);
-		trainingData.slopes.push_back(m_data.slopes[i]);
-		trainingData.offsets.push_back(m_data.offsets[i]);
-		trainingData.strengths.push_back(m_data.strengths[i]);
-		trainingData.durations.push_back(m_data.durations[i]);
-		trainingData.labels.push_back(m_data.labels[i]);
+		fout << t.label << "," << t.m << "," << t.b << "," << t.l << "," << t.d << std::endl;
 	}
+	fout.close();
+}
 
-	for (unsigned i=numTrain+1; i<N; ++i)
-	{
-		testData.samples.push_back(m_data.samples[i]);
-		testData.slopes.push_back(m_data.slopes[i]);
-		testData.offsets.push_back(m_data.offsets[i]);
-		testData.strengths.push_back(m_data.strengths[i]);
-		testData.durations.push_back(m_data.durations[i]);
-		testData.labels.push_back(m_data.labels[i]);
-	}
+void MlAlgorithm::split_data(const training_s& data, training_s& dataTraining, training_s& dataTest, const unsigned& start, const unsigned& end)
+{
+	// initialize
+	dataTraining = data;
+	dataTest.samples.clear();
+	dataTest.slopes.clear();
+	dataTest.strengths.clear();
+	dataTest.offsets.clear();
+	dataTest.durations.clear();
+	dataTest.labels.clear();
+
+	// get data for test
+	dataTest.labels.insert (dataTest.labels.begin(),dataTraining.labels.begin()+start, dataTraining.labels.begin()+end);
+	dataTest.samples.insert (dataTest.samples.begin(),dataTraining.samples.begin()+start, dataTraining.samples.begin()+end);
+	dataTest.slopes.insert (dataTest.slopes.begin(),dataTraining.slopes.begin()+start, dataTraining.slopes.begin()+end);
+	dataTest.offsets.insert (dataTest.offsets.begin(),dataTraining.offsets.begin()+start, dataTraining.offsets.begin()+end);
+	dataTest.strengths.insert (dataTest.strengths.begin(),dataTraining.strengths.begin()+start, dataTraining.strengths.begin()+end);
+	dataTest.durations.insert (dataTest.durations.begin(),dataTraining.durations.begin()+start, dataTraining.durations.begin()+end);
+
+	// delete from training data
+	dataTraining.labels.erase(dataTraining.labels.begin()+start, dataTraining.labels.begin()+end);
+	dataTraining.samples.erase(dataTraining.samples.begin()+start, dataTraining.samples.begin()+end);
+	dataTraining.slopes.erase(dataTraining.slopes.begin()+start, dataTraining.slopes.begin()+end);
+	dataTraining.offsets.erase(dataTraining.offsets.begin()+start, dataTraining.offsets.begin()+end);
+	dataTraining.strengths.erase(dataTraining.strengths.begin()+start, dataTraining.strengths.begin()+end);
+	dataTraining.durations.erase(dataTraining.durations.begin()+start, dataTraining.durations.begin()+end);
 }
 
 double MlAlgorithm::get_value(const std::string& param) const
@@ -339,18 +330,15 @@ double MlAlgorithm::loss (const double& x, const double& y)
 
 void MlAlgorithm::perform_task(const dlib::command_line_parser& parser)
 {
+	m_folds = get_option(parser,"K",5);
+
 	if (parser.option("t"))
 	{
 		train();
 	}
 	else if (parser.option("p"))
 	{
-		double fraction = get_option(parser,"frac",0.8);
-		predict(fraction);
-	}
-	else if (parser.option("c"))
-	{
-		cross_validation();
+		predict();
 	}
 	else if (parser.option("m"))
 	{

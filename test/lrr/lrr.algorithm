@@ -1,8 +1,7 @@
 <algorithm
 	duration_model="test/lrr/duration.model"
 	offset_model="test/lrr/offset.model"
-	output_test="test/lrr/test.target"
-	output_training="test/lrr/training.target"
+	output_file="test/lrr/lrr.target"
 	slope_model="test/lrr/slope.model"
 	strength_model="test/lrr/strength.model"
 	type="lrr"

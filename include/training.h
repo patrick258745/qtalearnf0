@@ -17,6 +17,8 @@
 #include <time.h>       /* time */
 #include "types.h"
 
+// ********** MLATRAINER **********
+
 class MlaTrainer : public dlib::document_handler{
 public:
 	// constructors
@@ -41,21 +43,21 @@ private:
     virtual void processing_instruction (const unsigned long line_number, const std::string& target, const std::string& data) {};
 };
 
+// ********** DATASCALER **********
+
 class DataScaler {
 public:
 	// constructors
 	DataScaler(const double lower, const double upper) : m_lower(lower), m_upper(upper) {};
 
 	// public members
-	void min_max_scale(sample_v& samples);
 	void min_max_scale(training_s& trainingData);
-	void min_max_rescale(training_s& trainingData);
 	void min_max_rescale(target_v& data);
 
 private:
 	// private member functions
+	void min_max_scale(sample_v& samples);
 	scaler_s min_max_scale(std::vector<double>& data) const;
-	void min_max_rescale(std::vector<double>& data, const scaler_s& scale) const;
 	void min_max_rescale(double& data, const scaler_s& scale) const;
 
 	// data members
@@ -67,6 +69,8 @@ private:
 	scaler_s m_durationScale;
 };
 
+// ********** MLALGORITHM **********
+
 class MlAlgorithm {
 public:
 	// public member functions
@@ -75,23 +79,32 @@ public:
 	void perform_task (const dlib::command_line_parser& parser);
 
 protected:
+	// virtual members
 	virtual void train()=0;
-	virtual void predict(double fraction)=0;
-	virtual void cross_validation()=0;
+	virtual void predict()=0;
 	virtual void model_selection()=0;
 
-	// protected member functions
-	void get_separated_data(training_s& trainingData, training_s& testData, const double& fraction) const;
+	// access parameters from algorithm file
 	void write_algorithm_file(const std::string& algFile) const;
 	double get_value(const std::string& param) const;
-	static void randomize_data(target_v& targets, sample_v& samples);
+
+	// static helper functions
 	static double loss (const double& x, const double& y);
+	static void randomize_data(target_v& targets, sample_v& samples);
+	static void split_data(const training_s& data, training_s& dataTraining, training_s& dataTest, const unsigned& start, const unsigned& end);
+
+	// save predicted target file
+	static void push_back_targets(target_v& targets, training_s& data);
+	static void save_target_file(const target_v& targets, const std::string& targetFile);
 
 	training_s	m_data;
 	algorithm_m m_params;
 	target_v	m_targets;
 	DataScaler 	m_scaler;
+	unsigned 	m_folds;
 };
+
+// ********** LINEARRIDGEREGRESSION **********
 
 class LinearRidgeRegression : public MlAlgorithm {
 public:
@@ -101,15 +114,16 @@ public:
 
 	// public member functions
 	void train 				() override;
-	void predict 			(double fraction) override;
-	void cross_validation 	() override;
+	void predict 			() override;
 	void model_selection 	() override{};
 
 private:
 	lrr_model get_trained_model (const training_s& data) const;
-	void predict_targets(const lrr_model& model, const training_s& data, const std::string& targetFile);
+	void predict_targets(const lrr_model& model, training_s& data) const;
 
 };
+
+// ********** KERNELRIDGEREGRESSION **********
 
 class KernelRidgeRegression : public MlAlgorithm {
 public:
@@ -119,15 +133,16 @@ public:
 
 	// public member functions
 	void train 				() override;
-	void predict 			(double fraction) override;
-	void cross_validation 	() override;
+	void predict 			() override;
 	void model_selection 	() override{};
 
 private:
 	krr_model get_trained_model (const training_s& data) const;
-	void predict_targets(const krr_model& model, const training_s& data, const std::string& targetFile);
+	void predict_targets(const krr_model& model, training_s& data) const;
 
 };
+
+// ********** SUPPORTVECTORREGRESSION **********
 
 class SupportVectorRegression : public MlAlgorithm {
 public:
@@ -136,30 +151,33 @@ public:
 	~SupportVectorRegression() {};
 
 	// public member functions
-	void train 				() override;
-	void predict 			(double fraction) override;
-	void cross_validation 	() override;
-	void model_selection 	() override;
+	void train () override;
+	void predict () override;
+	void model_selection () override;
 
 	// helper
 	static svr_trainer_t build_trainer(const svr_params& params);
-	grid_t get_grid(const la_col_vec& lowerBound, const la_col_vec& upperBound, const std::vector<unsigned>& numPerDim) const;
 
 private:
-	svr_model	get_trained_model (const training_s& data) const;
-	svr_params	select_model (const sample_v& samples, const std::vector<double>& targets) const;
-	void 		predict_targets(const svr_model& model, const training_s& data, const std::string& targetFile);
+	svr_model get_trained_model (const training_s& data) const;
+	void predict_targets(const svr_model& model, training_s& data) const;
+	grid_t get_grid(const la_col_vec& lowerBound, const la_col_vec& upperBound, const std::vector<unsigned>& numPerDim) const;
+	void save_parameters(const svr_params& slope, const svr_params& offset, const svr_params& strength, const svr_params& duration, algorithm_m& params) const;
+	svr_params select_model (const sample_v& samples, const std::vector<double>& targets,  const grid_t& grid, const la_col_vec& lowerBound, const la_col_vec& upperBound) const;
 };
 
 class SvrCvError{
 public:
-	SvrCvError (const sample_v& samples, const std::vector<double>& targets) : m_samples(samples), m_targets(targets) {}
+	SvrCvError (const sample_v& samples, const std::vector<double>& targets, const unsigned folds) : m_samples(samples), m_targets(targets), m_folds(folds) {}
     double operator() (const la_col_vec& arg) const;
 
 private:
+    unsigned m_folds;
     const sample_v& m_samples;
     const std::vector<double>& m_targets;
 };
+
+// ********** MULTILAYERPERCEPTRON **********
 
 class MultiLayerPerceptron : public MlAlgorithm {
 public:
@@ -169,31 +187,29 @@ public:
 
 	// public member functions
 	void train () override;
-	void predict (double fraction) override;
-	void cross_validation () override;
+	void predict () override;
 	void model_selection () override;
 
 	// helper
-	static double cross_validate_regression_network(const mlp_params& params, const training_s& trainingData, const unsigned& folds);
-	static double measure_error(const la_col_vec& mses);
-	mlp_params get_default_params() const;
-	grid_t get_grid(const la_col_vec& lowerBound, const la_col_vec& upperBound, const std::vector<unsigned>& numPerDim) const;
-	void save_to_file (training_s& data, const std::string& targetFile);
+	static double cross_validate_regression_network(mlp_model_t& net, const sample_v& samples, const std::vector<double>& targets, const unsigned& folds);
 
 private:
-	static void train_network (mlp_kernel_t& network, const training_s& data);
-	static double predict_targets (mlp_kernel_t& network, training_s& testData);
-	mlp_params select_model(const training_s& data);
-
+	void get_trained_model (const training_s& data, mlp_model model) const;
+	void predict_targets(const mlp_model& model, training_s& data) const;
+	grid_t get_grid(const la_col_vec& lowerBound, const la_col_vec& upperBound, const std::vector<unsigned>& numPerDim) const;
+	void save_parameters(const mlp_params& slope, const mlp_params& offset, const mlp_params& strength, const mlp_params& duration, algorithm_m& params) const;
+	mlp_params select_model (const sample_v& samples, const std::vector<double>& targets,  const grid_t& grid, const la_col_vec& lowerBound, const la_col_vec& upperBound) const;
 };
 
 class MlpCvError{
 public:
-	MlpCvError (const training_s& data) : m_data(data) {}
-    double operator() (const la_col_vec& arg) const;
+	MlpCvError (const sample_v& samples, const std::vector<double>& targets, const unsigned folds) : m_samples(samples), m_targets(targets), m_folds(folds) {}
+    double operator() (const la_col_vec& logArg) const;
 
 private:
-    const training_s& m_data;
+    unsigned m_folds;
+    const sample_v& m_samples;
+    const std::vector<double>& m_targets;
 };
 
 #endif /* TRAINING_H_ */

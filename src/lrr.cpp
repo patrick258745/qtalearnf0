@@ -17,43 +17,19 @@ lrr_model LinearRidgeRegression::get_trained_model (const training_s& data) cons
 	model.strengthPredictor = strengthTrainer.train(data.samples, m_data.strengths);
 	model.durationPredictor = durationTrainer.train(data.samples, m_data.durations);
 
-	std::cout << "[train] trained LRR successfully" << std::endl;
-
 	return model;
 }
 
-void LinearRidgeRegression::predict_targets(const lrr_model& model, const training_s& data, const std::string& targetFile)
+void LinearRidgeRegression::predict_targets(const lrr_model& model, training_s& data) const
 {
-	// result container
-	unsigned N (data.samples.size());
-	target_v predictedTargets;
-
 	// predict targets for test set
-	for (unsigned n=0; n<N; ++n)
+	for (unsigned n=0; n<data.labels.size(); ++n)
 	{
-		// store result
-		pitch_target_s t;
-		t.label = data.labels[n];
-		t.m = model.slopePredictor(data.samples[n]);
-		t.b = model.offsetPredictor(data.samples[n]);
-		t.l = model.strengthPredictor(data.samples[n]);
-		t.d = model.durationPredictor(data.samples[n]);
-		predictedTargets.push_back(t);
+		data.slopes[n] = model.slopePredictor(data.samples[n]);
+		data.offsets[n] = model.offsetPredictor(data.samples[n]);
+		data.strengths[n] = model.strengthPredictor(data.samples[n]);
+		data.durations[n] = model.durationPredictor(data.samples[n]);
 	}
-
-	// rescale predicted target values
-	m_scaler.min_max_rescale(predictedTargets);
-
-	// create output file and write results to it
-	std::ofstream fout;
-	fout.open (targetFile);
-	fout << std::fixed << std::setprecision(6);
-	fout << "name,slope,offset,strength,duration" << std::endl;
-	for (pitch_target_s t : predictedTargets)
-	{
-		fout << t.label << "," << t.m << "," << t.b << "," << t.l << "," << t.d << std::endl;
-	}
-	fout.close();
 }
 
 void LinearRidgeRegression::train()
@@ -67,40 +43,44 @@ void LinearRidgeRegression::train()
 	dlib::serialize(m_params.at("strength_model")) << model.strengthPredictor;
 	dlib::serialize(m_params.at("duration_model")) << model.durationPredictor;
 
-	std::cout << "[train] training finished successfully" << std::endl;
+	std::cout << "[train] LRR training finished successfully" << std::endl;
 }
 
-void LinearRidgeRegression::predict(double fraction)
+void LinearRidgeRegression::predict()
 {
-	// initialize
-	training_s trainingData, testData;
-	get_separated_data(trainingData, testData, fraction);
+	// result container
+	target_v targetsPredicted;
 
-	// train the model
-	lrr_model model = get_trained_model(trainingData);
+	// fold borders
+	dlib::matrix<double> borders = dlib::linspace(0, m_data.labels.size(), m_folds+1);
 
-	// predict targets
-	predict_targets(model, trainingData, m_params.at("output_training"));
-	predict_targets(model, testData, m_params.at("output_test"));
+	for (unsigned i=0; i<m_folds; ++i)
+	{
+		// data for training
+		training_s dataTraining, dataTest;
 
-	std::cout << "[predict] prediction finished successfully" << std::endl;
-	std::cout << "\tpredicted training targets: " << trainingData.samples.size() << std::endl;
-	std::cout << "\tpredicted test targets: " << testData.samples.size() << std::endl;
-}
+		// determine fold borders
+		unsigned start = (unsigned)borders(i);
+		unsigned end = (unsigned)borders(i+1);
 
-void LinearRidgeRegression::cross_validation()
-{
-	// get trainer depending on parameters
-	lrr_trainer_t slopeTrainer;
-	lrr_trainer_t offsetTrainer;
-	lrr_trainer_t strengthTrainer;
-	lrr_trainer_t durationTrainer;
+		// split corpus data into test and training data
+		split_data(m_data, dataTraining, dataTest, start, end);
 
-	std::cout << "[cross_validation] cross-validation finished successfully" << std::endl;
+		// train the model
+		lrr_model model = get_trained_model(dataTraining);
 
-	// do cross validation and print results
-	std::cout << "\tCV-error (slope):    " << dlib::trans(cross_validate_regression_trainer(slopeTrainer, m_data.samples, m_data.slopes,10));
-	std::cout << "\tCV-error (offset):   " << dlib::trans(cross_validate_regression_trainer(offsetTrainer, m_data.samples, m_data.offsets,10));
-	std::cout << "\tCV-error (strength): " << dlib::trans(cross_validate_regression_trainer(strengthTrainer, m_data.samples, m_data.strengths,10));
-	std::cout << "\tCV-error (duration): " << dlib::trans(cross_validate_regression_trainer(durationTrainer, m_data.samples, m_data.durations,10));
+		// predict targets
+		predict_targets(model, dataTest);
+
+		// store predicted targets
+		push_back_targets(targetsPredicted, dataTest);
+	}
+
+	// rescale predicted target values
+	m_scaler.min_max_rescale(targetsPredicted);
+
+	// save target file
+	save_target_file(targetsPredicted, m_params.at("output_file"));
+
+	std::cout << "[predict] LRR prediction finished successfully" << std::endl;
 }

@@ -422,7 +422,7 @@ void PraatFileIo::write_praat_file(const QtaErrorFunction& qtaError, const targe
 
 	// DEBUG message
 	#ifdef DEBUG_MSG
-	std::cout << "\t[write_praat_file] rmse = " << qtaError.root_mean_squared_error(optParams) << std::endl;
+	//std::cout << "\t[write_praat_file] rmse = " << qtaError.root_mean_squared_error(optParams) << std::endl;
 	#endif
 }
 
@@ -518,7 +518,7 @@ void Optimizer::optimize(target_v& optParams, const QtaErrorFunction& qtaError, 
 
 	// DEBUG message
 	#ifdef DEBUG_MSG
-	std::cout << "\t[optimize] mse = " << fmin << std::endl;
+	//std::cout << "\t[optimize] mse = " << fmin << std::endl;
 	#endif
 }
 

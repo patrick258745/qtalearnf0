@@ -16,7 +16,7 @@ lmax="80"
 order="5"
 shift="0"
 store="1"
-fraction="0.9"
+folds="5"
 
 ##### parameters #####
 data_path="$( cd "$( dirname "$0" )" && pwd )"
@@ -51,15 +51,13 @@ function lrrPredict {
   START_TIME=$SECONDS
 
   # predict targets using linear ridge regression
-  bin/mlatraining -p --in $data_path/corpus.sample --frac $fraction --alg $data_path/lrr/lrr.algorithm;
+  bin/mlatraining -p --in $data_path/corpus.sample --K $folds --alg $data_path/lrr/lrr.algorithm;
 
-  # resynthesis with predicted lrr targets (training and test)
-  $praat --run $script $resynth $fmin $fmax $smean $shift $order $data_path/lrr/corpus/ $data_path/lrr/training.target $mmin $mmax $bmin $bmax $lmin $lmax $store $data_path/lrr/training/;
-  $praat --run $script $resynth $fmin $fmax $smean $shift $order $data_path/lrr/corpus/ $data_path/lrr/test.target $mmin $mmax $bmin $bmax $lmin $lmax $store $data_path/lrr/test/;
+  # resynthesis with predicted lrr targets
+  $praat --run $script $resynth $fmin $fmax $smean $shift $order $data_path/lrr/corpus/ $data_path/lrr/lrr.target $mmin $mmax $bmin $bmax $lmin $lmax $store $data_path/lrr/;
 
-  # calculate statistics (training and test)
-  bin/qtatools -s --in $data_path/lrr/training.target --out $data_path/lrr/training.stat --dir $data_path/lrr/training/;
-  bin/qtatools -s --in $data_path/lrr/test.target --out $data_path/lrr/test.stat --dir $data_path/lrr/test/;
+  # calculate statistics
+  bin/qtatools -s --in $data_path/lrr/lrr.target --out $data_path/lrr/lrr.stat --dir $data_path/lrr/;
 
   ELAPSED_TIME=$(($SECONDS - $START_TIME))
   echo ">>> $(($ELAPSED_TIME/60)) min $(($ELAPSED_TIME%60)) sec <<<"
@@ -71,15 +69,13 @@ function krrPredict {
   START_TIME=$SECONDS
 
   # predict targets using kernel ridge regression
-  bin/mlatraining -p --in $data_path/corpus.sample --frac $fraction --alg $data_path/krr/krr.algorithm;
+  bin/mlatraining -p --in $data_path/corpus.sample --K $folds --alg $data_path/krr/krr.algorithm;
 
-  # resynthesis with predicted krr targets (training and test)
-  $praat --run $script $resynth $fmin $fmax $smean $shift $order $data_path/krr/corpus/ $data_path/krr/training.target $mmin $mmax $bmin $bmax $lmin $lmax $store $data_path/krr/training/;
-  $praat --run $script $resynth $fmin $fmax $smean $shift $order $data_path/krr/corpus/ $data_path/krr/test.target $mmin $mmax $bmin $bmax $lmin $lmax $store $data_path/krr/test/;
+  # resynthesis with predicted krr targets
+  $praat --run $script $resynth $fmin $fmax $smean $shift $order $data_path/krr/corpus/ $data_path/krr/krr.target $mmin $mmax $bmin $bmax $lmin $lmax $store $data_path/krr/;
 
-  # calculate statistics (training and test)
-  bin/qtatools -s --in $data_path/krr/training.target --out $data_path/krr/training.stat --dir $data_path/krr/training/;
-  bin/qtatools -s --in $data_path/krr/test.target --out $data_path/krr/test.stat --dir $data_path/krr/test/;
+  # calculate statistics
+  bin/qtatools -s --in $data_path/krr/krr.target --out $data_path/krr/krr.stat --dir $data_path/krr/;
 
   ELAPSED_TIME=$(($SECONDS - $START_TIME))
   echo ">>> $(($ELAPSED_TIME/60)) min $(($ELAPSED_TIME%60)) sec <<<"
@@ -90,7 +86,7 @@ function svrModelSelection {
   START_TIME=$SECONDS
 
   # model selection for support vector regression
-  bin/mlatraining -m --in $data_path/corpus.sample --frac $fraction --alg $data_path/svr/svr.algorithm;
+  bin/mlatraining -m --in $data_path/corpus.sample --K $folds --alg $data_path/svr/svr.algorithm;
 
   ELAPSED_TIME=$(($SECONDS - $START_TIME))
   echo ">>> $(($ELAPSED_TIME/60)) min $(($ELAPSED_TIME%60)) sec <<<"
@@ -100,15 +96,13 @@ function svrPredict {
   START_TIME=$SECONDS
 
   # predict targets using support vector regression
-  bin/mlatraining -p --in $data_path/corpus.sample --frac $fraction --alg $data_path/svr/svr.algorithm;
+  bin/mlatraining -p --in $data_path/corpus.sample --K $folds --alg $data_path/svr/svr.algorithm;
 
-  # resynthesis with predicted svr targets (training and test)
-  $praat --run $script $resynth $fmin $fmax $smean $shift $order $data_path/svr/corpus/ $data_path/svr/training.target $mmin $mmax $bmin $bmax $lmin $lmax $store $data_path/svr/training/;
-  $praat --run $script $resynth $fmin $fmax $smean $shift $order $data_path/svr/corpus/ $data_path/svr/test.target $mmin $mmax $bmin $bmax $lmin $lmax $store $data_path/svr/test/;
+  # resynthesis with predicted svr targets
+  $praat --run $script $resynth $fmin $fmax $smean $shift $order $data_path/svr/corpus/ $data_path/svr/svr.target $mmin $mmax $bmin $bmax $lmin $lmax $store $data_path/svr/;
 
-  # calculate statistics (training and test)
-  bin/qtatools -s --in $data_path/svr/training.target --out $data_path/svr/training.stat --dir $data_path/svr/training/;
-  bin/qtatools -s --in $data_path/svr/test.target --out $data_path/svr/test.stat --dir $data_path/svr/test/;
+  # calculate statistics
+  bin/qtatools -s --in $data_path/svr/svr.target --out $data_path/svr/svr.stat --dir $data_path/svr/;
 
   ELAPSED_TIME=$(($SECONDS - $START_TIME))
   echo ">>> $(($ELAPSED_TIME/60)) min $(($ELAPSED_TIME%60)) sec <<<"
@@ -119,7 +113,7 @@ function mlpModelSelection {
   START_TIME=$SECONDS
 
   # model selection for multi layer perceptron
-  bin/mlatraining -m --in $data_path/corpus.sample --frac $fraction --alg $data_path/mlp/mlp.algorithm;
+  bin/mlatraining -m --in $data_path/corpus.sample --K $folds --alg $data_path/mlp/mlp.algorithm;
 
   ELAPSED_TIME=$(($SECONDS - $START_TIME))
   echo ">>> $(($ELAPSED_TIME/60)) min $(($ELAPSED_TIME%60)) sec <<<"
@@ -129,15 +123,13 @@ function mlpPredict {
   START_TIME=$SECONDS
 
   # predict targets using multi layer perceptron
-  bin/mlatraining -p --in $data_path/corpus.sample --frac $fraction --alg $data_path/mlp/mlp.algorithm;
+  bin/mlatraining -p --in $data_path/corpus.sample --K $folds --alg $data_path/mlp/mlp.algorithm;
 
   # resynthesis with predicted mlp targets (training and test)
-  $praat --run $script $resynth $fmin $fmax $smean $shift $order $data_path/mlp/corpus/ $data_path/mlp/training.target $mmin $mmax $bmin $bmax $lmin $lmax $store $data_path/mlp/training/;
-  $praat --run $script $resynth $fmin $fmax $smean $shift $order $data_path/mlp/corpus/ $data_path/mlp/test.target $mmin $mmax $bmin $bmax $lmin $lmax $store $data_path/mlp/test/;
+  $praat --run $script $resynth $fmin $fmax $smean $shift $order $data_path/mlp/corpus/ $data_path/mlp/mlp.target $mmin $mmax $bmin $bmax $lmin $lmax $store $data_path/mlp/;
 
   # calculate statistics (training and test)
-  bin/qtatools -s --in $data_path/mlp/training.target --out $data_path/mlp/training.stat --dir $data_path/mlp/training/;
-  bin/qtatools -s --in $data_path/mlp/test.target --out $data_path/mlp/test.stat --dir $data_path/mlp/test/;
+  bin/qtatools -s --in $data_path/mlp/mlp.target --out $data_path/mlp/mlp.stat --dir $data_path/mlp/;
 
   ELAPSED_TIME=$(($SECONDS - $START_TIME))
   echo ">>> $(($ELAPSED_TIME/60)) min $(($ELAPSED_TIME%60)) sec <<<"
@@ -158,7 +150,7 @@ echo "    offset [$bmin,$bmax] st"
 echo "    strength [$lmin,$lmax] 1/s"
 echo "    timeshift: $shift s"
 echo "    order: $order"
-echo "    fraction: $fraction"
+echo "    folds: $folds"
 echo ""
 
 ##### qta search
