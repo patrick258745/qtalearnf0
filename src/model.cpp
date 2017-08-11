@@ -205,7 +205,7 @@ double QtaErrorFunction::operator() ( const la_col_vec& arg) const
 		tmp.l = arg(i+2);
 		qtaVector.push_back(tmp);
 	}
-	return mean_squared_error(qtaVector);
+	return cost_function(qtaVector);
 }
 
 double QtaErrorFunction::mean_absolute_error (const target_v& qtaVector) const
@@ -254,6 +254,20 @@ double QtaErrorFunction::correlation_coeff (const target_v& qtaVector) const
 	la_col_vec x = m_origF0.sampleValues - dlib::mean(m_origF0.sampleValues);
 	la_col_vec y = filteredF0.sampleValues - dlib::mean(filteredF0.sampleValues);
 	return (dlib::dot(x,y)) / ( (std::sqrt( dlib::sum(dlib::squared(x))) ) * (std::sqrt( dlib::sum(dlib::squared(y))) ) );
+}
+
+double QtaErrorFunction::cost_function (const target_v& qtaVector) const
+{
+	// slope penalization
+	double sumSlope (0.0);
+	for (auto t : qtaVector)
+	{
+		sumSlope += (t.m*t.m);
+		sumSlope += ((t.b-94)*(t.b-94));
+	}
+
+	const double LAMBDA	= 0.0005;
+	return mean_squared_error(qtaVector) + LAMBDA*sumSlope;
 }
 
 /********** class PraatFileIo **********/

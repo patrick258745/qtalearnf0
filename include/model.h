@@ -50,6 +50,8 @@ public:
 	double mean_absolute_error (const target_v& qtaVector) const;
 	double root_mean_squared_error (const target_v& qtaVector) const;
 
+	double cost_function (const target_v& qtaVector) const;
+
 private:
 	// private member functions
 	double mean_squared_error (const target_v& qtaVector) const;
