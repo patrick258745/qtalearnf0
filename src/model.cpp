@@ -259,19 +259,25 @@ double QtaErrorFunction::correlation_coeff (const target_v& qtaVector) const
 double QtaErrorFunction::cost_function (const target_v& qtaVector) const
 {
 	// slope penalization
-	double mseSlope (0.0), mseOffset(0.0);
+	double mseSlope (0.0), mseOffset(0.0), mseStrength(0.0);
 	for (auto t : qtaVector)
 	{
-		mseSlope += (t.m*t.m);
-		mseOffset += ((t.b-94.6)*(t.b-94.6));
+		double normedSlope = 2*((t.m-(-50))/100)-1;
+		mseSlope += (normedSlope*normedSlope);
+		double normedOffset = 2*((t.b-75)/40)-1;
+		mseOffset += (normedOffset*normedOffset);
+		double normedStrength = 2*((t.l-1)/79)-1;
+		mseStrength += (normedStrength*normedStrength);
 	}
-
 	mseSlope /= qtaVector.size();
 	mseOffset /= qtaVector.size();
+	mseStrength /= qtaVector.size();
 
-	const double LAMBDA1 = 0.01;
-	const double LAMBDA2 = 0.005;
-	return mean_squared_error(qtaVector) + LAMBDA1*mseSlope + LAMBDA2*mseOffset;
+	const double LAMBDA1 = 4.0;
+	const double LAMBDA2 = 2.0;
+	const double LAMBDA3 = 0.5;
+	//std::cout << mean_squared_error(qtaVector) << ", " << mseSlope << ", " << mseOffset << std::endl;
+	return mean_squared_error(qtaVector) + LAMBDA1*mseSlope + LAMBDA2*mseOffset + LAMBDA3*mseStrength;
 }
 
 /********** class PraatFileIo **********/
