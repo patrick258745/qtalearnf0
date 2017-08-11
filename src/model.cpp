@@ -259,15 +259,19 @@ double QtaErrorFunction::correlation_coeff (const target_v& qtaVector) const
 double QtaErrorFunction::cost_function (const target_v& qtaVector) const
 {
 	// slope penalization
-	double sumSlope (0.0);
+	double mseSlope (0.0), mseOffset(0.0);
 	for (auto t : qtaVector)
 	{
-		sumSlope += (t.m*t.m);
-		sumSlope += ((t.b-94)*(t.b-94));
+		mseSlope += (t.m*t.m);
+		mseOffset += ((t.b-94.6)*(t.b-94.6));
 	}
 
-	const double LAMBDA	= 0.0005;
-	return mean_squared_error(qtaVector) + LAMBDA*sumSlope;
+	mseSlope /= qtaVector.size();
+	mseOffset /= qtaVector.size();
+
+	const double LAMBDA1 = 0.01;
+	const double LAMBDA2 = 0.005;
+	return mean_squared_error(qtaVector) + LAMBDA1*mseSlope + LAMBDA2*mseOffset;
 }
 
 /********** class PraatFileIo **********/
