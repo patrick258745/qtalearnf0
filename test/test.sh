@@ -1,14 +1,14 @@
 ##### computing tasks #####
 doQtaSearch="1"
 doModelSelection="0"
-doPrediction="0"
+doPrediction="1"
 
 ##### user data #####
 fmin="100"
 fmax="500"
 smean="232.86"
-mmin="-20"
-mmax="20"
+mmin="-50"
+mmax="50"
 bmin="75"
 bmax="115"
 lmin="1"
@@ -30,10 +30,10 @@ function qtaSearch {
   START_TIME=$SECONDS
 
   # search optimal qta parameters
-  $praat --run $script $search $fmin $fmax $smean $shift $order $data_path/qta/corpus/ $data_path/qta/corpus.target $mmin $mmax $bmin $bmax $lmin $lmax $store $data_path/qta/;
+  $praat --run $script $search $fmin $fmax $smean $shift $order $data_path/corpus/ $data_path/qta/corpus.target $mmin $mmax $bmin $bmax $lmin $lmax $store $data_path/qta/;
 
   # resynthesis with optimal qta parameters
-  $praat --run $script $resynth $fmin $fmax $smean $shift $order $data_path/qta/corpus/ $data_path/qta/corpus.target $mmin $mmax $bmin $bmax $lmin $lmax $store $data_path/qta/;
+  $praat --run $script $resynth $fmin $fmax $smean $shift $order $data_path/corpus/ $data_path/qta/corpus.target $mmin $mmax $bmin $bmax $lmin $lmax $store $data_path/qta/;
 
   # calculate statistics
   bin/qtatools -s --in $data_path/qta/corpus.target --out $data_path/qta/corpus.stat --dir $data_path/qta/

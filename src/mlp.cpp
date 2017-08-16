@@ -234,8 +234,8 @@ void MultiLayerPerceptron::model_selection()
 	la_col_vec lowerBound(4), upperBound(4);
 	std::vector<unsigned> dimensions;
 	lowerBound = 1e0, 1e0, 1e-3, 1e-3;
-	upperBound = 1e2, 1e2, 1e1, 1e1;
-	dimensions = {10,10,10,10};
+	upperBound = 2e2, 2e2, 1e1, 1e1;
+	dimensions = {15,15,10,10};
 
 	// calculate grid for grid search
 	grid_t grid = get_grid(lowerBound, upperBound, dimensions);

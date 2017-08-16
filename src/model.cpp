@@ -266,17 +266,17 @@ double QtaErrorFunction::cost_function (const target_v& qtaVector) const
 		mseSlope += (normedSlope*normedSlope);
 		double normedOffset = 2*((t.b-75)/40)-1;
 		mseOffset += (normedOffset*normedOffset);
-		double normedStrength = 2*((t.l-1)/79)-1;
+		double normedStrength = ((t.l-1)/79)-1;
 		mseStrength += (normedStrength*normedStrength);
 	}
 	mseSlope /= qtaVector.size();
 	mseOffset /= qtaVector.size();
 	mseStrength /= qtaVector.size();
 
-	const double LAMBDA1 = 4.0;
-	const double LAMBDA2 = 2.0;
-	const double LAMBDA3 = 0.5;
-	//std::cout << mean_squared_error(qtaVector) << ", " << mseSlope << ", " << mseOffset << std::endl;
+	const double LAMBDA1 = 5.0;
+	const double LAMBDA2 = LAMBDA1/2.0;
+	const double LAMBDA3 = LAMBDA1/5.0;
+
 	return mean_squared_error(qtaVector) + LAMBDA1*mseSlope + LAMBDA2*mseOffset + LAMBDA3*mseStrength;
 }
 
