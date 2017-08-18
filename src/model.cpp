@@ -285,22 +285,23 @@ double QtaErrorFunction::cost_function (const target_v& qtaVector) const
 double QtaErrorFunction::max_velocity (const target_v& qtaVector) const
 {
 	signal_s filteredF0;
-
-	// sampling
-	double sampleRate (100); // Hz
-	for (double t=m_origF0.sampleTimes.front(); t<=m_origF0.sampleTimes.back(); t+=(1/sampleRate))
-	{
-		filteredF0.sampleTimes.push_back(t);
-	}
+	filteredF0.sampleTimes = m_origF0.sampleTimes;
+	double sampleRate = 1/(filteredF0.sampleTimes[1]-filteredF0.sampleTimes[0]);
 
 	// filter
 	m_lowPassFilter.calc_f0(filteredF0, qtaVector);
 
 	// numerical derivation
-	la_col_vec deriv; deriv.set_size(filteredF0.sampleValues.size()-1);
+	la_col_vec deriv; deriv.set_size(filteredF0.sampleValues.size());
+	for (double& val : deriv)
+		val = 0;
+
 	for (int i=0; i<deriv.size(); ++i)
 	{
-		deriv(i) = (filteredF0.sampleValues(i+1) - filteredF0.sampleValues(i))*sampleRate;
+		if ( (filteredF0.sampleValues(i+1) - filteredF0.sampleValues(i)) <= 1/sampleRate)
+		{
+			deriv(i) = (filteredF0.sampleValues(i+1) - filteredF0.sampleValues(i))*sampleRate;
+		}
 	}
 
 	return dlib::max(deriv);
