@@ -562,12 +562,25 @@ void Optimizer::optimize(target_v& optParams, QtaErrorFunction& qtaError, const 
 	}
 
 	// penalty method
-	double sigma (1e-5);
+	double sigma (1e-4);
 	const la_col_vec y = xtmp;
-	for (unsigned i=0; i<11; ++i)
+	for (unsigned i=0; i<8; ++i)
 	{
 		qtaError.m_penalty = sigma;
-		dlib::find_min_bobyqa(qtaError,xtmp,npt,lowerBound,upperBound,rho_begin,rho_end,max_f_evals);
+
+		try
+		{
+			// optimization algorithm: BOBYQA
+			fmin = dlib::find_min_bobyqa(qtaError,xtmp,npt,lowerBound,upperBound,rho_begin,rho_end,max_f_evals);
+		}
+		catch (dlib::bobyqa_failure& err)
+		{
+			// DEBUG message
+			#ifdef DEBUG_MSG
+			std::cout << "\t[optimize] WARNING: no convergence during penalty optimization: " << std::endl << err.info << std::endl;
+			#endif
+		}
+
 		sigma *= 10;
 	}
 	std::cout << "absolute difference: " << std::floor(sum(abs(y-xtmp))) << std::endl;
