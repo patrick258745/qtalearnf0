@@ -260,7 +260,7 @@ double QtaErrorFunction::correlation_coeff (const target_v& qtaVector) const
 double QtaErrorFunction::cost_function (const target_v& qtaVector) const
 {
 	// slope penalization
-	double mseSlope (0.0), mseOffset(0.0), mseStrength(0.0);
+	/*double mseSlope (0.0), mseOffset(0.0), mseStrength(0.0);
 	for (auto t : qtaVector)
 	{
 		double normedSlope = 2*((t.m-(-50))/100)-1;
@@ -276,9 +276,22 @@ double QtaErrorFunction::cost_function (const target_v& qtaVector) const
 
 	const double LAMBDA1 = 5.0;
 	const double LAMBDA2 = LAMBDA1/2.0;
-	const double LAMBDA3 = LAMBDA1/5.0;
+	const double LAMBDA3 = LAMBDA1/5.0;*/
 
-	return mean_squared_error(qtaVector);// + LAMBDA1*mseSlope + LAMBDA2*mseOffset + LAMBDA3*mseStrength;
+	// regularization
+	unsigned S (qtaVector.size());
+	double lambda (1);
+	double slopeErr (0), offsetErr (0);
+
+	for (auto t : qtaVector)
+	{
+		slopeErr += std::abs(t.m);
+		offsetErr += std::abs(t.b-94.6);
+	}
+
+	slopeErr /= S; offsetErr /= S;
+
+	return root_mean_squared_error(qtaVector) + lambda*(slopeErr/100 + offsetErr/40);
 }
 
 double QtaErrorFunction::max_velocity (const target_v& qtaVector) const
@@ -499,7 +512,6 @@ void Optimizer::optimize(target_v& optParams, QtaErrorFunction& qtaError, const 
 
 	// optmization setup
 	long npt (2*lowerBound.size()+1);	// number of interpolation points
-	//const double rho_begin (5); // initial trust region radius
 	const double rho_begin ( (std::min(std::min(mmax-mmin, bmax-bmin),lmax-lmin)-1)/2.0 ); // initial trust region radius
 	const double rho_end (1e-6); // stopping trust region radius -> accuracy
 	const long max_f_evals (1e6); // max number of objective function evaluations
@@ -559,8 +571,6 @@ void Optimizer::optimize(target_v& optParams, QtaErrorFunction& qtaError, const 
 		opt.l = xtmp(3*i+2);
 		optParams.push_back(opt);
 	}
-
-	std::cout << "max velocity: " << qtaError.max_velocity(optParams) << std::endl;
 
 	// DEBUG message
 	#ifdef DEBUG_MSG
