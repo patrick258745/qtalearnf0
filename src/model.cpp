@@ -280,18 +280,19 @@ double QtaErrorFunction::cost_function (const target_v& qtaVector) const
 
 	// regularization
 	unsigned S (qtaVector.size());
-	double lambda (1);
-	double slopeErr (0), offsetErr (0);
+	double lambda (0.5);
+	double slopeErr (0), offsetErr (0), strengthErr (0);
 
 	for (auto t : qtaVector)
 	{
 		slopeErr += std::abs(t.m);
 		offsetErr += std::abs(t.b-94.6);
+		strengthErr += std::abs(t.l-80);
 	}
 
-	slopeErr /= S; offsetErr /= S;
+	slopeErr /= S; offsetErr /= S; strengthErr /= S;
 
-	return root_mean_squared_error(qtaVector) + lambda*(slopeErr/100 + offsetErr/40);
+	return root_mean_squared_error(qtaVector) + lambda*(slopeErr/50 + offsetErr/20 + strengthErr/80)/3;
 }
 
 double QtaErrorFunction::max_velocity (const target_v& qtaVector) const
