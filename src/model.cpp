@@ -168,6 +168,7 @@ void CdlpFilter::calc_state (state_v& currState, const double& endTime, const do
 QtaErrorFunction::QtaErrorFunction (const signal_s& origF0, const state_v& initState, const time_v& intervalBounds)
 : m_lowPassFilter(initState, intervalBounds), m_origF0(origF0)
 {
+	m_penalty = 0;
 	if (m_origF0.sampleTimes.size() != (unsigned)m_origF0.sampleValues.size())
 	{
 		throw dlib::error("[QtaErrorFunction] Original f0 samples doesn't match its sample times: " + std::to_string(m_origF0.sampleValues.size()) + " != " + std::to_string(m_origF0.sampleTimes.size()));
@@ -205,7 +206,8 @@ double QtaErrorFunction::operator() ( const la_col_vec& arg) const
 		tmp.l = arg(i+2);
 		qtaVector.push_back(tmp);
 	}
-	return cost_function(qtaVector);
+	//return cost_function(qtaVector);
+	return penalty_function(qtaVector);
 }
 
 double QtaErrorFunction::mean_absolute_error (const target_v& qtaVector) const
@@ -278,6 +280,35 @@ double QtaErrorFunction::cost_function (const target_v& qtaVector) const
 	const double LAMBDA3 = LAMBDA1/5.0;
 
 	return mean_squared_error(qtaVector) + LAMBDA1*mseSlope + LAMBDA2*mseOffset + LAMBDA3*mseStrength;
+}
+
+double QtaErrorFunction::max_velocity (const target_v& qtaVector) const
+{
+	signal_s filteredF0;
+
+	// sampling
+	double sampleRate (100); // Hz
+	for (double t=m_origF0.sampleTimes.front(); t<=m_origF0.sampleTimes.back(); t+=(1/sampleRate))
+	{
+		filteredF0.sampleTimes.push_back(t);
+	}
+
+	// filter
+	m_lowPassFilter.calc_f0(filteredF0, qtaVector);
+
+	// numerical derivation
+	la_col_vec deriv; deriv.set_size(filteredF0.sampleValues.size()-1);
+	for (int i=0; i<deriv.size(); ++i)
+	{
+		deriv(i) = (filteredF0.sampleValues(i+1) - filteredF0.sampleValues(i))*sampleRate;
+	}
+
+	return dlib::max(deriv);
+}
+
+double QtaErrorFunction::penalty_function (const target_v& qtaVector) const
+{
+	return mean_squared_error(qtaVector) + m_penalty*std::max(0.0,max_velocity(qtaVector)-75.0);
 }
 
 /********** class PraatFileIo **********/
@@ -451,7 +482,7 @@ void PraatFileIo::write_praat_file(const QtaErrorFunction& qtaError, const targe
 }
 
 /********** class Optimizer **********/
-void Optimizer::optimize(target_v& optParams, const QtaErrorFunction& qtaError, const std::vector<bound_s>& searchSpace, const unsigned& randIters) const
+void Optimizer::optimize(target_v& optParams, QtaErrorFunction& qtaError, const std::vector<bound_s>& searchSpace, const unsigned& randIters) const
 {
 	// constraints
 	unsigned nIntervals = searchSpace.size();
@@ -528,6 +559,17 @@ void Optimizer::optimize(target_v& optParams, const QtaErrorFunction& qtaError, 
 	{
 		throw dlib::error("[optimize] BOBYQA algorithms didn't converge! Try to increase number of evaluations");
 	}
+
+	// penalty method
+	double sigma (1e-5);
+	const la_col_vec y = xtmp;
+	for (unsigned i=0; i<11; ++i)
+	{
+		qtaError.m_penalty = sigma;
+		dlib::find_min_bobyqa(qtaError,xtmp,npt,lowerBound,upperBound,rho_begin,rho_end,max_f_evals);
+		sigma *= 10;
+	}
+	std::cout << "absolute difference: " << std::floor(sum(abs(y-xtmp))) << std::endl;
 
 	// convert result to target_v
 	optParams.clear();

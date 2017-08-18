@@ -37,7 +37,7 @@ private:
 class QtaErrorFunction {
 public:
 	// constructors
-	QtaErrorFunction () {};
+	QtaErrorFunction () : m_penalty(0) {};
 	QtaErrorFunction (const signal_s& origF0, const state_v& initState, const time_v& intervalBounds);
 
 	// public member functions
@@ -51,11 +51,15 @@ public:
 	double root_mean_squared_error (const target_v& qtaVector) const;
 
 	double cost_function (const target_v& qtaVector) const;
+	double penalty_function (const target_v& qtaVector) const;
+
+	double		m_penalty;
 
 private:
 	// private member functions
 	double mean_squared_error (const target_v& qtaVector) const;
 	double maximum_norm_error (const target_v& qtaVector) const;
+	double max_velocity (const target_v& qtaVector) const;
 
 	// data members
 	CdlpFilter	m_lowPassFilter;
@@ -84,7 +88,7 @@ public:
 	Optimizer() { srand (time(NULL)); }; // srand (0);
 
 	// public member functions
-	void optimize(target_v& optParams, const QtaErrorFunction& qtaError, const std::vector<bound_s>& searchSpace, const unsigned& randIters = 10) const;
+	void optimize(target_v& optParams, QtaErrorFunction& qtaError, const std::vector<bound_s>& searchSpace, const unsigned& randIters = 10) const;
 
 private:
 	// private member functions
