@@ -37,7 +37,7 @@ private:
 class QtaErrorFunction {
 public:
 	// constructors
-	QtaErrorFunction () : m_penalty(0) {};
+	QtaErrorFunction () {};
 	QtaErrorFunction (const signal_s& origF0, const state_v& initState, const time_v& intervalBounds);
 
 	// public member functions
@@ -51,15 +51,12 @@ public:
 	double root_mean_squared_error (const target_v& qtaVector) const;
 
 	double cost_function (const target_v& qtaVector) const;
-	double penalty_function (const target_v& qtaVector) const;
-
-	double		m_penalty;
+	double max_velocity (const target_v& qtaVector) const;
 
 private:
 	// private member functions
 	double mean_squared_error (const target_v& qtaVector) const;
 	double maximum_norm_error (const target_v& qtaVector) const;
-	double max_velocity (const target_v& qtaVector) const;
 
 	// data members
 	CdlpFilter	m_lowPassFilter;
