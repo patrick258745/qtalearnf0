@@ -22,6 +22,7 @@ int main(int argc, char* argv[])
 		parser.set_group_name("File Options");
 		parser.add_option("in","Specify praat input file.",1);
 		parser.add_option("out","Specify praat output file.",1);
+		parser.add_option("l","Specify regularization parameter lambda.",1);
 
 		// parse command line
 		parser.parse(argc,argv);
@@ -30,6 +31,7 @@ int main(int argc, char* argv[])
 		const char* one_time_opts[] = {"h", "s", "r", "in", "out"};
 		parser.check_one_time_options(one_time_opts);
 		parser.check_incompatible_options("s", "r");
+		parser.check_option_arg_range("l", 0.0, 1e10);
 
 		// process command line options
 		if (parser.option("h"))
@@ -73,6 +75,7 @@ int main(int argc, char* argv[])
 		std::vector<bound_s> searchSpace;
 		PraatFileIo praatFiles;
 		QtaErrorFunction qtaError;
+		qtaError.set_lambda(get_option(parser,"l",0.0));
 		Optimizer paramSearch;
 
 		// get optimal qta parameters

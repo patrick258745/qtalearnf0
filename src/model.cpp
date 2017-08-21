@@ -166,7 +166,7 @@ void CdlpFilter::calc_state (state_v& currState, const double& endTime, const do
 /********** class QtaErrorFunction **********/
 
 QtaErrorFunction::QtaErrorFunction (const signal_s& origF0, const state_v& initState, const time_v& intervalBounds)
-: m_lowPassFilter(initState, intervalBounds), m_origF0(origF0)
+: m_lowPassFilter(initState, intervalBounds), m_origF0(origF0), m_lambda(0.0)
 {
 	if (m_origF0.sampleTimes.size() != (unsigned)m_origF0.sampleValues.size())
 	{

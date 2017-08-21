@@ -21,6 +21,7 @@ form quantitativeTargetApproximation
 		real offset_range_max_(st) 120
 		real strength_range_min_(1/st) 1
 		real strength_range_max_(1/st) 80
+		real regularization_parameter 0.0
 	comment F0 resynthesis options:
 		boolean store 1
 		word output_directory ../../test/qta/
@@ -41,6 +42,7 @@ b_max = offset_range_max
 l_min = strength_range_min
 l_max = strength_range_max
 shift = syllable_shift
+lambda = regularization_parameter
 n = filter_order
 cnt = 0
 if task = 1
@@ -311,7 +313,7 @@ procedure qtaAnalysis
 
 	##### call C++ program
 	if fileReadable("./qtamodel")
-		runSystem: "./qtamodel 'flag$' --in 'corpus_directory$'input --out 'corpus_directory$'output"
+		runSystem: "./qtamodel 'flag$' --in 'corpus_directory$'input --out 'corpus_directory$'output -l 'lambda'"
 	else
 		printline Cannot find ./qtamodel!
 		exit

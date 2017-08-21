@@ -37,13 +37,14 @@ private:
 class QtaErrorFunction {
 public:
 	// constructors
-	QtaErrorFunction () {};
+	QtaErrorFunction () : m_lambda(0.0) {};
 	QtaErrorFunction (const signal_s& origF0, const state_v& initState, const time_v& intervalBounds);
 
 	// public member functions
 	void set_orig_f0 (const signal_s& origF0);
 	void initialize_filter (const state_v& initState, const time_v& intervalBounds);
 	void get_filter_response (signal_s& filteredF0, const target_v& qtaVector) const;
+	void set_lambda (const double& lambda) {m_lambda=lambda;};
 
 	double operator() ( const la_col_vec& arg) const;
 	double correlation_coeff (const target_v& qtaVector) const;
@@ -61,6 +62,7 @@ private:
 	// data members
 	CdlpFilter	m_lowPassFilter;
 	signal_s	m_origF0;
+	double 		m_lambda;
 };
 
 class PraatFileIo {
