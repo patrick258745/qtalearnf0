@@ -46,7 +46,6 @@ tools/qtaf0/praat
 *.sample
 *.stat
 *.algorithm
-test/test.sh
 job.batch
 
 # HPC

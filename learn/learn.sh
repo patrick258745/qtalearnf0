@@ -1,1 +1,1 @@
-/home/patrick/Documents/Diplomarbeit/04_Implementierung/qtalearnf0/qtalearnf0.sh
+../qtalearnf0.sh
