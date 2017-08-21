@@ -49,20 +49,22 @@ clean:
 	@echo " $(RM) -r $(BUILDDIR) $(BINDIR) $(QTAF0)"; $(RM) -r $(BUILDDIR) $(BINDIR) $(QTAF0)/qta*
 
 reset:
-	@echo " Cleaning data...";
+	@echo " Cleaning test data...";
 	@echo " $(RM) -r test/qta/ "; $(RM) -r test/qta/audios/ test/qta/plots/ test/qta/corpus-* test/qta/corpus.*;
-	@echo " $(RM) -r test/lrr/ "; $(RM) -r test/lrr/test* test/lrr/training*;
-	@echo " $(RM) -r test/krr/ "; $(RM) -r test/krr/test* test/krr/training*;
-	@echo " $(RM) -r test/svr/ "; $(RM) -r test/svr/test* test/svr/training*;
-	@echo " $(RM) -r test/mlp/ "; $(RM) -r test/mlp/test* test/mlp/training*;
+	@echo " $(RM) -r test/lrr/ "; $(RM) -r test/lrr/audios/ test/lrr/plots/ test/lrr/lrr-* test/lrr/lrr.measures test/lrr/lrr.target test/lrr/lrr.stat;
+		@echo " $(RM) -r test/krr/ "; $(RM) -r test/krr/audios/ test/krr/plots/ test/krr/krr-* test/krr/krr.measures test/krr/krr.target test/krr/krr.stat;
+		@echo " $(RM) -r test/svr/ "; $(RM) -r test/svr/audios/ test/svr/plots/ test/svr/svr-* test/svr/svr.measures test/svr/svr.target test/svr/svr.stat;
+		@echo " $(RM) -r test/mlp/ "; $(RM) -r test/mlp/audios/ test/mlp/plots/ test/mlp/mlp-* test/mlp/mlp.measures test/mlp/mlp.target test/mlp/mlp.stat;
+		$(RM) test/data.sample;
 
 reset2:
-	@echo " Cleaning data...";
+	@echo " Cleaning learn data...";
 	@echo " $(RM) -r learn/qta/ "; $(RM) -r learn/qta/audios/ learn/qta/plots/ learn/qta/corpus-* learn/qta/corpus.*;
-	@echo " $(RM) -r learn/lrr/ "; $(RM) -r learn/lrr/test* learn/lrr/training*;
-	@echo " $(RM) -r learn/krr/ "; $(RM) -r learn/krr/test* learn/krr/training*;
-	@echo " $(RM) -r learn/svr/ "; $(RM) -r learn/svr/test* learn/svr/training*;
-	@echo " $(RM) -r learn/mlp/ "; $(RM) -r learn/mlp/test* learn/mlp/training*;
+	@echo " $(RM) -r learn/lrr/ "; $(RM) -r learn/lrr/audios/ learn/lrr/plots/ learn/lrr/lrr-* learn/lrr/lrr.measures learn/lrr/lrr.target learn/lrr/lrr.stat;
+		@echo " $(RM) -r learn/krr/ "; $(RM) -r learn/krr/audios/ learn/krr/plots/ learn/krr/krr-* learn/krr/krr.measures learn/krr/krr.target learn/krr/krr.stat;
+		@echo " $(RM) -r learn/svr/ "; $(RM) -r learn/svr/audios/ learn/svr/plots/ learn/svr/svr-* learn/svr/svr.measures learn/svr/svr.target learn/svr/svr.stat;
+		@echo " $(RM) -r learn/mlp/ "; $(RM) -r learn/mlp/audios/ learn/mlp/plots/ learn/mlp/mlp-* learn/mlp/mlp.measures learn/mlp/mlp.target learn/mlp/mlp.stat;
+		$(RM) learn/data.sample;
 
 test: all
 	@echo " Testing...";

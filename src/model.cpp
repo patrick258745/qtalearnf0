@@ -260,7 +260,6 @@ double QtaErrorFunction::correlation_coeff (const target_v& qtaVector) const
 double QtaErrorFunction::cost_function (const target_v& qtaVector) const
 {
 	// setup regularization
-	double lambda (10.0);
 	double N (qtaVector.size());
 
 	// calculate error
@@ -270,7 +269,7 @@ double QtaErrorFunction::cost_function (const target_v& qtaVector) const
 		// scale data
 		double normedSlope = 2*((t.m-(-50))/100)-1;
 		double normedOffset = 2*((t.b-75)/40)-1;
-		double normedStrength = 2*((t.l-1)/79)-1;
+		double normedStrength = ((t.l-1)/79)-1;
 
 		// accumulate summed error
 		sseSlope += (normedSlope*normedSlope);
@@ -279,10 +278,10 @@ double QtaErrorFunction::cost_function (const target_v& qtaVector) const
 	}
 
 	// penalty term
-	double penalty = sseSlope + (0.5)*sseOffset + (0.2)*sseStrength;
+	double penalty = sseSlope + (0.25)*sseOffset + (0.25)*sseStrength;
 
 	// cost function to minimize
-	return mean_squared_error(qtaVector) + (1/N)*lambda*penalty;
+	return mean_squared_error(qtaVector) + (1.0/N)*m_lambda*penalty;
 }
 
 double QtaErrorFunction::max_velocity (const target_v& qtaVector) const

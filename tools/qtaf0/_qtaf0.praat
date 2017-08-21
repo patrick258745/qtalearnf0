@@ -42,7 +42,7 @@ b_max = offset_range_max
 l_min = strength_range_min
 l_max = strength_range_max
 shift = syllable_shift
-lambda = regularization_parameter
+penalty = regularization_parameter
 n = filter_order
 cnt = 0
 if task = 1
@@ -115,11 +115,7 @@ for current_file from 1 to numberOfFiles
 	
 		##### Get F0 PitchTier
 		if fileReadable ("'corpus_directory$''name$'.PitchTier")
-			if fileReadable ("'corpus_directory$''name$'.PitchTier")
-				Read from file... 'corpus_directory$''name$'.PitchTier
-			else
-				exit Missing pulse File 'name$'
-			endif
+			Read from file... 'corpus_directory$''name$'.PitchTier
 			select PitchTier 'name$'
 			Formula... 12*log2(self); semitone
 			Rename... semitoneF0
@@ -313,7 +309,7 @@ procedure qtaAnalysis
 
 	##### call C++ program
 	if fileReadable("./qtamodel")
-		runSystem: "./qtamodel 'flag$' --in 'corpus_directory$'input --out 'corpus_directory$'output -l 'lambda'"
+		runSystem: "./qtamodel 'flag$' --in 'corpus_directory$'input --out 'corpus_directory$'output -l 'penalty'"
 	else
 		printline Cannot find ./qtamodel!
 		exit
