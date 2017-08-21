@@ -205,7 +205,7 @@ double QtaErrorFunction::operator() ( const la_col_vec& arg) const
 		tmp.l = arg(i+2);
 		qtaVector.push_back(tmp);
 	}
-	//return cost_function(qtaVector);
+
 	return cost_function(qtaVector);
 }
 
@@ -259,40 +259,30 @@ double QtaErrorFunction::correlation_coeff (const target_v& qtaVector) const
 
 double QtaErrorFunction::cost_function (const target_v& qtaVector) const
 {
-	// slope penalization
-	/*double mseSlope (0.0), mseOffset(0.0), mseStrength(0.0);
+	// setup regularization
+	double lambda (10.0);
+	double N (qtaVector.size());
+
+	// calculate error
+	double sseSlope (0.0), sseOffset(0.0), sseStrength(0.0);
 	for (auto t : qtaVector)
 	{
+		// scale data
 		double normedSlope = 2*((t.m-(-50))/100)-1;
-		mseSlope += (normedSlope*normedSlope);
 		double normedOffset = 2*((t.b-75)/40)-1;
-		mseOffset += (normedOffset*normedOffset);
-		double normedStrength = ((t.l-1)/79)-1;
-		mseStrength += (normedStrength*normedStrength);
-	}
-	mseSlope /= qtaVector.size();
-	mseOffset /= qtaVector.size();
-	mseStrength /= qtaVector.size();
+		double normedStrength = 2*((t.l-1)/79)-1;
 
-	const double LAMBDA1 = 5.0;
-	const double LAMBDA2 = LAMBDA1/2.0;
-	const double LAMBDA3 = LAMBDA1/5.0;*/
-
-	// regularization
-	unsigned S (qtaVector.size());
-	double lambda (0.5);
-	double slopeErr (0), offsetErr (0), strengthErr (0);
-
-	for (auto t : qtaVector)
-	{
-		slopeErr += std::abs(t.m);
-		offsetErr += std::abs(t.b-94.6);
-		strengthErr += std::abs(t.l-80);
+		// accumulate summed error
+		sseSlope += (normedSlope*normedSlope);
+		sseOffset += (normedOffset*normedOffset);
+		sseStrength += (normedStrength*normedStrength);
 	}
 
-	slopeErr /= S; offsetErr /= S; strengthErr /= S;
+	// penalty term
+	double penalty = sseSlope + (0.5)*sseOffset + (0.2)*sseStrength;
 
-	return root_mean_squared_error(qtaVector) + lambda*(slopeErr/50 + offsetErr/20 + strengthErr/80)/3;
+	// cost function to minimize
+	return mean_squared_error(qtaVector) + (1/N)*lambda*penalty;
 }
 
 double QtaErrorFunction::max_velocity (const target_v& qtaVector) const
