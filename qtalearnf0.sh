@@ -1,6 +1,6 @@
 ##### computing tasks #####
 doQtaSearch="1"
-doModelSelection="1"
+doModelSelection="0"
 doPrediction="1"
 
 ##### user data #####
@@ -15,7 +15,7 @@ lmin="1"
 lmax="80"
 order="5"
 shift="0"
-store="0"
+store="1"
 folds="10"
 lambda="5.0"
 
@@ -31,16 +31,16 @@ function qtaSearch {
   START_TIME=$SECONDS
 
   # search optimal qta parameters
-  $praat --run $script $search $fmin $fmax $smean $shift $order $data_path/qta/data/ $data_path/qta/data.target $mmin $mmax $bmin $bmax $lmin $lmax $lambda $store $data_path/qta/;
+  $praat --run $script $search $fmin $fmax $smean $shift $order $data_path/qta/data/ $data_path/qta/qta.target $mmin $mmax $bmin $bmax $lmin $lmax $lambda $store $data_path/qta/;
 
   # resynthesis with optimal qta parameters
-  $praat --run $script $resynth $fmin $fmax $smean $shift $order $data_path/qta/data/ $data_path/qta/data.target $mmin $mmax $bmin $bmax $lmin $lmax $lambda $store $data_path/qta/;
+  $praat --run $script $resynth $fmin $fmax $smean $shift $order $data_path/qta/data/ $data_path/qta/qta.target $mmin $mmax $bmin $bmax $lmin $lmax $lambda $store $data_path/qta/;
 
   # calculate statistics
-  bin/qtatools -s --in $data_path/qta/data.target --out $data_path/qta/data.stat --dir $data_path/qta/
+  bin/qtatools -s --in $data_path/qta/qta.target --out $data_path/qta/qta.stat --dir $data_path/qta/
 
   # create training data
-  bin/mlasampling --in $data_path/corpus.sampa $data_path/qta/data.target --out $data_path/data.sample;
+  bin/mlasampling --in $data_path/corpus.sampa $data_path/qta/qta.target --out $data_path/data.sample;
 
   ELAPSED_TIME=$(($SECONDS - $START_TIME))
   echo ">>> $(($ELAPSED_TIME/60)) min $(($ELAPSED_TIME%60)) sec <<<"
