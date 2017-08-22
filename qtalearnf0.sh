@@ -16,7 +16,7 @@ lmax="80"
 order="5"
 shift="0"
 store="0"
-folds="10"
+folds="5"
 lambda="5.0"
 
 ##### parameters #####
