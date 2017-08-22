@@ -164,7 +164,18 @@ mlp_params MultiLayerPerceptron::select_model(const sample_v& samples, const std
 	la_col_vec arg(4);
 	arg = optParams.num1layer,optParams.num2layer,optParams.alpha,optParams.momentum;
 	la_col_vec logArg = log(arg), logLowerBound = log(lowerBound), logUpperBound = log(upperBound); // log scale
-    dlib::find_min_bobyqa(MlpCvError (samples, targets, m_folds), logArg, arg.size()*2+1, logLowerBound, logUpperBound, min(logUpperBound-logLowerBound)/10, 1e-2, 100);
+
+	try
+	{
+		dlib::find_min_bobyqa(MlpCvError (samples, targets, m_folds), logArg, arg.size()*2+1, logLowerBound, logUpperBound, min(logUpperBound-logLowerBound)/10, 1e-2, 100);
+	}
+	catch (dlib::bobyqa_failure& err)
+	{
+		// DEBUG message
+		#ifdef DEBUG_MSG
+		std::cout << "\t[select_model] WARNING: no convergence during optimization: " << std::endl << err.info << std::endl;
+		#endif
+	}
 
 	// return  results
 	arg = exp(logArg); optParams.num1layer = arg(0); optParams.num2layer = arg(1); optParams.alpha = arg(2); optParams.momentum = arg(3);

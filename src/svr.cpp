@@ -127,8 +127,18 @@ svr_params SupportVectorRegression::select_model(const sample_v& samples, const 
 	la_col_vec arg(3);
 	arg = optParams.C,optParams.gamma,optParams.intensity;
 	la_col_vec logArg = log(arg), logLowerBound = log(lowerBound), logUpperBound = log(upperBound); // log scale
-    dlib::find_min_bobyqa(SvrCvError (samples, targets, m_folds), logArg, arg.size()*2+1, logLowerBound, logUpperBound, min(logUpperBound-logLowerBound)/10, 1e-2, 100);
 
+	try
+	{
+		dlib::find_min_bobyqa(SvrCvError (samples, targets, m_folds), logArg, arg.size()*2+1, logLowerBound, logUpperBound, min(logUpperBound-logLowerBound)/10, 1e-2, 100);
+	}
+	catch (dlib::bobyqa_failure& err)
+	{
+		// DEBUG message
+		#ifdef DEBUG_MSG
+		std::cout << "\t[select_model] WARNING: no convergence during optimization: " << std::endl << err.info << std::endl;
+		#endif
+	}
 	// return  results
 	arg = exp(logArg); optParams.C = arg(0); optParams.gamma = arg(1); optParams.intensity = arg(2);
     return optParams;

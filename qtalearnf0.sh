@@ -1,7 +1,7 @@
 ##### computing tasks #####
 doQtaSearch="0"
 doModelSelection="1"
-doPrediction="1"
+doPrediction="0"
 
 ##### user data #####
 fmin="100"
