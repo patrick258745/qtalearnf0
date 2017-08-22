@@ -1,7 +1,7 @@
 ##### computing tasks #####
 doQtaSearch="1"
 doModelSelection="0"
-doPrediction="1"
+doPrediction="0"
 
 ##### user data #####
 fmin="100"
@@ -15,7 +15,7 @@ lmin="1"
 lmax="80"
 order="5"
 shift="0"
-store="1"
+store="0"
 folds="10"
 lambda="5.0"
 

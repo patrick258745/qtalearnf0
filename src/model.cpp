@@ -269,7 +269,7 @@ double QtaErrorFunction::cost_function (const target_v& qtaVector) const
 		// scale data
 		double normedSlope = 2*((t.m-(-50))/100)-1;
 		double normedOffset = 2*((t.b-75)/40)-1;
-		double normedStrength = ((t.l-1)/79)-1;
+		double normedStrength = 2*((t.l-1)/79)-1;
 
 		// accumulate summed error
 		sseSlope += (normedSlope*normedSlope);
