@@ -233,7 +233,7 @@ void MultiLayerPerceptron::model_selection()
 	// define parameter search space {num1layer, num2layer, alpha}
 	la_col_vec lowerBound(4), upperBound(4);
 	std::vector<unsigned> dimensions;
-	lowerBound = 1e0, 1e0, 1e-3, 1e-3;
+	lowerBound = 1e-1, 1e-1, 1e-3, 1e-3;
 	upperBound = 2e2, 2e2, 1e1, 1e1;
 	dimensions = {15,15,10,10};
 
