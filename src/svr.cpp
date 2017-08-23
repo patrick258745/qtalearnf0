@@ -203,7 +203,7 @@ void SupportVectorRegression::model_selection()
 	la_col_vec lowerBound(3), upperBound(3);
 	std::vector<unsigned> dimensions;
 	lowerBound = 5e-2, 1e-3, 1e-3;
-	upperBound = 2e1, 1e0, 1e0;
+	upperBound = 3e1, 1e0, 1e0;
 	dimensions = {7,7,7};
 
 	// calculate grid for grid search
