@@ -47,7 +47,7 @@ tools/qtaf0/praat
 *.stat
 *.algorithm
 job.batch
-qtalearn.sh
+qtalearnf0.sh
 
 # HPC
 .out
