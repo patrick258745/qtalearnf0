@@ -261,15 +261,17 @@ double QtaErrorFunction::cost_function (const target_v& qtaVector) const
 {
 	// setup regularization
 	double N (qtaVector.size());
+	const pitch_target_s& low = m_searchBounds[0].lower;
+	const pitch_target_s& up = m_searchBounds[0].upper;
 
 	// calculate error
 	double sseSlope (0.0), sseOffset(0.0), sseStrength(0.0);
 	for (auto t : qtaVector)
 	{
 		// scale data
-		double normedSlope = 2*((t.m-(-75))/150)-1;
-		double normedOffset = 2*((t.b-75)/40)-1;
-		double normedStrength = ((t.l-1)/79)-1;
+		double normedSlope = 2*((t.m-low.m)/(up.m-low.m))-1;
+		double normedOffset = 2*((t.b-low.b)/(up.b-low.b))-1;
+		double normedStrength = ((t.l-low.l)/(up.l-low.l))-1;
 
 		// accumulate summed error
 		sseSlope += (normedSlope*normedSlope);

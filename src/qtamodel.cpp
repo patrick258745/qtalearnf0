@@ -82,6 +82,7 @@ int main(int argc, char* argv[])
 		if (parser.option("s"))
 		{
 			praatFiles.read_praat_file(qtaError, searchSpace, inputFile);
+			qtaError.set_search_bounds(searchSpace);
 			paramSearch.optimize(optParams, qtaError, searchSpace);
 		}
 		else

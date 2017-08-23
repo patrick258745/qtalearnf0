@@ -45,6 +45,7 @@ public:
 	void initialize_filter (const state_v& initState, const time_v& intervalBounds);
 	void get_filter_response (signal_s& filteredF0, const target_v& qtaVector) const;
 	void set_lambda (const double& lambda) {m_lambda=lambda;};
+	void set_search_bounds (const std::vector<bound_s>& bounds) {m_searchBounds=bounds;};
 
 	double operator() ( const la_col_vec& arg) const;
 	double correlation_coeff (const target_v& qtaVector) const;
@@ -63,6 +64,7 @@ private:
 	CdlpFilter	m_lowPassFilter;
 	signal_s	m_origF0;
 	double 		m_lambda;
+	std::vector<bound_s> m_searchBounds;
 };
 
 class PraatFileIo {
