@@ -2,8 +2,9 @@
 
 // *************** SVRERROR ***************
 
-double SvrCvError::operator() (const la_col_vec& arg) const
+double SvrCvError::operator() (const la_col_vec& logArg) const
 {
+	la_col_vec arg = exp(logArg);
 	svr_params params ({arg(0), arg(1), arg(2)});
 	dlib::matrix<double,1,2> tmp = dlib::cross_validate_regression_trainer(SupportVectorRegression::build_trainer(params), m_samples, m_targets, m_folds);
 	return tmp(0);
@@ -126,9 +127,12 @@ svr_params SupportVectorRegression::select_model(const sample_v& samples, const 
 	la_col_vec arg(3);
 	arg = optParams.C,optParams.gamma,optParams.intensity;
 
+	// log scale
+	la_col_vec logArg = log(arg), logLowerBound = log(lowerBound), logUpperBound = log(upperBound);
+
 	try
 	{
-		dlib::find_min_bobyqa(SvrCvError (samples, targets, m_folds), arg, arg.size()*2+1, lowerBound, upperBound, min(upperBound-lowerBound)/10, 1e-2, 100);
+		dlib::find_min_bobyqa(SvrCvError (samples, targets, m_folds), logArg, arg.size()*2+1, logLowerBound, logUpperBound, min(logUpperBound-logLowerBound)/10, 1e-2, 100);
 	}
 	catch (dlib::bobyqa_failure& err)
 	{
@@ -138,6 +142,7 @@ svr_params SupportVectorRegression::select_model(const sample_v& samples, const 
 		#endif
 	}
 	// return  results
+	arg = exp(logArg);
 	optParams.C = arg(0); optParams.gamma = arg(1); optParams.intensity = arg(2);
     return optParams;
 }
@@ -200,9 +205,9 @@ void SupportVectorRegression::model_selection()
 	// define parameter search space {C,gamma,intensity}
 	la_col_vec lowerBound(3), upperBound(3);
 	std::vector<unsigned> dimensions;
-	lowerBound = 5e-2, 1e-3, 1e-3;
-	upperBound = 3e1, 1e0, 1e0;
-	dimensions = {7,7,7};
+	lowerBound = 0.01, 0.001, 0.001;
+	upperBound = 50, 1, 1;
+	dimensions = {10,10,10};
 
 	// calculate grid for grid search
 	grid_t grid = get_grid(lowerBound, upperBound, dimensions);
