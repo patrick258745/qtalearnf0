@@ -1,18 +1,18 @@
 ##### computing tasks #####
-doQtaSearch="0"
-doModelSelection="1"
+doQtaSearch="1"
+doModelSelection="0"
 doPrediction="0"
 
 ##### user data #####
 fmin="100"
 fmax="500"
 smean="232.86"
-mmin="-50"
-mmax="50"
+mmin="-75"
+mmax="75"
 bmin="75"
 bmax="115"
 lmin="1"
-lmax="80"
+lmax="120"
 order="5"
 shift="0"
 store="0"

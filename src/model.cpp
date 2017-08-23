@@ -267,9 +267,9 @@ double QtaErrorFunction::cost_function (const target_v& qtaVector) const
 	for (auto t : qtaVector)
 	{
 		// scale data
-		double normedSlope = 2*((t.m-(-50))/100)-1;
+		double normedSlope = 2*((t.m-(-75))/150)-1;
 		double normedOffset = 2*((t.b-75)/40)-1;
-		double normedStrength = 2*((t.l-1)/79)-1;
+		double normedStrength = ((t.l-1)/119)-1;
 
 		// accumulate summed error
 		sseSlope += (normedSlope*normedSlope);
@@ -278,7 +278,7 @@ double QtaErrorFunction::cost_function (const target_v& qtaVector) const
 	}
 
 	// penalty term
-	double penalty = sseSlope + (0.25)*sseOffset + (0.25)*sseStrength;
+	double penalty = sseSlope + (0.25)*sseOffset + (0.125)*sseStrength;
 
 	// cost function to minimize
 	return mean_squared_error(qtaVector) + (1.0/N)*m_lambda*penalty;
