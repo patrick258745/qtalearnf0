@@ -2,9 +2,8 @@
 
 // *************** SVRERROR ***************
 
-double SvrCvError::operator() (const la_col_vec& logArg) const
+double SvrCvError::operator() (const la_col_vec& arg) const
 {
-	la_col_vec arg = exp(logArg);
 	svr_params params ({arg(0), arg(1), arg(2)});
 	dlib::matrix<double,1,2> tmp = dlib::cross_validate_regression_trainer(SupportVectorRegression::build_trainer(params), m_samples, m_targets, m_folds);
 	return tmp(0);
@@ -126,11 +125,10 @@ svr_params SupportVectorRegression::select_model(const sample_v& samples, const 
     // optimization via BOBYQA
 	la_col_vec arg(3);
 	arg = optParams.C,optParams.gamma,optParams.intensity;
-	la_col_vec logArg = log(arg), logLowerBound = log(lowerBound), logUpperBound = log(upperBound); // log scale
 
 	try
 	{
-		dlib::find_min_bobyqa(SvrCvError (samples, targets, m_folds), logArg, arg.size()*2+1, logLowerBound, logUpperBound, min(logUpperBound-logLowerBound)/10, 1e-2, 100);
+		dlib::find_min_bobyqa(SvrCvError (samples, targets, m_folds), arg, arg.size()*2+1, lowerBound, upperBound, min(upperBound-lowerBound)/10, 1e-2, 100);
 	}
 	catch (dlib::bobyqa_failure& err)
 	{
@@ -140,7 +138,7 @@ svr_params SupportVectorRegression::select_model(const sample_v& samples, const 
 		#endif
 	}
 	// return  results
-	arg = exp(logArg); optParams.C = arg(0); optParams.gamma = arg(1); optParams.intensity = arg(2);
+	optParams.C = arg(0); optParams.gamma = arg(1); optParams.intensity = arg(2);
     return optParams;
 }
 

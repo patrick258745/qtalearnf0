@@ -2,9 +2,8 @@
 
 // *************** MLPCVERROR ***************
 
-double MlpCvError::operator() (const la_col_vec& logArg) const
+double MlpCvError::operator() (const la_col_vec& arg) const
 {
-	la_col_vec arg = exp(logArg);
 	mlp_model_t net (NUMFEATSYL, (unsigned)arg(0), (unsigned)arg(1), 1, (unsigned)arg(2), (unsigned)arg(3));
 	double mse = MultiLayerPerceptron::cross_validate_regression_network(net, m_samples, m_targets, m_folds);
 	return mse;
@@ -163,11 +162,10 @@ mlp_params MultiLayerPerceptron::select_model(const sample_v& samples, const std
     // optimization via BOBYQA
 	la_col_vec arg(4);
 	arg = optParams.num1layer,optParams.num2layer,optParams.alpha,optParams.momentum;
-	la_col_vec logArg = log(arg), logLowerBound = log(lowerBound), logUpperBound = log(upperBound); // log scale
 
 	try
 	{
-		dlib::find_min_bobyqa(MlpCvError (samples, targets, m_folds), logArg, arg.size()*2+1, logLowerBound, logUpperBound, min(logUpperBound-logLowerBound)/10, 1e-2, 100);
+		dlib::find_min_bobyqa(MlpCvError (samples, targets, m_folds), arg, arg.size()*2+1, lowerBound, upperBound, min(upperBound-lowerBound)/10, 1e-2, 100);
 	}
 	catch (dlib::bobyqa_failure& err)
 	{
@@ -178,7 +176,7 @@ mlp_params MultiLayerPerceptron::select_model(const sample_v& samples, const std
 	}
 
 	// return  results
-	arg = exp(logArg); optParams.num1layer = arg(0); optParams.num2layer = arg(1); optParams.alpha = arg(2); optParams.momentum = arg(3);
+	optParams.num1layer = arg(0); optParams.num2layer = arg(1); optParams.alpha = arg(2); optParams.momentum = arg(3);
     return optParams;
 }
 
@@ -244,7 +242,7 @@ void MultiLayerPerceptron::model_selection()
 	// define parameter search space {num1layer, num2layer, alpha}
 	la_col_vec lowerBound(4), upperBound(4);
 	std::vector<unsigned> dimensions;
-	lowerBound = 1e0, 1e-1, 1e-2, 1e-3;
+	lowerBound = 0, 0, 1e-2, 1e-3;
 	upperBound = 2e2, 2e2, 1e1, 1e0;
 	dimensions = {10,10,7,7};
 
