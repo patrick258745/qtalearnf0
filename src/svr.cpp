@@ -205,9 +205,9 @@ void SupportVectorRegression::model_selection()
 	// define parameter search space {C,gamma,intensity}
 	la_col_vec lowerBound(3), upperBound(3);
 	std::vector<unsigned> dimensions;
-	lowerBound = 0.01, 0.001, 0.001;
-	upperBound = 50, 1, 1;
-	dimensions = {10,10,10};
+	lowerBound = 0.1, 0.01, 0.0005;
+	upperBound = 30, 1, 0.5;
+	dimensions = {7,7,7};
 
 	// calculate grid for grid search
 	grid_t grid = get_grid(lowerBound, upperBound, dimensions);
