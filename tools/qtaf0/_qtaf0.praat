@@ -9,7 +9,8 @@ form quantitativeTargetApproximation
 	comment General options options:
 		integer f0_range_min_(Hz) 100
 		integer f0_range_max_(Hz) 500
-		integer speaker_mean_(Hz) 232.86
+		integer speaker_mean_(Hz) 228.5
+    boolean use_mean 0
 		real syllable_shift 0
 		integer filter_order 5
 		word corpus_directory ../../test/corpus/
@@ -244,7 +245,7 @@ procedure qtaAnalysis
 	##### create input file for ./qtatarget
 	filedelete 'corpus_directory$'input
 	fileappend 'corpus_directory$'input 'n''newline$'
-	fileappend 'corpus_directory$'input 's_mean''newline$'
+	fileappend 'corpus_directory$'input 's_mean' 'use_mean''newline$'
 	fileappend 'corpus_directory$'input 'interval_t''newline$'
 	interval_t = 0
 
@@ -533,7 +534,7 @@ endproc
 procedure generatePlot
 	createDirectory: "'output_directory$'plots"
 	if fileReadable("./qtatools")
-		runSystem: "./qtatools -p --dir 'corpus_directory$' --label 'name$' --out 'output_directory$'plots/'name$'.png"
+		runSystem: "./qtatools -p --dir 'corpus_directory$' --label 'name$' --shift 'shift' --out 'output_directory$'plots/'name$'.png"
 	else
 		printline Cannot find ./qtatools!
 		exit

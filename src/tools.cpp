@@ -55,7 +55,7 @@ void PlotFile::read_plot_data ()
 			std::getline(finBound, line);
 			std::getline(finBound, line);
 			tokens = dlib::split(line, "=");
-			m_data.bound.push_back(std::stod(tokens[1])-(m_data.shift/1000));
+			m_data.bound.push_back(std::stod(tokens[1])-(m_data.shift/1000.0));
 		}
 
 		// get last syllable bounds

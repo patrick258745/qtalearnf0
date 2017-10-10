@@ -325,7 +325,9 @@ void PraatFileIo::read_input(QtaErrorFunction& qtaError, std::vector<bound_s>& s
 
 		// second line
 		std::getline(fin, line);
-		double fInit (std::stod(line));	// initial f0 - speaker value
+		tokens = dlib::split(line, " ");
+		double fInit (std::stod(tokens[0]));	// initial f0 - speaker value
+		bool use_fInit (std::stoi(tokens[1]));
 
 		// third line
 		std::getline(fin, line);
@@ -384,8 +386,15 @@ void PraatFileIo::read_input(QtaErrorFunction& qtaError, std::vector<bound_s>& s
 		}
 
 		// calculate initial state
-		//initState.push_back(f0.sampleValues(0));
-		initState.push_back(fInit);
+		if (use_fInit)
+		{
+			initState.push_back(fInit);
+		}
+		else
+		{
+			initState.push_back(f0.sampleValues(0));
+		}
+
 		for (unsigned int i=1; i<M; ++i)
 		{
 			initState.push_back(0.0);

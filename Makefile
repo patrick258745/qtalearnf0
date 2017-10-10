@@ -3,7 +3,7 @@ SRCDIR := src
 BINDIR := bin
 BUILDDIR := build
 QTAF0 := tools/qtaf0
-EXECUTABLES := $(BINDIR)/qtamodel $(BINDIR)/mlasampling $(BINDIR)/mlatraining $(BINDIR)/qtatools
+EXECUTABLES := $(BINDIR)/qtamodel $(BINDIR)/mlasampling $(BINDIR)/mlatraining $(BINDIR)/qtatools $(BINDIR)/table
 
 SRCEXT := cpp
 SOURCES := $(shell find $(SRCDIR) -type f -name *.$(SRCEXT))
@@ -13,6 +13,10 @@ LIB := -L -lm -lpthread
 INC := -I include/ -I lib/
 
 all: ${EXECUTABLES}
+
+$(BINDIR)/table: $(BUILDDIR)/table.o $(BUILDDIR)/source.o
+	@echo " Linking" $@ "... "
+	@echo " $(CC) $^ -o $@ $(LIB)"; $(CC) $^ -o $@ $(LIB)
 
 $(BINDIR)/qtamodel: $(BUILDDIR)/qtamodel.o $(BUILDDIR)/model.o $(BUILDDIR)/source.o
 	@echo " Linking" $@ "... "
