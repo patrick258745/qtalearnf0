@@ -109,6 +109,7 @@ svr_params SupportVectorRegression::select_model(const sample_v& samples, const 
 		svr_params params ({grid(0, col),grid(1, col),grid(2, col)});
     	dlib::matrix<double,1,2> tmp = dlib::cross_validate_regression_trainer(build_trainer(params), samples, targets, m_folds);
         double tmpMSE = tmp(0);
+        //std::cout << col << " started..." << std::endl;
 
         // save the best results
         dlib::auto_mutex lock(mu);
@@ -205,9 +206,9 @@ void SupportVectorRegression::model_selection()
 	// define parameter search space {C,gamma,intensity}
 	la_col_vec lowerBound(3), upperBound(3);
 	std::vector<unsigned> dimensions;
-	lowerBound = 1e-5, 1e-5, 1e-5;
-	upperBound = 1e5, 1e5, 1e5;
-	dimensions = {15,15,15};
+	lowerBound = 1e-4, 1e-5, 1e-5;
+	upperBound = 1e2, 1e1, 1e1;
+	dimensions = {10,10,10};
 
 	// calculate grid for grid search
 	grid_t grid = get_grid(lowerBound, upperBound, dimensions);
